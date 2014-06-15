@@ -1,0 +1,12 @@
+{application, mmath,
+ [
+  {description, "math library for metroc sequences"},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, {rankmatcher, []}},
+  {env, []}
+ ]}.
