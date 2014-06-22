@@ -27,6 +27,10 @@ test: all
 	-rm -r .eunit
 	$(REBAR) skip_deps=true eunit
 
+eqc-compile:
+	(cd test; erl -DEQC -DTEST -eval 'make:all([{parse_transform, eqc_cover}])' -s init stop)
+	(cd src; erl -DEQC -DTEST -eval 'make:all([{parse_transform, eqc_cover}, {i, "../include"}])' -s init stop)
+
 bench: all
 	-rm -r .eunit
 	$(REBAR) -D BENCH skip_deps=true eunit
