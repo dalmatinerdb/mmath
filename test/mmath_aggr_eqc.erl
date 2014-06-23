@@ -77,10 +77,6 @@ prop_scale_len_undefined() ->
     ?FORALL(L, non_neg_int(),
             L == mmath_bin:length(mmath_aggr:scale(mmath_bin:empty(L), 1))).
 
-prop_combine_sum() ->
-    ?FORALL({_, _, A}, defined_int_array(),
-            mmath_comb:sum(A, A) == mmath_aggr:scale(A, 2)).
-
 prop_combine_sum_identity() ->
     ?FORALL({_, _, A}, defined_int_array(),
             mmath_comb:sum([A]) == A).
