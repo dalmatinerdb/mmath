@@ -1,4 +1,4 @@
--module(mmath_comb_test).
+-module(mmath_comb_eqc).
 
 -include_lib("eqc/include/eqc.hrl").
 -include_lib("eunit/include/eunit.hrl").

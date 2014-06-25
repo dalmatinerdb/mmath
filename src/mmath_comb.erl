@@ -34,8 +34,6 @@ sum(<<?NONE, _A:?BITS/signed-integer, RA/binary>>,
     <<?NONE, _B:?BITS/signed-integer, RB/binary>>, LA, LB, Acc) ->
     sum(RA, RB, LA, LB, <<Acc/binary, ?INT, (LA+LB):?BITS/signed-integer>>).
 
-
-
 merge(A, B) ->
     merge(A, B, <<>>).
 
@@ -54,8 +52,6 @@ merge(<<>>, D, Acc) ->
     <<Acc/binary, D/binary>>;
 merge(D, <<>>, Acc) ->
     <<Acc/binary, D/binary>>.
-
-
 
 rcomb(F, [A], [B]) ->
     F(A, B);
