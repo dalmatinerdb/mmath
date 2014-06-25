@@ -40,38 +40,5 @@ prop_find_type() ->
     ?FORALL({T, B}, non_obvious_list(),
             T == mmath_bin:find_type(B)).
 
-prop_combine_int() ->
-    ?FORALL({{La, _, Ba}, {Lb, _, Bb}}, {int_array(), int_array()},
-            combine(La, Lb) == mmath_bin:to_list(mmath_bin:combine(Ba, Bb))).
-
-prop_combine_float() ->
-    ?FORALL({{La, _, Ba}, {Lb, _, Bb}}, {float_array(), float_array()},
-            combine(La, Lb) == mmath_bin:to_list(mmath_bin:combine(Ba, Bb))).
-
-combine(A, B) ->
-    combine(A, B, []).
-
-combine([{false, _} | R1], [{true, V} | R2], Acc) ->
-    combine(R1, R2, [V | Acc]);
-combine([{true, V} | R1], [_ | R2], Acc) ->
-    combine(R1, R2, [V | Acc]);
-combine([_ | R1], [_ | R2], [Last | _] = Acc) ->
-    combine(R1, R2, [Last | Acc]);
-combine([_ | R1], [_ | R2], []) ->
-    combine(R1, R2, [0]);
-combine([], [], Acc) ->
-    lists:reverse(Acc);
-combine([], [{true, V} | R], Acc ) ->
-    combine([], R, [V | Acc]);
-combine([], [{false, _} | R], []) ->
-    combine([], R, [0]);
-combine([], [{false, _} | R], [Last | _] = Acc) ->
-    combine([], R, [Last | Acc]);
-combine(A, [], Acc) ->
-    combine([], A, Acc).
-
-
-
-
 
 -include("eqc_helper.hrl").
