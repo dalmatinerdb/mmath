@@ -89,6 +89,16 @@ prop_combine_avg_N() ->
     ?FORALL({{_, _, A}, N}, {defined_int_array(), pos_int()},
             mmath_comb:avg([A || _ <- lists:seq(1, N+1)]) == mmath_aggr:scale(A, 1.0)).
 
+
+prop_count_empty() ->
+    ?FORALL({{L, _, B}, N}, {int_array(), pos_int()},
+            begin
+                Act = mmath_bin:to_list(mmath_aggr:empty(B, N)),
+                Exp = empty(L, N),
+                ?WHENFAIL(io:format(user, "~p /= ~p~n", [Act, Exp]),
+                          Act == Exp)
+            end).
+
 scale_i(L, S) ->
     [round(N*S) || N <- L].
 
@@ -107,8 +117,14 @@ min_list(L, N) ->
 max_list(L, N) ->
     apply_n(L, N, fun max_/2).
 
+empty(L, N) ->
+    apply_n(L, N, fun empty_/2).
+
 apply_n(L, N, F) ->
     fix_list([F(SL, N) || SL <- n_length_chunks(L, N)], 0, []).
+
+empty_(L, N) ->
+    lists:sum([1 || {false, _} <- L]) + N - length(L).
 
 avg_(L, N) ->
     lists:sum(L) / N.

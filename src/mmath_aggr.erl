@@ -8,9 +8,30 @@
 %%%-------------------------------------------------------------------
 -module(mmath_aggr).
 
--export([sum/2, avg/2, min/2, max/2, scale/2, derivate/1]).
+-export([empty/2, sum/2, avg/2, min/2, max/2, scale/2, derivate/1]).
 -include("mmath.hrl").
 
+
+empty(Data, Count) ->
+    empty(Data, 0, Count, Count, <<>>).
+
+empty(R, Empty, 0, Count, Acc) ->
+    Acc1 = <<Acc/binary, ?INT, Empty:?BITS/signed-integer>>,
+    empty(R, 0, Count, Count, Acc1);
+
+empty(<<?NONE, 0:?BITS/float, R/binary>>, Sum, N, Count, Acc) ->
+    empty(R, Sum + 1, N-1, Count, Acc);
+
+
+empty(<<_, _I:?BITS/signed-integer, R/binary>>, Sum, N, Count, Acc) ->
+    empty(R, Sum, N - 1, Count, Acc);
+
+empty(<<>>, 0, _Count, _Count, Acc) ->
+    Acc;
+
+empty(<<>>, Sum, Missing, _Count, Acc) ->
+    Empty = Sum + Missing,
+    <<Acc/binary, ?INT, Empty:?BITS/signed-integer>>.
 
 avg(Data, Count) ->
     avg(Data, 0, 0, Count, Count, <<>>).
