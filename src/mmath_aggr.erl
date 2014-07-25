@@ -8,7 +8,10 @@
 %%%-------------------------------------------------------------------
 -module(mmath_aggr).
 
--export([empty/2, sum/2, avg/2, min/2, max/2, scale/2, derivate/1]).
+-export([empty/2, sum/2, avg/2, min/2, max/2]).
+-export([scale/2, derivate/1]).
+-export([percentile/3]).
+
 -include("mmath.hrl").
 
 
@@ -22,7 +25,6 @@ empty(R, Empty, 0, Count, Acc) ->
 empty(<<?NONE, 0:?BITS/float, R/binary>>, Sum, N, Count, Acc) ->
     empty(R, Sum + 1, N-1, Count, Acc);
 
-
 empty(<<_, _I:?BITS/signed-integer, R/binary>>, Sum, N, Count, Acc) ->
     empty(R, Sum, N - 1, Count, Acc);
 
@@ -33,6 +35,65 @@ empty(<<>>, Sum, Missing, _Count, Acc) ->
     Empty = Sum + Missing,
     <<Acc/binary, ?INT, Empty:?BITS/signed-integer>>.
 
+
+percentile(Data, Count, Percentile) ->
+    Pos = erlang:min(Count, round(Count * Percentile) + 1),
+    Size = ?DATA_SIZE * Count,
+    case mmath_bin:find_type(Data) of
+        integer ->
+            percentile_int(Data, Size, Pos, Percentile, <<>>);
+        float ->
+            percentile_float(Data, Size, Pos, Percentile, <<>>);
+        undefined ->
+            mmath_bin:empty(round(mmath_bin:length(Data)/Count))
+    end.
+
+percentile_int(<<>>, _, _, _, Acc) ->
+    Acc;
+
+percentile_int(Data, Size, Pos, Percentile, Acc)
+  when byte_size(Data) >= Size->
+    <<D:Size/binary, R/binary>> = Data,
+    case mmath_bin:find_type(Data) of
+        undefined ->
+            percentile_int(R, Size, Pos, Percentile,
+                           <<Acc/binary, ?NONE, 0:?BITS/signed-integer>>);
+        _ ->
+            L = mmath_bin:to_list(D),
+            V = lists:nth(Pos, lists:sort(L)),
+            percentile_int(R, Size, Pos, Percentile,
+                           <<Acc/binary, ?INT, V:?BITS/signed-integer>>)
+    end;
+
+percentile_int(D, _, _, Percentile, Acc) ->
+    L = mmath_bin:to_list(D),
+    Len = mmath_bin:length(D),
+    V = lists:nth(erlang:min(Len, round(Len * Percentile) + 1), lists:sort(L)),
+    <<Acc/binary, ?INT, V:?BITS/signed-integer>>.
+
+percentile_float(<<>>, _, _, _, Acc) ->
+    Acc;
+
+percentile_float(Data, Size, Pos, Percentile, Acc)
+  when byte_size(Data) >= Size->
+    <<D:Size/binary, R/binary>> = Data,
+    case mmath_bin:find_type(Data) of
+        undefined ->
+            percentile_float(R, Size, Pos, Percentile,
+                             <<Acc/binary, ?NONE, 0:?BITS/float>>);
+        _ ->
+            L = mmath_bin:to_list(D),
+            V = lists:nth(Pos, lists:sort(L)),
+            percentile_float(R, Size, Pos, Percentile,
+                             <<Acc/binary, ?FLOAT, V:?BITS/float>>)
+    end;
+
+percentile_float(D, _, _, Percentile, Acc) ->
+    L = mmath_bin:to_list(D),
+    Len = mmath_bin:length(D),
+    V = lists:nth(erlang:min(Len, round(Len * Percentile) + 1), lists:sort(L)),
+    <<Acc/binary, ?FLOAT, V:?BITS/float>>.
+
 avg(Data, Count) ->
     avg(Data, 0, 0, Count, Count, <<>>).
 
@@ -40,6 +101,7 @@ avg(R, Last, Sum, 0, Count, Acc) ->
     Avg = Sum/Count,
     Acc1 = <<Acc/binary, ?FLOAT, Avg:?BITS/float>>,
     avg(R, Last, 0, Count, Count, Acc1);
+
 avg(<<?INT, I:?BITS/signed-integer, R/binary>>, _Last, Sum, N, Count, Acc) ->
     avg(R, I, Sum + I, N - 1, Count, Acc);
 

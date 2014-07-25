@@ -89,7 +89,6 @@ prop_combine_avg_N() ->
     ?FORALL({{_, _, A}, N}, {defined_int_array(), pos_int()},
             mmath_comb:avg([A || _ <- lists:seq(1, N+1)]) == mmath_aggr:scale(A, 1.0)).
 
-
 prop_count_empty() ->
     ?FORALL({{L, _, B}, N}, {int_array(), pos_int()},
             begin
@@ -99,11 +98,67 @@ prop_count_empty() ->
                           Act == Exp)
             end).
 
+prop_combine_percentile_int() ->
+    ?FORALL({{L, _, A}, N, PRaw}, {defined_int_array(), pos_int(), choose(0, 1000)},
+            begin
+                P = PRaw/1000,
+                Exp = percentile(L, N, P),
+                Act = to_list(mmath_aggr:percentile(A, N, P), []),
+                ?WHENFAIL(io:format(user, "Exp: ~p~nAct: ~p~n",
+                                    [Exp, Act]),
+                          Exp == Act)
+            end).
+
+prop_combine_percentile_float() ->
+    ?FORALL({{L, _, A}, N, PRaw}, {defined_float_array(), pos_int(), choose(0, 1000)},
+            begin
+                P = PRaw/1000,
+                Exp = percentile(L, N, P),
+                Act = to_list(mmath_aggr:percentile(A, N, P), []),
+                ?WHENFAIL(io:format(user, "Exp: ~p~nAct: ~p~n",
+                                    [Exp, Act]),
+                          Exp == Act)
+            end).
+
+
+realise(L) ->
+    realise(L, 0, []).
+
+realise([], _, Acc) ->
+    lists:reverse(Acc);
+realise([{true, V} | R], _, Acc) ->
+    realise(R, V, [V | Acc]);
+realise([{false, _} | R], L, Acc) ->
+    realise(R, L, [L | Acc]).
+
+to_list(<<?INT, V:?BITS/signed-integer, R/binary>>, Acc) ->
+    to_list(R, [V | Acc]);
+to_list(<<?FLOAT, V:?BITS/float, R/binary>>, Acc) ->
+    to_list(R, [V | Acc]);
+to_list(<<?NONE, _:?BITS/float, R/binary>>, Acc) ->
+    to_list(R, [0 | Acc]);
+to_list(<<>>, Acc) ->
+    lists:reverse(Acc).
+
+
+
 scale_i(L, S) ->
     [round(N*S) || N <- L].
 
 scale_f(L, S) ->
     [N*S || N <- L].
+
+percentile(L, N, P) ->
+    apply_n(L, N, fun(L1, N1) -> percentile_(L1, N1, P) end).
+
+percentile_(L, _N, P) ->
+    case realise(L) of
+        [] ->
+            0;
+        L1 ->
+            Len = length(L1),
+            lists:nth(min(Len, round(Len * P) + 1), lists:sort(L1))
+    end.
 
 avg(L, N) ->
     apply_n(L, N, fun avg_/2).
