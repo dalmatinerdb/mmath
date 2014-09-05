@@ -5,7 +5,7 @@
 -compile(export_all).
 -endif.
 
--export([avg/1, sum/1, mul/1, merge/1]).
+-export([avg/1, sum/1, mul/1, merge/1, zip/2]).
 
 sum(Es) ->
     rcomb(fun sum/2, Es, []).
@@ -54,6 +54,52 @@ mul(<<?NONE, _A:?BITS/signed-integer, RA/binary>>,
 mul(<<?NONE, _A:?BITS/signed-integer, RA/binary>>,
     <<?NONE, _B:?BITS/signed-integer, RB/binary>>, LA, LB, Acc) ->
     mul(RA, RB, LA, LB, <<Acc/binary, ?INT, (LA*LB):?BITS/signed-integer>>).
+
+
+zip(Fn, Es) ->
+    rcomb(fun (A, B) -> zip(Fn, A, B) end, Es, []).
+
+zip(Fn, A, B) ->
+    zip(A, B, 1, 1, Fn, <<>>).
+
+zip(<<>>, <<>>, _LA, _LB, _Fn, Acc) ->
+    Acc;
+zip(<<?INT, A:?BITS/signed-integer, RA/binary>>,
+    <<?INT, B:?BITS/signed-integer, RB/binary>>, _LA, _LB, Fn, Acc) ->
+    zip(RA, RB, A, B, Fn, apply(Fn, A, B, Acc));
+zip(<<?FLOAT, A:?BITS/float, RA/binary>>,
+    <<?INT, B:?BITS/signed-integer, RB/binary>>, _LA, _LB, Fn, Acc) ->
+    zip(RA, RB, A, B, Fn, apply(Fn, A, B, Acc));
+zip(<<?INT, A:?BITS/signed-integer, RA/binary>>,
+    <<?FLOAT, B:?BITS/float, RB/binary>>, _LA, _LB, Fn, Acc) ->
+    zip(RA, RB, A, B, Fn, apply(Fn, A, B, Acc));
+zip(<<?FLOAT, A:?BITS/float, RA/binary>>,
+    <<?FLOAT, B:?BITS/float, RB/binary>>, _LA, _LB, Fn, Acc) ->
+    zip(RA, RB, A, B, Fn, apply(Fn, A, B, Acc));
+
+zip(<<?INT, A:?BITS/signed-integer, RA/binary>>,
+    <<?NONE, _:?BITS/signed-integer, RB/binary>>, _LA, LB, Fn, Acc) ->
+    zip(RA, RB, A, LB, Fn,  apply(Fn, A, LB, Acc));
+zip(<<?FLOAT, A:?BITS/float, RA/binary>>,
+    <<?NONE, _:?BITS/signed-integer, RB/binary>>, _LA, LB, Fn, Acc) ->
+    zip(RA, RB, A, LB, Fn,  apply(Fn, A, LB, Acc));
+zip(<<?NONE, _A:?BITS/signed-integer, RA/binary>>,
+    <<?INT, B:?BITS/signed-integer, RB/binary>>, LA, _LB, Fn, Acc) ->
+    zip(RA, RB, LA, B, Fn, apply(Fn, LA, B, Acc));
+zip(<<?NONE, _A:?BITS/signed-integer, RA/binary>>,
+    <<?FLOAT, B:?BITS/float, RB/binary>>, LA, _LB, Fn, Acc) ->
+    zip(RA, RB, LA, B, Fn, apply(Fn, LA, B, Acc));
+zip(<<?NONE, _A:?BITS/signed-integer, RA/binary>>,
+    <<?NONE, _B:?BITS/signed-integer, RB/binary>>, LA, LB, Fn, Acc) ->
+    zip(RA, RB, LA, LB, Fn, apply(Fn, LA, LB, Acc)).
+
+apply(Fn, A, B, Acc) ->
+	case Fn(A, B) of
+		V when is_integer(V) ->
+			<<Acc/binary, ?INT, (A*B):?BITS/signed-integer>>;
+		V when is_float(V) ->
+			<<Acc/binary, ?FLOAT, (A*B):?BITS/signed-float>>
+	end.
 
 merge(A, B) ->
     merge(A, B, <<>>).

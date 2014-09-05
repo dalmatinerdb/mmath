@@ -33,6 +33,15 @@ prop_avg_int() ->
                 ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R2]), R1 == R2)
             end).
 
+prop_zip_int() ->
+    ?FORALL({La, _, Ba}, int_array(),
+            begin
+				F = fun(A, B) -> A * B end,
+                R1 = mul(La, La),
+                R2 = mmath_bin:to_list(mmath_comb:zip(F, [Ba, Ba])),
+                ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R2]), R1 == R2)
+            end).
+
 prop_merge_int() ->
     ?FORALL({{La, _, Ba}, {Lb, _, Bb}}, {int_array(), int_array()},
             merge(La, Lb) == mmath_bin:to_list(mmath_comb:merge([Ba, Bb]))).

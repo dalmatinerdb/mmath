@@ -73,6 +73,24 @@ prop_scale_flaot() ->
     ?FORALL({{_, L, B}, S}, {defined_float_array(), real()},
             scale_f(L, S) == mmath_bin:to_list(mmath_aggr:scale(B, S))).
 
+prop_map_int() ->
+    ?FORALL({{_, L, B}, S}, {defined_int_array(), real()},
+			begin
+				Scale = fun(V) ->
+								round(V * S)
+						end,
+            scale_i(L, S) == mmath_bin:to_list(mmath_aggr:map(B, Scale))
+			end).
+
+prop_map_float() ->
+    ?FORALL({{_, L, B}, S}, {defined_float_array(), real()},
+			begin
+				Scale = fun(V) ->
+								V * S
+						end,
+            scale_f(L, S) == mmath_bin:to_list(mmath_aggr:map(B, Scale))
+			end).
+
 prop_scale_len_undefined() ->
     ?FORALL(L, non_neg_int(),
             L == mmath_bin:length(mmath_aggr:scale(mmath_bin:empty(L), 1))).

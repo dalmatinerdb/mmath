@@ -9,7 +9,7 @@
 -module(mmath_aggr).
 
 -export([empty/2, sum/2, avg/2, min/2, max/2]).
--export([scale/2, derivate/1]).
+-export([scale/2, map/2, derivate/1]).
 -export([percentile/3]).
 
 -include("mmath.hrl").
@@ -261,6 +261,7 @@ max_float(<<>>, Max, _, _, Acc) ->
 
 scale(<<>>, _) ->
     <<>>;
+
 scale(Bin, Scale) ->
     case mmath_bin:find_type(Bin) of
         integer ->
@@ -284,6 +285,7 @@ scale_float(<<?NONE, _:?BITS/integer, Rest/binary>>, I, S, Acc) ->
     scale_float(Rest, I, S, <<Acc/binary, ?FLOAT, (I*S):?BITS/float>>);
 scale_float(<<>>, _, _, Acc) ->
     Acc.
+
 
 derivate(<<>>) ->
     <<>>;
@@ -318,6 +320,26 @@ der_float(<<?NONE, 0:?BITS/float, Rest/binary>>, Last, Acc) ->
 der_float(<<>>, _, Acc) ->
     Acc.
 
+map(Bin, Fn) ->
+	map(Bin, 0, Fn, <<>>).
+
+map(<<?INT, I:?BITS/signed-integer, Rest/binary>>, _, Fn, Acc) ->
+	map(Rest, I, Fn, apl(Fn, I, Acc));
+map(<<?FLOAT, F:?BITS/float, Rest/binary>>, _, Fn, Acc) ->
+	map(Rest, F, Fn, apl(Fn, F, Acc));
+map(<<?NONE, _:?BITS/integer, Rest/binary>>, L, Fn, Acc) ->
+	map(Rest, L, Fn, apl(Fn, L, Acc));
+map(<<>>, _, _, Acc) ->
+    Acc.
+
+apl(Fn, V, Acc) ->
+	case Fn(V) of
+		V1 when is_integer(V1) ->
+			<<Acc/binary, ?INT, V1:?BITS/signed-integer>>;
+		V1 when is_float(V1) ->
+			<<Acc/binary, ?FLOAT, V1:?BITS/float>>
+	end.
+
 ceiling(X) ->
     T = erlang:trunc(X),
     case (X - T) of
@@ -325,3 +347,4 @@ ceiling(X) ->
         Pos when Pos > 0 -> T + 1;
         _ -> T
     end.
+
