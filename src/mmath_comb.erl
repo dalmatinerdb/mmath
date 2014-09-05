@@ -5,7 +5,7 @@
 -compile(export_all).
 -endif.
 
--export([avg/1, sum/1, merge/1]).
+-export([avg/1, sum/1, mul/1, merge/1]).
 
 sum(Es) ->
     rcomb(fun sum/2, Es, []).
@@ -33,6 +33,27 @@ sum(<<?NONE, _A:?BITS/signed-integer, RA/binary>>,
 sum(<<?NONE, _A:?BITS/signed-integer, RA/binary>>,
     <<?NONE, _B:?BITS/signed-integer, RB/binary>>, LA, LB, Acc) ->
     sum(RA, RB, LA, LB, <<Acc/binary, ?INT, (LA+LB):?BITS/signed-integer>>).
+
+mul(Es) ->
+    rcomb(fun mul/2, Es, []).
+
+mul(A,B) ->
+    mul(A, B, 1, 1, <<>>).
+
+mul(<<>>, <<>>, _LA, _LB, Acc) ->
+    Acc;
+mul(<<?INT, A:?BITS/signed-integer, RA/binary>>,
+    <<?INT, B:?BITS/signed-integer, RB/binary>>, _LA, _LB, Acc) ->
+    mul(RA, RB, A, B, <<Acc/binary, ?INT, (A*B):?BITS/signed-integer>>);
+mul(<<?INT, A:?BITS/signed-integer, RA/binary>>,
+    <<?NONE, _:?BITS/signed-integer, RB/binary>>, _LA, LB, Acc) ->
+    mul(RA, RB, A, LB, <<Acc/binary, ?INT, (A*LB):?BITS/signed-integer>>);
+mul(<<?NONE, _A:?BITS/signed-integer, RA/binary>>,
+    <<?INT, B:?BITS/signed-integer, RB/binary>>, LA, _LB, Acc) ->
+    mul(RA, RB, LA, B, <<Acc/binary, ?INT, (LA*B):?BITS/signed-integer>>);
+mul(<<?NONE, _A:?BITS/signed-integer, RA/binary>>,
+    <<?NONE, _B:?BITS/signed-integer, RB/binary>>, LA, LB, Acc) ->
+    mul(RA, RB, LA, LB, <<Acc/binary, ?INT, (LA*LB):?BITS/signed-integer>>).
 
 merge(A, B) ->
     merge(A, B, <<>>).
@@ -65,4 +86,3 @@ rcomb(F, [A, B | R], Acc) ->
     rcomb(F, R, [F(A, B) | Acc]);
 rcomb(F, [A], Acc) ->
     rcomb(F, [A | Acc], []).
-

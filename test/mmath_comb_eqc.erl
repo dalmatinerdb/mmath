@@ -17,6 +17,14 @@ prop_sum_int() ->
                 ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R2]), R1 == R2)
             end).
 
+prop_mul_int() ->
+    ?FORALL({La, _, Ba}, int_array(),
+            begin
+                R1 = mul(La, La),
+                R2 = mmath_bin:to_list(mmath_comb:mul([Ba, Ba])),
+                ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R2]), R1 == R2)
+            end).
+
 prop_avg_int() ->
     ?FORALL({La, _, Ba}, int_array(),
             begin
@@ -77,5 +85,26 @@ sum([], [{false, _} | R], LA, LB, Acc) ->
     sum([], R, LA, LB, [LA + LB | Acc]);
 sum(A, [], LA, LB, Acc) ->
     sum([], A, LA, LB, Acc).
+
+
+mul(A, B) ->
+    mul(A, B, 1, 1, []).
+
+mul([{false, _} | R1], [{true, B} | R2], LA, _, Acc) ->
+    mul(R1, R2, LA, B, [LA * B | Acc]);
+mul([{true, A} | R1], [{false, _} | R2], _, LB, Acc) ->
+    mul(R1, R2, A, LB, [A * LB | Acc]);
+mul([{false, _} | R1], [{false, _} | R2], LA, LB, Acc) ->
+    mul(R1, R2, LA, LB, [LA * LB | Acc]);
+mul([{true, A} | R1], [{true, B} | R2], _, _, Acc) ->
+    mul(R1, R2, A, B, [A * B | Acc]);
+mul([], [], _, _, Acc) ->
+    lists:reverse(Acc);
+mul([], [{true, B} | R], LA, _, Acc) ->
+    mul([], R, LA, B, [LA * B | Acc]);
+mul([], [{false, _} | R], LA, LB, Acc) ->
+    mul([], R, LA, LB, [LA * LB | Acc]);
+mul(A, [], LA, LB, Acc) ->
+    mul([], A, LA, LB, Acc).
 
 -include("eqc_helper.hrl").
