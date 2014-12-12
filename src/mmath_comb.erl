@@ -24,9 +24,15 @@ sum(<<>>, <<>>, _LA, _LB, Acc) ->
 sum(<<?INT, A:?BITS/signed-integer, RA/binary>>,
     <<>>, _LA, LB, Acc) ->
     sum(RA, <<>>, A, LB, <<Acc/binary, ?INT, (A+LB):?BITS/signed-integer>>);
+sum(<<?NONE, _:?BITS/signed-integer, RA/binary>>,
+    <<>>, LA, LB, Acc) ->
+    sum(RA, <<>>, LA, LB, <<Acc/binary, ?INT, (LA+LB):?BITS/signed-integer>>);
 sum(<<>>,
     <<?INT, B:?BITS/signed-integer, RB/binary>>, LA, _LB, Acc) ->
     sum(<<>>, RB, LA, B, <<Acc/binary, ?INT, (LA+B):?BITS/signed-integer>>);
+sum(<<>>,
+    <<?NONE, _:?BITS/signed-integer, RB/binary>>, LA, LB, Acc) ->
+    sum(<<>>, RB, LA, LB, <<Acc/binary, ?INT, (LA+LB):?BITS/signed-integer>>);
 sum(<<?INT, A:?BITS/signed-integer, RA/binary>>,
     <<?INT, B:?BITS/signed-integer, RB/binary>>, _LA, _LB, Acc) ->
     sum(RA, RB, A, B, <<Acc/binary, ?INT, (A+B):?BITS/signed-integer>>);
