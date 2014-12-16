@@ -1,10 +1,10 @@
 %% Those two must match!
--define(BITS, 60).
+-define(BITS, 56).
 -define(INT_TYPE, signed-integer).
 
 -define(NONE, 0).
 -define(INT, 1).
--define(TYPE_SIZE, 4).
+-define(TYPE_SIZE, 8).
 
 -define(DATA_SIZE, ((?BITS + ?TYPE_SIZE) div 8)).
 
