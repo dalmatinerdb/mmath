@@ -5,9 +5,10 @@
 
 -include("../include/mmath.hrl").
 
--import(mmath_helper, [int_array/0, float_array/0, non_neg_int/0, pos_int/0,
-                       i_or_f_list/0, i_or_f_array/0, out/1]).
+-import(mmath_helper, [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
+                       non_empty_i_list/0]).
 
+-define(EQC_NUM_TESTS, 5000).
 -include_lib("fqc/include/fqc.hrl").
 
 -compile(export_all).
@@ -47,10 +48,6 @@ prop_zip_int() ->
 
 prop_merge_int() ->
     ?FORALL({{La, _, Ba}, {Lb, _, Bb}}, {int_array(), int_array()},
-            merge(La, Lb) == mmath_bin:to_list(mmath_comb:merge([Ba, Bb]))).
-
-prop_merge_float() ->
-    ?FORALL({{La, _, Ba}, {Lb, _, Bb}}, {float_array(), float_array()},
             merge(La, Lb) == mmath_bin:to_list(mmath_comb:merge([Ba, Bb]))).
 
 merge(A, B) ->

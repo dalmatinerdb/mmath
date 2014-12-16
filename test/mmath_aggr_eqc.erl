@@ -5,11 +5,10 @@
 
 -include("../include/mmath.hrl").
 
--import(mmath_helper, [int_array/0, float_array/0, pos_int/0, non_neg_int/0,
-                       i_or_f_list/0, i_or_f_array/0,
-                       non_empty_i_or_f_list/0, out/1, defined_int_array/0,
-                       defined_float_array/0, defined_i_or_f_array/0]).
+-import(mmath_helper, [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
+                       non_empty_i_list/0]).
 
+-define(EQC_NUM_TESTS, 5000).
 -include_lib("fqc/include/fqc.hrl").
 
 -compile(export_all).
@@ -19,23 +18,30 @@ prop_n_length_chunks() ->
             ceiling(length(L) / N) =:= length(n_length_chunks(L, N))).
 
 prop_avg_all() ->
-    ?FORALL(L, non_empty_i_or_f_list(),
-            [lists:sum(L)/length(L)] == ?B2L(mmath_aggr:avg(?L2B(L), length(L)))).
+    ?FORALL(L, non_empty_i_list(),
+            [round(lists:sum(L)/length(L))] == ?B2L(mmath_aggr:avg(?L2B(L), length(L)))).
 
 prop_avg_len() ->
-    ?FORALL({L, N}, {non_empty_i_or_f_list(), pos_int()},
+    ?FORALL({L, N}, {non_empty_i_list(), pos_int()},
             ceiling(length(L)/N) == length(?B2L(mmath_aggr:avg(?L2B(L), N)))).
 
 prop_avg_impl() ->
-    ?FORALL({{_, L, B}, N}, {defined_i_or_f_array(), pos_int()},
-            avg(L, N) == mmath_bin:to_list(mmath_aggr:avg(B, N))).
+    ?FORALL({{_, L, B}, N}, {defined_int_array(), pos_int()},
+            begin
+                LRes = avg(L, N),
+                BRes = mmath_bin:to_list(mmath_aggr:avg(B, N)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   LRes == BRes)
+            end).
 
 prop_avg_len_undefined() ->
     ?FORALL({L, N}, {non_neg_int(), pos_int()},
             ceiling(L/N) == mmath_bin:length(mmath_aggr:avg(mmath_bin:empty(L), N))).
 
 prop_sum() ->
-    ?FORALL({{_, L, B}, N}, {defined_i_or_f_array(), pos_int()},
+    ?FORALL({{_, L, B}, N}, {defined_int_array(), pos_int()},
             sum(L, N) == mmath_bin:to_list(mmath_aggr:sum(B, N))).
 
 prop_sum_len_undefined() ->
@@ -44,7 +50,7 @@ prop_sum_len_undefined() ->
 
 %% We need to know about unset values for min!
 prop_min() ->
-    ?FORALL({{L, _, B}, N}, {defined_i_or_f_array(), pos_int()},
+    ?FORALL({{L, _, B}, N}, {defined_int_array(), pos_int()},
             min_list(L, N) == mmath_bin:to_list(mmath_aggr:min(B, N))).
 
 prop_min_len_undefined() ->
@@ -53,7 +59,7 @@ prop_min_len_undefined() ->
 
 %% We need to know about unset values for min!
 prop_max() ->
-    ?FORALL({{L, _, B}, N}, {defined_i_or_f_array(), pos_int()},
+    ?FORALL({{L, _, B}, N}, {defined_int_array(), pos_int()},
             max_list(L, N) == mmath_bin:to_list(mmath_aggr:max(B, N))).
 
 prop_max_len_undefined() ->
@@ -61,7 +67,7 @@ prop_max_len_undefined() ->
             ceiling(L/N) == mmath_bin:length(mmath_aggr:max(mmath_bin:empty(L), N))).
 
 prop_der() ->
-    ?FORALL({_, L, B}, defined_i_or_f_array(),
+    ?FORALL({_, L, B}, defined_int_array(),
             derivate(L) == mmath_bin:to_list(mmath_aggr:derivate(B))).
 
 prop_der_len_undefined() ->
@@ -70,11 +76,14 @@ prop_der_len_undefined() ->
 
 prop_scale_int() ->
     ?FORALL({{_, L, B}, S}, {defined_int_array(), real()},
-            scale_i(L, S) == mmath_bin:to_list(mmath_aggr:scale(B,S))).
-
-prop_scale_flaot() ->
-    ?FORALL({{_, L, B}, S}, {defined_float_array(), real()},
-            scale_f(L, S) == mmath_bin:to_list(mmath_aggr:scale(B, S))).
+            begin
+                LRes = scale_i(L, S),
+                BRes = mmath_bin:to_list(mmath_aggr:scale(B,S)),
+            ?WHENFAIL(
+               io:format(user, "~p =/= ~p~n",
+                         [LRes, LRes]),
+               LRes == BRes)
+            end).
 
 prop_map_int() ->
     ?FORALL({{_, L, B}, S}, {defined_int_array(), real()},
@@ -83,15 +92,6 @@ prop_map_int() ->
 								round(V * S)
 						end,
             scale_i(L, S) == mmath_bin:to_list(mmath_aggr:map(B, Scale))
-			end).
-
-prop_map_float() ->
-    ?FORALL({{_, L, B}, S}, {defined_float_array(), real()},
-			begin
-				Scale = fun(V) ->
-								V * S
-						end,
-            scale_f(L, S) == mmath_bin:to_list(mmath_aggr:map(B, Scale))
 			end).
 
 prop_scale_len_undefined() ->
@@ -108,7 +108,7 @@ prop_combine_sum_N() ->
 
 prop_combine_avg_N() ->
     ?FORALL({{_, _, A}, N}, {defined_int_array(), pos_int()},
-            mmath_comb:avg([A || _ <- lists:seq(1, N+1)]) == mmath_aggr:scale(A, 1.0)).
+            mmath_comb:avg([A || _ <- lists:seq(1, N+1)]) == mmath_aggr:scale(A, 1)).
 
 prop_count_empty() ->
     ?FORALL({{L, _, B}, N}, {int_array(), pos_int()},
@@ -130,18 +130,6 @@ prop_combine_percentile_int() ->
                           Exp == Act)
             end).
 
-prop_combine_percentile_float() ->
-    ?FORALL({{L, _, A}, N, PRaw}, {defined_float_array(), pos_int(), choose(0, 1000)},
-            begin
-                P = PRaw/1000,
-                Exp = percentile(L, N, P),
-                Act = to_list(mmath_aggr:percentile(A, N, P), []),
-                ?WHENFAIL(io:format(user, "Exp: ~p~nAct: ~p~n",
-                                    [Exp, Act]),
-                          Exp == Act)
-            end).
-
-
 realise(L) ->
     realise(L, 0, []).
 
@@ -152,11 +140,9 @@ realise([{true, V} | R], _, Acc) ->
 realise([{false, _} | R], L, Acc) ->
     realise(R, L, [L | Acc]).
 
-to_list(<<?INT, V:?BITS/signed-integer, R/binary>>, Acc) ->
+to_list(<<?INT:?TYPE_SIZE, V:?BITS/?INT_TYPE, R/binary>>, Acc) ->
     to_list(R, [V | Acc]);
-to_list(<<?FLOAT, V:?BITS/float, R/binary>>, Acc) ->
-    to_list(R, [V | Acc]);
-to_list(<<?NONE, _:?BITS/float, R/binary>>, Acc) ->
+to_list(<<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, R/binary>>, Acc) ->
     to_list(R, [0 | Acc]);
 to_list(<<>>, Acc) ->
     lists:reverse(Acc).
@@ -203,7 +189,7 @@ empty_(L, N) ->
     lists:sum([1 || {false, _} <- L]) + N - length(L).
 
 avg_(L, N) ->
-    lists:sum(L) / N.
+    round(lists:sum(L) / N).
 
 sum_(L, _N) ->
     lists:sum(L).
