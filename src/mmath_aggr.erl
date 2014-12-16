@@ -102,6 +102,22 @@ avg(R, Last, Sum, 0, Count, Acc) ->
     Acc1 = <<Acc/binary, ?FLOAT, Avg:?BITS/float>>,
     avg(R, Last, 0, Count, Count, Acc1);
 
+%% Optimistic case to grab a bunch of data at once
+
+avg(<<?INT, I0:?BITS/signed-integer,
+      ?INT, I1:?BITS/signed-integer,
+      ?INT, I2:?BITS/signed-integer,
+      ?INT, I3:?BITS/signed-integer,
+      ?INT, I4:?BITS/signed-integer,
+      ?INT, I5:?BITS/signed-integer,
+      ?INT, I6:?BITS/signed-integer,
+      ?INT, I7:?BITS/signed-integer,
+      ?INT, I8:?BITS/signed-integer,
+      ?INT, I9:?BITS/signed-integer,
+      R/binary>>, _Last, Sum, N, Count, Acc) when N >= 10 ->
+    Sum1 = Sum + I0 + I1 + I2 + I3 + I4 + I5 + I6 + I7 + I8 + I9,
+    avg(R, I9, Sum1, N - 10, Count, Acc);
+
 avg(<<?INT, I:?BITS/signed-integer, R/binary>>, _Last, Sum, N, Count, Acc) ->
     avg(R, I, Sum + I, N - 1, Count, Acc);
 

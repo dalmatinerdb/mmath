@@ -1,5 +1,8 @@
 -module(mmath_helper).
 
+-ifdef(TEST).
+-ifdef(EQC).
+
 -include_lib("eqc/include/eqc.hrl").
 -include("../include/mmath.hrl").
 
@@ -65,3 +68,6 @@ to_bin([{true, V} | R], Acc) when is_float(V) ->
 
 to_bin([], Acc) ->
     Acc.
+
+-endif.
+-endif.

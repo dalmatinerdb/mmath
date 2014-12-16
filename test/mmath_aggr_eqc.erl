@@ -1,15 +1,18 @@
 -module(mmath_aggr_eqc).
 
--include_lib("eqc/include/eqc.hrl").
--include_lib("eunit/include/eunit.hrl").
+-ifdef(TEST).
+-ifdef(EQC).
+
 -include("../include/mmath.hrl").
--compile(export_all).
 
 -import(mmath_helper, [int_array/0, float_array/0, pos_int/0, non_neg_int/0,
                        i_or_f_list/0, i_or_f_array/0,
                        non_empty_i_or_f_list/0, out/1, defined_int_array/0,
                        defined_float_array/0, defined_i_or_f_array/0]).
 
+-include_lib("fqc/include/fqc.hrl").
+
+-compile(export_all).
 
 prop_n_length_chunks() ->
     ?FORALL({L, N}, {list(int()), pos_int()},
@@ -257,4 +260,5 @@ n_length_chunks(List,Len) ->
     {Head,Tail} = lists:split(Len,List),
     [Head | n_length_chunks(Tail,Len)].
 
--include("eqc_helper.hrl").
+-endif.
+-endif.

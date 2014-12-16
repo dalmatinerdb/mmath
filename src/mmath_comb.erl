@@ -19,6 +19,43 @@ merge(Es) ->
 sum(A, B) ->
     sum(A, B, 0, 0, <<>>).
 
+%% Optimistic case that will combine 10 values of data at once.
+sum(<<?INT, A0:?BITS/signed-integer,
+      ?INT, A1:?BITS/signed-integer,
+      ?INT, A2:?BITS/signed-integer,
+      ?INT, A3:?BITS/signed-integer,
+      ?INT, A4:?BITS/signed-integer,
+      ?INT, A5:?BITS/signed-integer,
+      ?INT, A6:?BITS/signed-integer,
+      ?INT, A7:?BITS/signed-integer,
+      ?INT, A8:?BITS/signed-integer,
+      ?INT, A9:?BITS/signed-integer,
+      RA/binary>>,
+    <<?INT, B0:?BITS/signed-integer,
+      ?INT, B1:?BITS/signed-integer,
+      ?INT, B2:?BITS/signed-integer,
+      ?INT, B3:?BITS/signed-integer,
+      ?INT, B4:?BITS/signed-integer,
+      ?INT, B5:?BITS/signed-integer,
+      ?INT, B6:?BITS/signed-integer,
+      ?INT, B7:?BITS/signed-integer,
+      ?INT, B8:?BITS/signed-integer,
+      ?INT, B9:?BITS/signed-integer,
+      RB/binary>>,
+    _LA, _LB, Acc) ->
+    Acc1 = <<Acc/binary,
+             ?INT, (A0+B0):?BITS/signed-integer,
+             ?INT, (A1+B1):?BITS/signed-integer,
+             ?INT, (A2+B2):?BITS/signed-integer,
+             ?INT, (A3+B3):?BITS/signed-integer,
+             ?INT, (A4+B4):?BITS/signed-integer,
+             ?INT, (A5+B5):?BITS/signed-integer,
+             ?INT, (A6+B6):?BITS/signed-integer,
+             ?INT, (A7+B7):?BITS/signed-integer,
+             ?INT, (A8+B8):?BITS/signed-integer,
+             ?INT, (A9+B9):?BITS/signed-integer>>,
+    sum(RA, RB, A9, B9, Acc1);
+
 sum(<<>>, <<>>, _LA, _LB, Acc) ->
     Acc;
 sum(<<?INT, A:?BITS/signed-integer, RA/binary>>,

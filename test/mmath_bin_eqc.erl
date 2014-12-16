@@ -1,11 +1,14 @@
 -module(mmath_bin_eqc).
 
--include_lib("eqc/include/eqc.hrl").
--include_lib("eunit/include/eunit.hrl").
+-ifdef(TEST).
+-ifdef(EQC).
+
 -include("../include/mmath.hrl").
 
 -import(mmath_helper, [int_array/0, float_array/0, non_neg_int/0, pos_int/0,
                        i_or_f_list/0, i_or_f_array/0, out/1]).
+
+-include_lib("fqc/include/fqc.hrl").
 
 -compile(export_all).
 
@@ -40,5 +43,5 @@ prop_find_type() ->
     ?FORALL({T, B}, non_obvious_list(),
             T == mmath_bin:find_type(B)).
 
-
--include("eqc_helper.hrl").
+-endif.
+-endif.
