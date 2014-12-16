@@ -2,7 +2,7 @@
 
 -include("mmath.hrl").
 
--export([from_list/1, to_list/1, empty/1, length/1]).
+-export([convert/1, from_list/1, to_list/1, empty/1, length/1]).
 
 from_list([]) ->
     <<>>;
@@ -25,3 +25,13 @@ length(B) ->
 
 empty(Length) ->
     <<0:((?TYPE_SIZE + ?BITS)*Length)/?INT_TYPE>>.
+
+convert(Data) ->
+    convert(Data, <<>>).
+
+convert(<<>>, Acc) ->
+    Acc;
+convert(<<0, _:64/?INT_TYPE, R/binary>>, Acc) ->
+    convert(R, <<Acc/binary, ?NONE:?TYPE_SIZE, 0:?BITS/?INT_TYPE>>);
+convert(<<1, I:64/?INT_TYPE, R/binary>>, Acc) ->
+    convert(R, <<Acc/binary, ?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE>>).
