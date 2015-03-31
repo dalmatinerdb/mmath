@@ -67,7 +67,7 @@ prop_max_len_undefined() ->
             ceiling(L/N) == mmath_bin:length(mmath_aggr:max(mmath_bin:empty(L), N))).
 
 prop_der() ->
-    ?FORALL({_, L, B}, defined_int_array(),
+    ?FORALL({L, _, B}, defined_int_array(),
             derivate(L) == mmath_bin:to_list(mmath_aggr:derivate(B))).
 
 prop_der_len_undefined() ->
@@ -219,12 +219,25 @@ fix_list([],_,Acc) ->
 
 derivate([]) ->
     [];
-derivate([H | T]) ->
-    derivate(H, T, []).
-derivate(H, [H1 | T], Acc) ->
+derivate([{true, H} | T]) ->
+    derivate(H, T, []);
+derivate([{false, _} | T]) ->
+    derivate(find_first(T), T, []).
+
+derivate(H, [{true, H1} | T], Acc) ->
     derivate(H1, T, [H1 - H | Acc]);
+derivate(H, [{false, _} | T], Acc) ->
+    derivate(H, T, [0 | Acc]);
 derivate(_, [], Acc) ->
     lists:reverse(Acc).
+
+
+find_first([]) ->
+    0;
+find_first([{true, V} | _]) ->
+    V;
+find_first([{false, _}| R]) ->
+    find_first(R).
 
 prop_ceiling() ->
     ?FORALL(F, real(),

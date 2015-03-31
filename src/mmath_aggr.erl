@@ -186,7 +186,7 @@ derivate(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, Rest/binary>>) ->
     der_int(Rest, I, <<>>);
 
 derivate(<<?NONE:?TYPE_SIZE, 0:?BITS/?INT_TYPE, Rest/binary>>) ->
-    der_int(Rest, 0, <<>>).
+    der_int(Rest, find_first(Rest), <<>>).
 
 der_int(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, Rest/binary>>, Last, Acc) ->
     der_int(Rest, I, <<Acc/binary, ?INT:?TYPE_SIZE, (I - Last):?BITS/?INT_TYPE>>);
@@ -213,3 +213,9 @@ apl(Fn, V, Acc) ->
 			<<Acc/binary, ?INT:?TYPE_SIZE, (round(V1)):?BITS/?INT_TYPE>>
 	end.
 
+find_first(<<>>) ->
+    0;
+find_first(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, _/binary>>) ->
+    I;
+find_first(<<?NONE:?TYPE_SIZE, 0:?BITS/?INT_TYPE, Rest/binary>>) ->
+    find_first(Rest).
