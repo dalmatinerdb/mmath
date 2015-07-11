@@ -9,6 +9,6 @@
                  ]},
   {env, []},
   {contributors, ["Heinz N. Gies"]},
-  {licenses, ["CDDL"]},
+  {licenses, ["MIT"]},
   {links, [{"Github", "https://github.com/dalmatinerdb/mmath"}]}
  ]}.
