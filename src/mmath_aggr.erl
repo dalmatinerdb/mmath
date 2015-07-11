@@ -58,7 +58,7 @@ percentile_int(D, _, _, Percentile, Acc) ->
     V = lists:nth(erlang:min(Len, round(Len * Percentile) + 1), lists:sort(L)),
     <<Acc/binary, ?INT:?TYPE_SIZE, V:?BITS/?INT_TYPE>>.
 
-avg(Data, Count) ->
+avg(Data, Count) when Count > 0->
     avg(Data, 0, 0, Count, Count, <<>>).
 
 avg(R, Last, Sum, 0, Count, Acc) ->

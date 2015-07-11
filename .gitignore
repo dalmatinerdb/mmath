@@ -1,4 +1,6 @@
 *~
+_build
+doc
 .eunit
 ebin
 data
