@@ -1,9 +1,7 @@
 -module(mmath_helper).
 
--ifdef(TEST).
--ifdef(EQC).
-
 -include_lib("eqc/include/eqc.hrl").
+
 -include("../include/mmath.hrl").
 
 -export([int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
@@ -41,6 +39,3 @@ to_bin([{true, V} | R], Acc) when is_integer(V) ->
 
 to_bin([], Acc) ->
     Acc.
-
--endif.
--endif.

@@ -1,15 +1,12 @@
 -module(mmath_aggr_eqc).
 
--ifdef(TEST).
--ifdef(EQC).
-
 -include("../include/mmath.hrl").
 
 -import(mmath_helper, [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
                        non_empty_i_list/0]).
 
--define(EQC_NUM_TESTS, 5000).
--include_lib("fqc/include/fqc.hrl").
+-include_lib("eqc/include/eqc.hrl").
+-include_lib("fqc/include/fqci.hrl").
 
 -compile(export_all).
 
@@ -258,6 +255,3 @@ n_length_chunks(List,Len) when Len > length(List) ->
 n_length_chunks(List,Len) ->
     {Head,Tail} = lists:split(Len,List),
     [Head | n_length_chunks(Tail,Len)].
-
--endif.
--endif.
