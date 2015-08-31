@@ -16,7 +16,7 @@ prop_n_length_chunks() ->
 
 prop_avg_all() ->
     ?FORALL(L, non_empty_i_list(),
-            [round(lists:sum(L)/length(L))] == ?B2L(mmath_aggr:avg(?L2B(L), length(L)))).
+            [round(lists:sum(L) div length(L))] == ?B2L(mmath_aggr:avg(?L2B(L), length(L)))).
 
 prop_avg_len() ->
     ?FORALL({L, N}, {non_empty_i_list(), pos_int()},
@@ -38,8 +38,15 @@ prop_avg_len_undefined() ->
             ceiling(L/N) == mmath_bin:length(mmath_aggr:avg(mmath_bin:empty(L), N))).
 
 prop_sum() ->
-    ?FORALL({{_, L, B}, N}, {defined_int_array(), pos_int()},
-            sum(L, N) == mmath_bin:to_list(mmath_aggr:sum(B, N))).
+    ?FORALL({{L, _, B}, N}, {defined_int_array(), pos_int()},
+            begin
+                LRes = sum(L, N),
+                BRes = mmath_bin:to_list(mmath_aggr:sum(B, N)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   LRes == BRes)
+            end).
 
 prop_sum_len_undefined() ->
     ?FORALL({L, N}, {non_neg_int(), pos_int()},
@@ -57,15 +64,36 @@ prop_min_len_undefined() ->
 %% We need to know about unset values for min!
 prop_max() ->
     ?FORALL({{L, _, B}, N}, {defined_int_array(), pos_int()},
-            max_list(L, N) == mmath_bin:to_list(mmath_aggr:max(B, N))).
+            begin
+                LRes = max_list(L, N),
+                BRes = mmath_bin:to_list(mmath_aggr:max(B, N)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   LRes == BRes)
+            end).
 
 prop_max_len_undefined() ->
     ?FORALL({L, N}, {non_neg_int(), pos_int()},
-            ceiling(L/N) == mmath_bin:length(mmath_aggr:max(mmath_bin:empty(L), N))).
+            begin
+                LRes = ceiling(L/N),
+                BRes = mmath_bin:length(mmath_aggr:max(mmath_bin:empty(L), N)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   LRes == BRes)
+            end).
 
 prop_der() ->
     ?FORALL({L, _, B}, defined_int_array(),
-            derivate(L) == mmath_bin:to_list(mmath_aggr:derivate(B))).
+            begin
+                LRes = derivate(L),
+                BRes = mmath_bin:to_list(mmath_aggr:derivate(B)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   LRes == BRes)
+            end).
 
 prop_der_len_undefined() ->
     ?FORALL(L, non_neg_int(),
@@ -78,7 +106,28 @@ prop_scale_int() ->
                 BRes = mmath_bin:to_list(mmath_aggr:scale(B,S)),
             ?WHENFAIL(
                io:format(user, "~p =/= ~p~n",
-                         [LRes, LRes]),
+                         [LRes, BRes]),
+               LRes == BRes)
+            end).
+
+prop_mul_int() ->
+    ?FORALL({{_, L, B}, S}, {defined_int_array(), int()},
+            begin
+                LRes = mul_i(L, S),
+                BRes = mmath_bin:to_list(mmath_aggr:mul(B,S)),
+            ?WHENFAIL(
+               io:format(user, "~p =/= ~p~n",
+                         [LRes, BRes]),
+               LRes == BRes)
+            end).
+prop_div_int() ->
+    ?FORALL({{_, L, B}, S}, {defined_int_array(), pos_int()},
+            begin
+                LRes = div_i(L, S),
+                BRes = mmath_bin:to_list(mmath_aggr:divide(B,S)),
+            ?WHENFAIL(
+               io:format(user, "~p =/= ~p~n",
+                         [LRes, BRes]),
                LRes == BRes)
             end).
 
@@ -149,6 +198,12 @@ to_list(<<>>, Acc) ->
 scale_i(L, S) ->
     [round(N*S) || N <- L].
 
+mul_i(L, S) ->
+    [N*S || N <- L].
+
+div_i(L, S) ->
+    [N div S || N <- L].
+
 scale_f(L, S) ->
     [N*S || N <- L].
 
@@ -168,7 +223,7 @@ avg(L, N) ->
     apply_n(L, N, fun avg_/2).
 
 sum(L, N) ->
-    apply_n(L, N, fun sum_/2).
+    apply_n(realise(L), N, fun sum_/2).
 
 min_list(L, N) ->
     apply_n(L, N, fun min_/2).
@@ -186,10 +241,34 @@ empty_(L, N) ->
     lists:sum([1 || {false, _} <- L]) + N - length(L).
 
 avg_(L, N) ->
-    round(lists:sum(L) / N).
+    case length(L) of
+        N ->
+            lists:sum(L);
+        Len ->
+            lists:sum(L) + (lists:last(L) * (N - Len))
+    end div N.
 
-sum_(L, _N) ->
-    lists:sum(L).
+sum_(L, N) ->
+    case length(L) of
+        N ->
+            lists:sum(L);
+        Len ->
+            lists:sum(L) + (lists:last(L) * (N - Len))
+    end.
+%%     sum_(L, 0, 0, N).
+
+%% %%sum_(L, Sum, Last, Count)
+%% sum_([], Sum, _Last, 0)  ->
+%%     Sum;
+
+%% sum_([], Sum, Last, C)  ->
+%%     Sum + (Last  * C);
+
+%% sum_([{true, V} | R], Sum, _Last, C)  ->
+%%     sum_(R, Sum + V, V, C -1);
+
+%% sum_([{false, _} | R], Sum, Last, C)  ->
+%%     sum_(R, Sum + Last, Last, C -1).
 
 min_(L, _N) ->
     case lists:sort([V || {true, V} <- L]) of

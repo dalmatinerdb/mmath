@@ -8,11 +8,31 @@
 %%%-------------------------------------------------------------------
 -module(mmath_aggr).
 
+-export([load_nif/0]).
 -export([empty/2, sum/2, avg/2, min/2, max/2]).
--export([scale/2, map/2, derivate/1]).
+-export([scale/2, map/2, derivate/1, mul/2, divide/2]).
 -export([percentile/3]).
 
+-on_load(load_nif/0).
 -include("mmath.hrl").
+
+-define(APPNAME, mmath).
+
+-define(LIBNAME, aggr_nif).
+
+load_nif() ->
+    SoName = case code:priv_dir(?APPNAME) of
+                 {error, bad_name} ->
+                     case filelib:is_dir(filename:join(["..", priv])) of
+                         true ->
+                             filename:join(["..", priv, ?LIBNAME]);
+                         _ ->
+                             filename:join([priv, ?LIBNAME])
+                     end;
+                 Dir ->
+                     filename:join(Dir, ?LIBNAME)
+             end,
+    erlang:load_nif(SoName, 0).
 
 
 empty(Data, Count) ->
@@ -62,7 +82,7 @@ avg(Data, Count) when Count > 0->
     avg(Data, 0, 0, Count, Count, <<>>).
 
 avg(R, Last, Sum, 0, Count, Acc) ->
-    Avg = round(Sum/Count),
+    Avg = Sum div Count,
     Acc1 = <<Acc/binary, ?INT:?TYPE_SIZE, Avg:?BITS/?INT_TYPE>>,
     avg(R, Last, 0, Count, Count, Acc1);
 
@@ -92,7 +112,7 @@ avg(<<>>, _, 0, _Count, _Count, Acc) ->
     Acc;
 
 avg(<<>>, _, Sum, _Missing, Count, Acc) ->
-    Avg = round(Sum/Count),
+    Avg = Sum div Count,
     <<Acc/binary, ?INT:?TYPE_SIZE, Avg:?BITS/?INT_TYPE>>.
 
 sum(<<>>, _Count) ->
@@ -178,6 +198,32 @@ scale_int(<<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, Rest/binary>>, I, S, Acc) ->
 scale_int(<<>>, _, _, Acc) ->
     Acc.
 
+
+mul(<<>>, _) ->
+    <<>>;
+
+mul(Bin, Mul) when is_integer(Mul) ->
+    mul_int(Bin, 0, Mul, <<>>).
+
+mul_int(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, Rest/binary>>, _, S, Acc) ->
+    mul_int(Rest, I, S, <<Acc/binary, ?INT:?TYPE_SIZE, (I*S):?BITS/?INT_TYPE>>);
+mul_int(<<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, Rest/binary>>, I, S, Acc) ->
+    mul_int(Rest, I, S, <<Acc/binary, ?INT:?TYPE_SIZE, (I*S):?BITS/?INT_TYPE>>);
+mul_int(<<>>, _, _, Acc) ->
+    Acc.
+
+divide(<<>>, _) ->
+    <<>>;
+
+divide(Bin, Divide) when is_integer(Divide) ->
+    divide_int(Bin, 0, Divide, <<>>).
+
+divide_int(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, Rest/binary>>, _, S, Acc) ->
+    divide_int(Rest, I, S, <<Acc/binary, ?INT:?TYPE_SIZE, (I div S):?BITS/?INT_TYPE>>);
+divide_int(<<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, Rest/binary>>, I, S, Acc) ->
+    divide_int(Rest, I, S, <<Acc/binary, ?INT:?TYPE_SIZE, (I div S):?BITS/?INT_TYPE>>);
+divide_int(<<>>, _, _, Acc) ->
+    Acc.
 
 derivate(<<>>) ->
     <<>>;
