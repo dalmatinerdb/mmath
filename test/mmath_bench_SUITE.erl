@@ -119,8 +119,8 @@ bin_cases() ->
     [from_list_case, to_list_case].
 
 aggr_cases() ->
-    [sum_case, avg_case, min_case, max_case, scale_up_case, scale_down_case,
-     derivate_case, mul_case, div_case].
+    [sum_case, avg_case, min_case, max_case, empty_case, scale_up_case,
+     scale_down_case, derivate_case, mul_case, div_case].
 %%--------------------------------------------------------------------
 %% @spec TestCase(Config0) ->
 %%               ok | exit() | {skip,Reason} | {comment,Comment} |
@@ -153,6 +153,9 @@ min_case(Config) ->
 
 max_case(Config) ->
     aggr_case(Config, max).
+
+empty_case(Config) ->
+    aggr_case(Config, empty).
 
 aggr_case(_Config, Aggr) ->
     Bin = random_bin(?SIZE),

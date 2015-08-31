@@ -238,7 +238,7 @@ apply_n(L, N, F) ->
     fix_list([F(SL, N) || SL <- n_length_chunks(L, N)], 0, []).
 
 empty_(L, N) ->
-    lists:sum([1 || {false, _} <- L]) + N - length(L).
+    lists:sum([1 || {false, _} <- L]) + (N - length(L)).
 
 avg_(L, N) ->
     case length(L) of

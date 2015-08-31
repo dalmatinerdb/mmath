@@ -1,21 +1,7 @@
 #include "erl_nif.h"
+#include "mmath.h"
 
-// There are four functions that may be called during the lifetime
-// of a NIF. load, reload, upgrade, and unload. Any of these functions
-// can be left unspecified by passing NULL to the ERL_NIF_INIT macro.
-//
-// NIFs are awesome.
-
-// Return value of 0 indicates success.
-// Docs: http://erlang.org/doc/man/erl_nif.html#load
-
-#ifdef SOLARIS
-#include <sys/byteorder.h>
-#endif
-
-#define IS_SET(v) ((v & 0x00000000000000FFLL) != 0)
-#define FROM_DDB(v) ((ErlNifSInt64) htonll((v & 0x0000000000000100LL) ? ((v & 0xFFFFFFFFFFFFFF00LL) | 0x00000000000000FFLL) : (v & 0xFFFFFFFFFFFFFF00LL)))
-#define TO_DDB(v) ((ntohll(v) & 0xFFFFFFFFFFFFFF00LL) | 0x0000000000000001LL)
+#include <math.h>
 
 static int
 load(ErlNifEnv* env, void** priv, ERL_NIF_TERM load_info)
@@ -23,33 +9,11 @@ load(ErlNifEnv* env, void** priv, ERL_NIF_TERM load_info)
   return 0;
 }
 
-// Called when changing versions of the C code for a module's NIF
-// implementation if I read the docs correctly.
-//
-// Return value of 0 indicates success.
-// Docs: http://erlang.org/doc/man/erl_nif.html#upgrade
-
 static int
 upgrade(ErlNifEnv* env, void** priv, void** old_priv, ERL_NIF_TERM load_info)
 {
   return 0;
 }
-
-// Called when the library is unloaded. Not called after a reload
-// executes.
-//
-// No return value
-// Docs: http://erlang.org/doc/man/erl_nif.html#load
-
-static void
-unload(ErlNifEnv* env, void* priv)
-{
-  return;
-}
-
-// The actual C implementation of an Erlang function.
-//
-// Docs: http://erlang.org/doc/man/erl_nif.html#ErlNifFunc
 
 static ERL_NIF_TERM
 mul(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -64,13 +28,7 @@ mul(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (argc != 2)
     return enif_make_badarg(env);
 
-  if (!enif_inspect_binary(env, argv[0], &bin)) // needs to be a multiple of 8
-    return enif_make_badarg(env);
-
-  if (((bin.size % sizeof(ErlNifUInt64)) != 0)) // needs to be a multiple of 8
-    return enif_make_badarg(env);
-  count = bin.size / sizeof(ErlNifUInt64);
-  vs = (ErlNifSInt64 *) bin.data;
+  GET_BIN(bin, count, vs);
 
   if (!enif_get_int64(env, argv[1], &m))
     return enif_make_badarg(env);
@@ -101,26 +59,19 @@ divide(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (argc != 2)
     return enif_make_badarg(env);
 
-  if (!enif_inspect_binary(env, argv[0], &bin)) // needs to be a multiple of 8
-    return enif_make_badarg(env);
-
-  if (((bin.size % sizeof(ErlNifUInt64)) != 0)) // needs to be a multiple of 8
-    return enif_make_badarg(env);
-  count = bin.size / sizeof(ErlNifUInt64);
-  vs = (ErlNifSInt64 *) bin.data;
+  GET_BIN(bin, count, vs);
 
   if (!enif_get_int64(env, argv[1], &m))
+    return enif_make_badarg(env);
+
+  if (!m)
     return enif_make_badarg(env);
 
   if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, bin.size, &r)))
     return enif_make_badarg(env); // TODO return propper error
 
-
   for (int i = 0; i < count; i++) {
     if (IS_SET(vs[i])) {
-      //printf("%ld / %ld = %ld\r\n", FROM_DDB(vs[i]), m, FROM_DDB(vs[i]) / m);
-      //printf("%016lx\r\n", vs[i]);
-      //printf("%016llx\r\n", TO_DDB(FROM_DDB(vs[i]) / m));
       target[i] = TO_DDB(FROM_DDB(vs[i]) / m);
     } else {
       target[i] = vs[i];
@@ -143,16 +94,10 @@ derivate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (argc != 1)
     return enif_make_badarg(env);
 
-  if (!enif_inspect_binary(env, argv[0], &bin)) // needs to be a multiple of 8
-    return enif_make_badarg(env);
+  GET_BIN(bin, count, vs);
 
-  if (((bin.size % sizeof(ErlNifUInt64)) != 0)) // needs to be a multiple of 8
-    return enif_make_badarg(env);
-
-  count = bin.size / sizeof(ErlNifUInt64);
   if (count < 1) // can't be empty
     return enif_make_badarg(env);
-  vs = (ErlNifSInt64 *) bin.data;
 
   if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, bin.size - sizeof(ErlNifUInt64), &r)))
     return enif_make_badarg(env); // TODO return propper error
@@ -182,6 +127,49 @@ derivate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 }
 
 static ERL_NIF_TERM
+empty(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  ErlNifBinary bin;
+  ERL_NIF_TERM r;
+  ErlNifSInt64* vs;
+  ErlNifSInt64* target;
+  ErlNifSInt64 chunk;         // size to be compressed
+  ErlNifSInt64 target_i = 0;  // target position
+  ErlNifSInt64 pos = 0;       // position in chunk
+  ErlNifSInt64 aggr = 0;      // aggregated value for this chunk
+  int count;
+  int target_size;
+
+  if (argc != 2)
+    return enif_make_badarg(env);
+
+  GET_CHUNK(chunk);
+  GET_BIN(bin, count, vs);
+
+  count = bin.size / sizeof(ErlNifUInt64);
+  vs = (ErlNifSInt64 *) bin.data;
+
+  target_size = ceil((double) count / chunk) * sizeof(ErlNifUInt64);
+  if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, target_size, &r)))
+    return enif_make_badarg(env); // TODO return propper error
+
+  for (int i = 0; i < count; i++) {
+    if (pos == chunk) {
+      target[target_i] = TO_DDB(aggr);
+      target_i++;
+      aggr = !IS_SET(vs[i]);
+      pos = 1;
+    } else {
+      aggr += !IS_SET(vs[i]);
+      pos++;
+    }
+  }
+  target[target_i] = TO_DDB(aggr + (chunk - pos));
+  return r;
+}
+
+
+static ERL_NIF_TERM
 min(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary bin;
@@ -199,17 +187,8 @@ min(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (argc != 2)
     return enif_make_badarg(env);
 
-  if (!enif_inspect_binary(env, argv[0], &bin))
-    return enif_make_badarg(env);
-
-  if (((bin.size % sizeof(ErlNifUInt64)) != 0)) // needs to be a multiple of 8
-    return enif_make_badarg(env);
-
-  count = bin.size / sizeof(ErlNifUInt64);
-  vs = (ErlNifSInt64 *) bin.data;
-
-  if (!enif_get_int64(env, argv[1], &chunk))
-    return enif_make_badarg(env);
+  GET_CHUNK(chunk);
+  GET_BIN(bin, count, vs);
 
   target_size = ceil((double) count / chunk) * sizeof(ErlNifUInt64);
   if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, target_size, &r)))
@@ -270,17 +249,8 @@ max(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (argc != 2)
     return enif_make_badarg(env);
 
-  if (!enif_inspect_binary(env, argv[0], &bin))
-    return enif_make_badarg(env);
-
-  if (((bin.size % sizeof(ErlNifUInt64)) != 0)) // needs to be a multiple of 8
-    return enif_make_badarg(env);
-
-  count = bin.size / sizeof(ErlNifUInt64);
-  vs = (ErlNifSInt64 *) bin.data;
-
-  if (!enif_get_int64(env, argv[1], &chunk))
-    return enif_make_badarg(env);
+  GET_CHUNK(chunk);
+  GET_BIN(bin, count, vs);
 
   target_size = ceil((double) count / chunk) * sizeof(ErlNifUInt64);
   if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, target_size, &r)))
@@ -343,17 +313,8 @@ sum(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (argc != 2)
     return enif_make_badarg(env);
 
-  if (!enif_inspect_binary(env, argv[0], &bin))
-    return enif_make_badarg(env);
-
-  if (((bin.size % sizeof(ErlNifUInt64)) != 0)) // needs to be a multiple of 8
-    return enif_make_badarg(env);
-
-  count = bin.size / sizeof(ErlNifUInt64);
-  vs = (ErlNifSInt64 *) bin.data;
-
-  if (!enif_get_int64(env, argv[1], &chunk))
-    return enif_make_badarg(env);
+  GET_CHUNK(chunk);
+  GET_BIN(bin, count, vs);
 
   target_size = ceil((double) count / chunk) * sizeof(ErlNifUInt64);
   if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, target_size, &r)))
@@ -426,17 +387,8 @@ avg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (argc != 2)
     return enif_make_badarg(env);
 
-  if (!enif_inspect_binary(env, argv[0], &bin))
-    return enif_make_badarg(env);
-
-  if (((bin.size % sizeof(ErlNifUInt64)) != 0)) // needs to be a multiple of 8
-    return enif_make_badarg(env);
-
-  count = bin.size / sizeof(ErlNifUInt64);
-  vs = (ErlNifSInt64 *) bin.data;
-
-  if (!enif_get_int64(env, argv[1], &chunk))
-    return enif_make_badarg(env);
+  GET_CHUNK(chunk);
+  GET_BIN(bin, count, vs);
 
   target_size = ceil((double) count / chunk) * sizeof(ErlNifUInt64);
   if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, target_size, &r)))
@@ -489,11 +441,10 @@ avg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   return r;
 }
 
-
-
 static ErlNifFunc nif_funcs[] = {
   {"mul",      2, mul},
   {"divide",   2, divide},
+  {"empty",    2, empty},
   {"max",      2, max},
   {"min",      2, min},
   {"sum",      2, sum},
@@ -506,7 +457,4 @@ static ErlNifFunc nif_funcs[] = {
 // Args: (MODULE, ErlNifFunc funcs[], load, reload, upgrade, unload)
 // Docs: http://erlang.org/doc/man/erl_nif.html#ERL_NIF_INIT
 
-ERL_NIF_INIT(mmath_aggr, nif_funcs, &load, NULL, &upgrade, &unload);
-
-// Or if you don't need reload, upgrade, or unload.
-// ERL_NIF_INIT(skeleton, nif_funcs, &load, NULL, NULL, NULL);
+ERL_NIF_INIT(mmath_aggr, nif_funcs, &load, NULL, &upgrade, NULL);
