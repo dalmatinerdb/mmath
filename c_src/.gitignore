@@ -1,2 +1,2 @@
-aggr_nif.d
-aggr_nif.o
+*.d
+*.o

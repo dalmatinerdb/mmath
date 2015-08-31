@@ -120,6 +120,7 @@ prop_mul_int() ->
                          [LRes, BRes]),
                LRes == BRes)
             end).
+
 prop_div_int() ->
     ?FORALL({{_, L, B}, S}, {defined_int_array(), pos_int()},
             begin
@@ -137,7 +138,7 @@ prop_map_int() ->
 				Scale = fun(V) ->
 								round(V * S)
 						end,
-            scale_i(L, S) == mmath_bin:to_list(mmath_aggr:map(B, Scale))
+                scale_i(L, S) == mmath_bin:to_list(mmath_aggr:map(B, Scale))
 			end).
 
 prop_scale_len_undefined() ->
@@ -150,11 +151,25 @@ prop_combine_sum_identity() ->
 
 prop_combine_sum_N() ->
     ?FORALL({{_, _, A}, N}, {defined_int_array(), pos_int()},
-            mmath_comb:sum([A || _ <- lists:seq(1, N+1)]) == mmath_aggr:scale(A, N+1)).
+            begin
+                LRes = mmath_aggr:mul(A, N),
+                BRes = mmath_comb:sum([A || _ <- lists:seq(1, N)]),
+                ?WHENFAIL(
+                   io:format(user, "sum(~p*~p) -> ~p =/= ~p~n",
+                             [A, N, LRes, BRes]),
+                   LRes == BRes)
+            end).
 
 prop_combine_avg_N() ->
     ?FORALL({{_, _, A}, N}, {defined_int_array(), pos_int()},
-            mmath_comb:avg([A || _ <- lists:seq(1, N+1)]) == mmath_aggr:scale(A, 1)).
+            begin
+                LRes = mmath_aggr:mul(A, 1),
+                BRes = mmath_comb:avg([A || _ <- lists:seq(1, N+1)]),
+                ?WHENFAIL(
+                   io:format(user, "avg(~p*~p) -> ~p =/= ~p~n",
+                             [A, N, LRes, BRes]),
+                   LRes == BRes)
+            end).
 
 prop_count_empty() ->
     ?FORALL({{L, _, B}, N}, {int_array(), pos_int()},

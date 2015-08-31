@@ -13,10 +13,10 @@
   if (chunk < 1)                                                        \
     return enif_make_badarg(env)                                        \
 
-#define GET_BIN(bin, count, vs)                 \
-  if (!enif_inspect_binary(env, argv[0], &bin)) \
-    return enif_make_badarg(env);               \
-  if (bin.size % sizeof(ErlNifUInt64))          \
-    return enif_make_badarg(env);               \
-  count = bin.size / sizeof(ErlNifUInt64);      \
-  vs = (ErlNifSInt64 *) bin.data                \
+#define GET_BIN(pos, bin, count, vs)              \
+  if (!enif_inspect_binary(env, argv[pos], &bin)) \
+    return enif_make_badarg(env);                 \
+  if (bin.size % sizeof(ErlNifUInt64))            \
+    return enif_make_badarg(env);                 \
+  count = bin.size / sizeof(ErlNifUInt64);        \
+  vs = (ErlNifSInt64 *) bin.data                  \

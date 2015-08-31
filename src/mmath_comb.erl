@@ -7,17 +7,44 @@
 
 -export([avg/1, sum/1, mul/1, merge/1, zip/2]).
 
+
+-define(APPNAME, mmath).
+-define(LIBNAME, comb_nif).
+-on_load(load_nif/0).
+load_nif() ->
+    SoName = case code:priv_dir(?APPNAME) of
+                 {error, bad_name} ->
+                     case filelib:is_dir(filename:join(["..", priv])) of
+                         true ->
+                             filename:join(["..", priv, ?LIBNAME]);
+                         _ ->
+                             filename:join([priv, ?LIBNAME])
+                     end;
+                 Dir ->
+                     filename:join(Dir, ?LIBNAME)
+             end,
+    erlang:load_nif(SoName, 0).
+
+sum([A, B]) ->
+    sum(A, B);
+
+sum([A, B, C]) ->
+    sum(A, B, C);
+
 sum(Es) ->
-    rcomb(fun sum/2, Es, []).
+    rcomb(fun sum/2, fun sum/3, Es, []).
 
 avg(Es) ->
-    mmath_aggr:scale(sum(Es), 1/length(Es)).
+    mmath_aggr:divide(sum(Es), length(Es)).
 
 merge(Es) ->
     rcomb(fun merge/2, Es, []).
 
 sum(A, B) ->
     sum(A, B, 0, 0, <<>>).
+
+sum(A, B, C) ->
+    sum(A, sum(B, C)).
 
 %% Optimistic case that will combine 10 values of data at once.
 sum(<<?INT:?TYPE_SIZE, A0:?BITS/?INT_TYPE,
@@ -154,15 +181,24 @@ merge(<<>>, D, Acc) ->
 merge(D, <<>>, Acc) ->
     <<Acc/binary, D/binary>>.
 
-rcomb(F, [A], [B]) ->
-    F(A, B);
-rcomb(F, [], Acc) ->
-    rcomb(F, Acc, []);
-rcomb(_, [A], []) ->
+rcomb(F2, In, Acc) ->
+    rcomb(F2, undefined, In, Acc).
+
+rcomb(F2, _F3, [A], [B]) ->
+    F2(A, B);
+rcomb(F2, F3, [], Acc) ->
+    rcomb(F2, F3, Acc, []);
+rcomb(_, _, [A], []) ->
     A;
-rcomb(F, [A, B, C, D | R], Acc) ->
-    rcomb(F, R, [F(F(A, B), F(C, D)) | Acc]);
-rcomb(F, [A, B | R], Acc) ->
-    rcomb(F, R, [F(A, B) | Acc]);
-rcomb(F, [A], Acc) ->
-    rcomb(F, [A | Acc], []).
+
+rcomb(F2, F3, [A, B, C, D | R], Acc) ->
+    rcomb(F2, F3, R, [F2(F2(A, B), F2(C, D)) | Acc]);
+
+rcomb(F2, F3, [A, B, C | R], Acc) when is_function(F3) ->
+    rcomb(F2, F3, R, [F3(A, B, C) | Acc]);
+
+rcomb(F2, F3, [A, B | R], Acc) ->
+    rcomb(F2, F3, R, [F2(A, B) | Acc]);
+
+rcomb(F2, F3, [A], Acc) ->
+    rcomb(F2, F3, [A | Acc], []).

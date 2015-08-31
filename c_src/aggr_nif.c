@@ -28,7 +28,7 @@ mul(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (argc != 2)
     return enif_make_badarg(env);
 
-  GET_BIN(bin, count, vs);
+  GET_BIN(1, bin, count, vs);
 
   if (!enif_get_int64(env, argv[1], &m))
     return enif_make_badarg(env);
@@ -59,7 +59,7 @@ divide(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (argc != 2)
     return enif_make_badarg(env);
 
-  GET_BIN(bin, count, vs);
+  GET_BIN(1, bin, count, vs);
 
   if (!enif_get_int64(env, argv[1], &m))
     return enif_make_badarg(env);
@@ -94,7 +94,7 @@ derivate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (argc != 1)
     return enif_make_badarg(env);
 
-  GET_BIN(bin, count, vs);
+  GET_BIN(1, bin, count, vs);
 
   if (count < 1) // can't be empty
     return enif_make_badarg(env);
@@ -144,7 +144,7 @@ empty(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     return enif_make_badarg(env);
 
   GET_CHUNK(chunk);
-  GET_BIN(bin, count, vs);
+  GET_BIN(1, bin, count, vs);
 
   count = bin.size / sizeof(ErlNifUInt64);
   vs = (ErlNifSInt64 *) bin.data;
@@ -188,7 +188,7 @@ min(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     return enif_make_badarg(env);
 
   GET_CHUNK(chunk);
-  GET_BIN(bin, count, vs);
+  GET_BIN(1, bin, count, vs);
 
   target_size = ceil((double) count / chunk) * sizeof(ErlNifUInt64);
   if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, target_size, &r)))
@@ -250,7 +250,7 @@ max(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     return enif_make_badarg(env);
 
   GET_CHUNK(chunk);
-  GET_BIN(bin, count, vs);
+  GET_BIN(1, bin, count, vs);
 
   target_size = ceil((double) count / chunk) * sizeof(ErlNifUInt64);
   if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, target_size, &r)))
@@ -314,7 +314,7 @@ sum(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     return enif_make_badarg(env);
 
   GET_CHUNK(chunk);
-  GET_BIN(bin, count, vs);
+  GET_BIN(1, bin, count, vs);
 
   target_size = ceil((double) count / chunk) * sizeof(ErlNifUInt64);
   if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, target_size, &r)))
@@ -388,7 +388,7 @@ avg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     return enif_make_badarg(env);
 
   GET_CHUNK(chunk);
-  GET_BIN(bin, count, vs);
+  GET_BIN(1, bin, count, vs);
 
   target_size = ceil((double) count / chunk) * sizeof(ErlNifUInt64);
   if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, target_size, &r)))

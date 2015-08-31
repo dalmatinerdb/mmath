@@ -13,13 +13,11 @@
 -export([scale/2, map/2, derivate/1, mul/2, divide/2]).
 -export([percentile/3]).
 
--on_load(load_nif/0).
 -include("mmath.hrl").
 
 -define(APPNAME, mmath).
-
 -define(LIBNAME, aggr_nif).
-
+-on_load(load_nif/0).
 load_nif() ->
     SoName = case code:priv_dir(?APPNAME) of
                  {error, bad_name} ->
@@ -33,7 +31,6 @@ load_nif() ->
                      filename:join(Dir, ?LIBNAME)
              end,
     erlang:load_nif(SoName, 0).
-
 
 empty(Data, Count) ->
     empty(Data, 0, Count, Count, <<>>).
