@@ -9,6 +9,10 @@
 // Return value of 0 indicates success.
 // Docs: http://erlang.org/doc/man/erl_nif.html#load
 
+#ifdef SOLARIS
+#include <sys/byteorder.h>
+#endif
+
 #define IS_SET(v) ((v & 0x00000000000000FFLL) != 0)
 #define FROM_DDB(v) ((ErlNifSInt64) htonll((v & 0x0000000000000100LL) ? ((v & 0xFFFFFFFFFFFFFF00LL) | 0x00000000000000FFLL) : (v & 0xFFFFFFFFFFFFFF00LL)))
 #define TO_DDB(v) ((ntohll(v) & 0xFFFFFFFFFFFFFF00LL) | 0x0000000000000001LL)
