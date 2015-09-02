@@ -31,6 +31,19 @@ prop_avg_len() ->
             ceiling(length(L)/N) == length(?B2L(mmath_aggr:avg(?L2B(L), N)))).
 
 
+prop_scale_r_comp() ->
+    ?FORALL({{_, _, B}, N}, {fully_defined_int_array(), pos_int()},
+            begin
+                R = mmath_bin:realize(B),
+                BRes = mmath_aggr:scale(B, N),
+                RRes = mmath_aggr:scale_r(R, N),
+                RRes2 = mmath_bin:derealize(RRes),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [?B2L(BRes), ?B2L(RRes2)]),
+                   ?B2L(BRes) == ?B2L(RRes2))
+            end).
+
 prop_mul_r_comp() ->
     ?FORALL({{_, _, B}, N}, {fully_defined_int_array(), pos_int()},
             begin

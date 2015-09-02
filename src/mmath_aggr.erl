@@ -14,7 +14,8 @@
          avg/2, avg_r/2,
          min/2, min_r/2,
          max/2, max_r/2]).
--export([scale/2, map/2,
+-export([map/2,
+         scale/2, scale_r/2,
          derivate/1, derivate_r/1,
          mul/2, mul_r/2,
          divide/2, divide_r/2]).
@@ -38,6 +39,15 @@ load_nif() ->
                      filename:join(Dir, ?LIBNAME)
              end,
     erlang:load_nif(SoName, 0).
+
+scale_r(Data, F) ->
+    mmath_bin:realize(scale(mmath_bin:derealize(Data), F)).
+
+scale(<<>>, _) ->
+    <<>>;
+
+scale(Bin, Scale) ->
+    scale_int(Bin, 0, Scale, <<>>).
 
 empty(Data, Count) ->
     empty(Data, 0, Count, Count, <<>>).
@@ -197,12 +207,6 @@ max_int(<<>>, undefined, _, _, Acc) ->
     <<Acc/binary, ?NONE:?TYPE_SIZE, 0:?BITS/?INT_TYPE>>;
 max_int(<<>>, Max, _, _, Acc) ->
     <<Acc/binary, ?INT:?TYPE_SIZE, Max:?BITS/?INT_TYPE>>.
-
-scale(<<>>, _) ->
-    <<>>;
-
-scale(Bin, Scale) ->
-    scale_int(Bin, 0, Scale, <<>>).
 
 scale_int(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, Rest/binary>>, _, S, Acc) ->
     scale_int(Rest, I, S, <<Acc/binary, ?INT:?TYPE_SIZE, (round(I*S)):?BITS/?INT_TYPE>>);
