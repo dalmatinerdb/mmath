@@ -3,7 +3,7 @@
 -include("../include/mmath.hrl").
 
 -import(mmath_helper, [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
-                       non_empty_i_list/0]).
+                       non_empty_i_list/0, fully_defined_int_array/0]).
 
 -include_lib("eqc/include/eqc.hrl").
 -include_lib("fqc/include/fqci.hrl").
@@ -25,6 +25,10 @@ prop_l2b_b2l() ->
 prop_b2l() ->
     ?FORALL({_, L, B}, int_array(),
             L == ?B2L(B)).
+
+prop_l2b() ->
+    ?FORALL({_, L, B}, fully_defined_int_array(),
+            B == ?L2B(L)).
 
 prop_realize_derealize() ->
     ?FORALL({_, _, B}, int_array(),

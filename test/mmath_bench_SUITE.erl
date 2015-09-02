@@ -149,7 +149,7 @@ from_list_case(_Config) ->
     List = random_list(?SIZE),
     {T, _} = timer:tc(mmath_bin, from_list, [List]),
     ct:print(default, "[bin] from_list: ~p", [T]),
-    {comment, "T: " ++ integer_to_list(T)}.
+    {comment, integer_to_list(T)}.
 
 to_list_case(_Config) ->
     Bin = random_bin(?SIZE),

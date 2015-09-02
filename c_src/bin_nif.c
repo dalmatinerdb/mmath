@@ -22,6 +22,7 @@ to_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ERL_NIF_TERM *acc;
   ERL_NIF_TERM r;
   ErlNifSInt64* vs;
+  ErlNifSInt64 last = 0;
   unsigned count;
 
   if (argc != 1)
@@ -33,12 +34,15 @@ to_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 
   for (unsigned i = 0 ; i < count; i++) {
-    acc[i] = enif_make_int64(env, FROM_DDB(vs[i]));
+    if (IS_SET(vs[i]))
+      last = FROM_DDB(vs[i]);
+    acc[i] = enif_make_int64(env, last);
   }
   r = enif_make_list_from_array(env, acc, count);
-  //  free(acc);
+  free(acc);
   return r;
 }
+
 static ERL_NIF_TERM
 from_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
