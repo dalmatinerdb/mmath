@@ -248,6 +248,22 @@ prop_combine_sum_N() ->
                    LRes == BRes)
             end).
 
+prop_combine_sum_r_comp() ->
+    ?FORALL({{_, _, B1}, {_, _, B2}}, {fully_defined_int_array(), fully_defined_int_array()},
+            begin
+                RB1 = mmath_bin:realize(B1),
+                RB2 = mmath_bin:realize(B2),
+
+                BRes = mmath_comb:sum([B1, B2]),
+                RRes = mmath_comb:sum_r([RB1, RB2]),
+
+                RRes2 = mmath_bin:derealize(RRes),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [?B2L(BRes), ?B2L(RRes2)]),
+                   ?B2L(BRes) == ?B2L(RRes2))
+            end).
+
 prop_combine_avg_N() ->
     ?FORALL({{_, _, A}, N}, {defined_int_array(), pos_int()},
             begin
@@ -258,6 +274,41 @@ prop_combine_avg_N() ->
                              [A, N, LRes, BRes]),
                    LRes == BRes)
             end).
+
+prop_combine_avg2_r_comp() ->
+    ?FORALL({{_, _, B1}, {_, _, B2}}, {fully_defined_int_array(), fully_defined_int_array()},
+            begin
+                RB1 = mmath_bin:realize(B1),
+                RB2 = mmath_bin:realize(B2),
+
+                BRes = mmath_comb:avg([B1, B2]),
+                RRes = mmath_comb:avg_r([RB1, RB2]),
+
+                RRes2 = mmath_bin:derealize(RRes),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [?B2L(BRes), ?B2L(RRes2)]),
+                   ?B2L(BRes) == ?B2L(RRes2))
+            end).
+
+prop_combine_avg3_r_comp() ->
+    ?FORALL({{_, _, B1}, {_, _, B2}, {_, _, B3}},
+            {fully_defined_int_array(), fully_defined_int_array(), fully_defined_int_array()},
+            begin
+                RB1 = mmath_bin:realize(B1),
+                RB2 = mmath_bin:realize(B2),
+                RB3 = mmath_bin:realize(B3),
+
+                BRes = mmath_comb:avg([B1, B2, B3]),
+                RRes = mmath_comb:avg_r([RB1, RB2, RB3]),
+
+                RRes2 = mmath_bin:derealize(RRes),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [?B2L(BRes), ?B2L(RRes2)]),
+                   ?B2L(BRes) == ?B2L(RRes2))
+            end).
+
 
 prop_count_empty() ->
     ?FORALL({{L, _, B}, N}, {int_array(), pos_int()},

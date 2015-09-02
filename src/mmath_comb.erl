@@ -5,7 +5,11 @@
 -compile(export_all).
 -endif.
 
--export([avg/1, sum/1, mul/1, merge/1, zip/2]).
+-export([avg/1,
+         avg_r/1,
+         sum/1,
+         sum_r/1,
+         mul/1, merge/1, zip/2]).
 
 
 -define(APPNAME, mmath).
@@ -25,6 +29,24 @@ load_nif() ->
              end,
     erlang:load_nif(SoName, 0).
 
+sum_r([A, B]) ->
+    sum_r(A, B);
+
+sum_r([A, B, C]) ->
+    sum_r(A, B, C);
+
+sum_r(Es) ->
+    rcomb(fun sum_r/2, fun sum_r/3, Es, []).
+
+sum_r(A, B) ->
+    mmath_bin:realize(sum(mmath_bin:derealize(A),
+                          mmath_bin:derealize(B))).
+
+sum_r(A, B, C) ->
+    mmath_bin:realize(sum(mmath_bin:derealize(A),
+                          mmath_bin:derealize(B),
+                          mmath_bin:derealize(C))).
+
 sum([A, B]) ->
     sum(A, B);
 
@@ -33,6 +55,9 @@ sum([A, B, C]) ->
 
 sum(Es) ->
     rcomb(fun sum/2, fun sum/3, Es, []).
+
+avg_r(Es) ->
+    mmath_aggr:divide_r(sum_r(Es), length(Es)).
 
 avg(Es) ->
     mmath_aggr:divide(sum(Es), length(Es)).

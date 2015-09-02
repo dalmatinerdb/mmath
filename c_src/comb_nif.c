@@ -58,6 +58,51 @@ sum2(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 }
 
 static ERL_NIF_TERM
+sum2_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  ErlNifBinary a;
+  ErlNifBinary b;
+  ERL_NIF_TERM r;
+  ErlNifSInt64* vs_a;
+  ErlNifSInt64* vs_b;
+  ErlNifSInt64* target;
+  ErlNifSInt64 last_a = 0;
+  ErlNifSInt64 last_b = 0;
+
+  int count_a;
+  int count_b;
+  int count;
+  int target_size;
+
+  if (argc != 2)
+    return enif_make_badarg(env);
+
+  GET_BIN(0, a, count_a, vs_a);
+  GET_BIN(1, b, count_b, vs_b);
+  count = count_a > count_b ? count_a : count_b;
+
+  target_size = count * sizeof(ErlNifUInt64);
+  if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, target_size, &r)))
+    return enif_make_badarg(env); // TODO return propper error
+
+  if (count_a == count_b) {
+    for (int i = 0; i < count; i++) {
+      target[i] = vs_a[i] + vs_b[i];
+    }
+  } else {
+    for (int i = 0; i < count; i++) {
+      if (i < count_a)
+        last_a = vs_a[i];
+      if (i < count_b)
+        last_b = vs_b[i];
+      // if neither A nor B are set here we keep a blank
+      target[i] = last_a + last_b;
+    }
+  }
+  return r;
+}
+
+static ERL_NIF_TERM
 sum3(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary a;
@@ -108,9 +153,65 @@ sum3(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   return r;
 }
 
+static ERL_NIF_TERM
+sum3_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  ErlNifBinary a;
+  ErlNifBinary b;
+  ErlNifBinary c;
+  ERL_NIF_TERM r;
+  ErlNifSInt64* vs_a;
+  ErlNifSInt64* vs_b;
+  ErlNifSInt64* vs_c;
+  ErlNifSInt64* target;
+  ErlNifSInt64 last_a = 0;
+  ErlNifSInt64 last_b = 0;
+  ErlNifSInt64 last_c = 0;
+
+  int count_a;
+  int count_b;
+  int count_c;
+  int count;
+  int target_size;
+
+  if (argc != 3)
+    return enif_make_badarg(env);
+
+  GET_BIN(0, a, count_a, vs_a);
+  GET_BIN(1, b, count_b, vs_b);
+  GET_BIN(2, c, count_c, vs_c);
+
+  count = count_a > count_b ? count_a : count_b;
+  count = count > count_c ? count : count_c;
+
+  target_size = count * sizeof(ErlNifUInt64);
+  if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, target_size, &r)))
+    return enif_make_badarg(env); // TODO return propper error
+
+  if (count_a == count_b && count_b == count_c) {
+    for (int i = 0; i < count; i++) {
+      target[i] = vs_a[i] + vs_b[i] + vs_c[i];
+    }
+  } else {
+    for (int i = 0; i < count; i++) {
+      if (i < count_a)
+        last_a = vs_a[i];
+      if (i < count_b)
+        last_b = vs_b[i];
+      if (i < count_c)
+        last_c = vs_c[i];
+      target[i] = last_a + last_b + last_c;
+    }
+  }
+  return r;
+}
+
 static ErlNifFunc nif_funcs[] = {
   {"sum",      2, sum2},
-  {"sum",      3, sum3}
+  {"sum",      3, sum3},
+  {"sum_r",    2, sum2_r},
+  {"sum_r",    3, sum3_r}
+
 };
 
 // Initialize this NIF library.
