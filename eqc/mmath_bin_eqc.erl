@@ -10,17 +10,6 @@
 
 -compile(export_all).
 
-non_obvious_list() ->
-    oneof([
-          ?LET({N, L}, {non_neg_int(), list(int())},
-               oneof(
-                 [{integer, <<(mmath_bin:empty(N))/binary, (mmath_bin:from_list(L))/binary>>} || L =/= []] ++
-                     [{undefined, <<(mmath_bin:empty(N))/binary, (mmath_bin:from_list(L))/binary>>} || L == []])),
-          ?LET({N, L}, {non_neg_int(), list(real())},
-               oneof(
-                 [{float, <<(mmath_bin:empty(N))/binary, (mmath_bin:from_list(L))/binary>>} || L =/= []] ++
-                     [{undefined, <<(mmath_bin:empty(N))/binary, (mmath_bin:from_list(L))/binary>>} || L == []]))]).
-
 prop_empty() ->
     ?FORALL(Length, non_neg_int(),
             byte_size(mmath_bin:empty(Length)) == Length*?DATA_SIZE).
@@ -36,3 +25,7 @@ prop_l2b_b2l() ->
 prop_b2l() ->
     ?FORALL({_, L, B}, int_array(),
             L == ?B2L(B)).
+
+prop_realize_derealize() ->
+    ?FORALL({_, _, B}, int_array(),
+            ?B2L(B) == ?B2L(mmath_bin:derealize(mmath_bin:realize(B)))).

@@ -5,10 +5,13 @@
 -include("../include/mmath.hrl").
 
 -export([int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
-         non_empty_i_list/0]).
+         non_empty_i_list/0, fully_defined_int_array/0]).
 
 defined_int_array() ->
     ?SUCHTHAT({R, _, _}, int_array(), [ok || {true, _} <- R] =/= []).
+
+fully_defined_int_array() ->
+    ?SUCHTHAT({R, _, _}, int_array(), [ok || {false, _} <- R] =:= []).
 
 int_array() ->
     ?LET(L, list({frequency([{2, false}, {8, true}]), int()}),
@@ -22,7 +25,6 @@ non_neg_int() ->
 
 non_empty_i_list() ->
     ?SUCHTHAT(L, list(int()), L =/= []).
-
 
 to_list([{false, _} | R], Last, Acc) ->
     to_list(R, Last, [Last | Acc]);

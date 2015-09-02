@@ -9,8 +9,15 @@
 -module(mmath_aggr).
 
 -export([load_nif/0]).
--export([empty/2, sum/2, avg/2, min/2, max/2]).
--export([scale/2, map/2, derivate/1, mul/2, divide/2]).
+-export([empty/2, empty_r/2,
+         sum/2, sum_r/2,
+         avg/2, avg_r/2,
+         min/2, min_r/2,
+         max/2, max_r/2]).
+-export([scale/2, map/2,
+         derivate/1, derivate_r/1,
+         mul/2, mul_r/2,
+         divide/2, divide_r/2]).
 -export([percentile/3]).
 
 -include("mmath.hrl").
@@ -35,6 +42,40 @@ load_nif() ->
 empty(Data, Count) ->
     empty(Data, 0, Count, Count, <<>>).
 
+empty_r(Data, Count) ->
+    mmath_bin:realize(empty(mmath_bin:derealize(Data), Count)).
+
+percentile(Data, Count, Percentile) ->
+    Pos = erlang:min(Count, round(Count * Percentile) + 1),
+    Size = ?DATA_SIZE * Count,
+    percentile_int(Data, Size, Pos, Percentile, <<>>).
+
+avg(Data, Count) when Count > 0->
+    avg(Data, 0, 0, Count, Count, <<>>).
+
+avg_r(Data, Count) ->
+    mmath_bin:realize(sum(mmath_bin:derealize(Data), Count)).
+
+sum(Data, Count) ->
+    sum_int(Data, 0, 0, Count, Count, <<>>).
+
+sum_r(Data, Count) ->
+    mmath_bin:realize(sum(mmath_bin:derealize(Data), Count)).
+
+min(Data, Count) ->
+    min_int(Data, undefined, Count, Count, <<>>).
+
+min_r(Data, Count) ->
+    mmath_bin:realize(?MODULE:min(mmath_bin:derealize(Data), Count)).
+
+max(Data, Count) ->
+    max_int(Data, undefined, Count, Count, <<>>).
+
+max_r(Data, Count) ->
+    mmath_bin:realize(?MODULE:max(mmath_bin:derealize(Data), Count)).
+
+%% ------------------
+
 empty(R, Empty, 0, Count, Acc) ->
     Acc1 = <<Acc/binary, ?INT:?TYPE_SIZE, Empty:?BITS/?INT_TYPE>>,
     empty(R, 0, Count, Count, Acc1);
@@ -53,11 +94,6 @@ empty(<<>>, Sum, Missing, _Count, Acc) ->
     <<Acc/binary, ?INT:?TYPE_SIZE, Empty:?BITS/?INT_TYPE>>.
 
 
-percentile(Data, Count, Percentile) ->
-    Pos = erlang:min(Count, round(Count * Percentile) + 1),
-    Size = ?DATA_SIZE * Count,
-    percentile_int(Data, Size, Pos, Percentile, <<>>).
-
 percentile_int(<<>>, _, _, _, Acc) ->
     Acc;
 
@@ -75,8 +111,6 @@ percentile_int(D, _, _, Percentile, Acc) ->
     V = lists:nth(erlang:min(Len, round(Len * Percentile) + 1), lists:sort(L)),
     <<Acc/binary, ?INT:?TYPE_SIZE, V:?BITS/?INT_TYPE>>.
 
-avg(Data, Count) when Count > 0->
-    avg(Data, 0, 0, Count, Count, <<>>).
 
 avg(R, Last, Sum, 0, Count, Acc) ->
     Avg = Sum div Count,
@@ -112,12 +146,6 @@ avg(<<>>, _, Sum, _Missing, Count, Acc) ->
     Avg = Sum div Count,
     <<Acc/binary, ?INT:?TYPE_SIZE, Avg:?BITS/?INT_TYPE>>.
 
-sum(<<>>, _Count) ->
-    <<>>;
-
-sum(Data, Count) ->
-    sum_int(Data, 0, 0, Count, Count, <<>>).
-
 sum_int(R, Last, Sum, 0, Count, Acc) ->
     Acc1 = <<Acc/binary, ?INT:?TYPE_SIZE, Sum:?BITS/?INT_TYPE>>,
     sum_int(R, Last, 0, Count, Count, Acc1);
@@ -129,12 +157,6 @@ sum_int(<<>>, _, 0, _Count, _Count, Acc) ->
     Acc;
 sum_int(<<>>, _, Sum, _, _, Acc) ->
     <<Acc/binary, ?INT:?TYPE_SIZE, Sum:?BITS/?INT_TYPE>>.
-
-min(<<>>, _) ->
-    <<>>;
-
-min(Data, Count) ->
-    min_int(Data, undefined, Count, Count, <<>>).
 
 min_int(R, undefined, 0, Count, Acc) ->
     Acc1 = <<Acc/binary, ?NONE:?TYPE_SIZE, 0:?BITS/?INT_TYPE>>,
@@ -155,12 +177,6 @@ min_int(<<>>, undefined, _, _, Acc) ->
     <<Acc/binary, ?NONE:?TYPE_SIZE, 0:?BITS/?INT_TYPE>>;
 min_int(<<>>, Min, _, _, Acc) ->
     <<Acc/binary, ?INT:?TYPE_SIZE, Min:?BITS/?INT_TYPE>>.
-
-max(<<>>, _) ->
-    <<>>;
-
-max(Data, Count) ->
-    max_int(Data, undefined, Count, Count, <<>>).
 
 max_int(R, undefined, 0, Count, Acc) ->
     Acc1 = <<Acc/binary, ?NONE:?TYPE_SIZE, 0:?BITS/?INT_TYPE>>,
@@ -195,6 +211,8 @@ scale_int(<<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, Rest/binary>>, I, S, Acc) ->
 scale_int(<<>>, _, _, Acc) ->
     Acc.
 
+mul_r(M, D) ->
+    mmath_bin:realize(mul(mmath_bin:derealize(M), D)).
 
 mul(<<>>, _) ->
     <<>>;
@@ -209,6 +227,9 @@ mul_int(<<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, Rest/binary>>, I, S, Acc) ->
 mul_int(<<>>, _, _, Acc) ->
     Acc.
 
+divide_r(M, D) ->
+        mmath_bin:realize(divide(mmath_bin:derealize(M), D)).
+
 divide(<<>>, _) ->
     <<>>;
 
@@ -221,6 +242,9 @@ divide_int(<<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, Rest/binary>>, I, S, Acc) ->
     divide_int(Rest, I, S, <<Acc/binary, ?INT:?TYPE_SIZE, (I div S):?BITS/?INT_TYPE>>);
 divide_int(<<>>, _, _, Acc) ->
     Acc.
+
+derivate_r(M) ->
+    mmath_bin:realize(derivate(mmath_bin:derealize(M))).
 
 derivate(<<>>) ->
     <<>>;

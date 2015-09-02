@@ -2,7 +2,25 @@
 
 -include("mmath.hrl").
 
--export([convert/1, from_list/1, to_list/1, empty/1, length/1]).
+-export([convert/1, from_list/1, to_list/1, empty/1, length/1,
+         realize/1, derealize/1]).
+
+-define(APPNAME, mmath).
+-define(LIBNAME, bin_nif).
+-on_load(load_nif/0).
+load_nif() ->
+    SoName = case code:priv_dir(?APPNAME) of
+                 {error, bad_name} ->
+                     case filelib:is_dir(filename:join(["..", priv])) of
+                         true ->
+                             filename:join(["..", priv, ?LIBNAME]);
+                         _ ->
+                             filename:join([priv, ?LIBNAME])
+                     end;
+                 Dir ->
+                     filename:join(Dir, ?LIBNAME)
+             end,
+    erlang:load_nif(SoName, 0).
 
 from_list([]) ->
     <<>>;
@@ -35,3 +53,18 @@ convert(<<0, _:64/?INT_TYPE, R/binary>>, Acc) ->
     convert(R, <<Acc/binary, ?NONE:?TYPE_SIZE, 0:?BITS/?INT_TYPE>>);
 convert(<<1, I:64/?INT_TYPE, R/binary>>, Acc) ->
     convert(R, <<Acc/binary, ?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE>>).
+
+
+realize(Data) ->
+    realize(Data, 0, <<>>).
+
+realize(<<0:?TYPE_SIZE, _:?BITS/?INT_TYPE, R/binary>>, Last, Acc) ->
+    realize(R, Last, <<Acc/binary, Last:64/integer-native>>);
+
+realize(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, R/binary>>, _Last, Acc) ->
+    realize(R, I, <<Acc/binary, I:64/integer-native>>);
+realize(<<>>, _, Acc) ->
+    Acc.
+
+derealize(Data) ->
+    << <<?INT:?TYPE_SIZE, D:?BITS/?INT_TYPE>> || <<D:64/integer-native>> <= Data>>.
