@@ -11,7 +11,7 @@
   if (!enif_get_int64(env, argv[1], &chunk))                            \
     return enif_make_badarg(env);                                       \
   if (chunk < 1)                                                        \
-    return enif_make_badarg(env)                                        \
+    return enif_make_badarg(env)
 
 #define GET_BIN(pos, bin, count, vs)              \
   if (!enif_inspect_binary(env, argv[pos], &bin)) \
@@ -19,4 +19,4 @@
   if (bin.size % sizeof(ErlNifUInt64))            \
     return enif_make_badarg(env);                 \
   count = bin.size / sizeof(ErlNifUInt64);        \
-  vs = (ErlNifSInt64 *) bin.data                  \
+  vs = (ErlNifSInt64 *) bin.data
