@@ -1,4 +1,4 @@
-REBAR = $(shell pwd)/rebar3
+REBAR = rebar3
 
 .PHONY: rel package compile test
 
