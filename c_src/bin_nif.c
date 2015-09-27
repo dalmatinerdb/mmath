@@ -118,7 +118,7 @@ derealize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   GET_BIN(0, a, count, vs);
 
-  if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, count * sizeof(ErlNifSInt64), &r)))
+  if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, a.size, &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   for (int i = 0; i < count; i++) {

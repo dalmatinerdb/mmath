@@ -16,7 +16,7 @@
 #define GET_BIN(pos, bin, count, vs)              \
   if (!enif_inspect_binary(env, argv[pos], &bin)) \
     return enif_make_badarg(env);                 \
-  if (bin.size % sizeof(ErlNifUInt64))            \
+  if (bin.size % sizeof(ErlNifSInt64))            \
     return enif_make_badarg(env);                 \
-  count = bin.size / sizeof(ErlNifUInt64);        \
+  count = bin.size / sizeof(ErlNifSInt64);        \
   vs = (ErlNifSInt64 *) bin.data

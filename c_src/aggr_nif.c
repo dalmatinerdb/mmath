@@ -232,9 +232,6 @@ empty(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   GET_CHUNK(chunk);
   GET_BIN(0, bin, count, vs);
 
-  count = bin.size / sizeof(ErlNifSInt64);
-  vs = (ErlNifSInt64 *) bin.data;
-
   target_size = ceil((double) count / chunk) * sizeof(ErlNifSInt64);
   if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, target_size, &r)))
     return enif_make_badarg(env); // TODO return propper error
