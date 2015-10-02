@@ -86,6 +86,7 @@ realize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifSInt64* vs;
   ErlNifSInt64* target;
   ErlNifSInt64 last = 0;
+  int has_last = 0;
   int count;
 
   if (argc != 1)
@@ -99,6 +100,12 @@ realize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   for (int i = 0; i < count; i++) {
     if (IS_SET(vs[i])) {
       last = FROM_DDB(vs[i]);
+      if (! has_last) {
+        for (int j = 0; j < i; j++) {
+          target[j] = last;
+        }
+        has_last = 1;
+      }
     };
     target[i] = last;
   }

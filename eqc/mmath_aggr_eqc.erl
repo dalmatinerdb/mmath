@@ -4,7 +4,7 @@
 
 -import(mmath_helper,
         [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
-         non_empty_i_list/0, fully_defined_int_array/0]).
+         non_empty_i_list/0, fully_defined_int_array/0, realise/1, realise/3]).
 
 -include_lib("eqc/include/eqc.hrl").
 -include_lib("fqc/include/fqci.hrl").
@@ -58,10 +58,11 @@ prop_mul_r_comp() ->
             end).
 
 prop_div_r_comp() ->
-    ?FORALL({{_, _, B}, N}, {int_array(), pos_int()},
+    ?FORALL({{L, _, B}, N}, {int_array(), pos_int()},
             begin
                 R = mmath_bin:realize(B),
-                BRes = mmath_aggr:divide(B, N),
+                B1 = ?L2B(realise(L)),
+                BRes = mmath_aggr:divide(B1, N),
                 RRes = mmath_aggr:divide_r(R, N),
                 RRes2 = mmath_bin:derealize(RRes),
                 ?WHENFAIL(
@@ -343,15 +344,6 @@ prop_combine_percentile_int() ->
                           Exp == Act)
             end).
 
-realise(L) ->
-    realise(L, 0, []).
-
-realise([], _, Acc) ->
-    lists:reverse(Acc);
-realise([{true, V} | R], _, Acc) ->
-    realise(R, V, [V | Acc]);
-realise([{false, _} | R], L, Acc) ->
-    realise(R, L, [L | Acc]).
 
 to_list(<<?INT:?TYPE_SIZE, V:?BITS/?INT_TYPE, R/binary>>, Acc) ->
     to_list(R, [V | Acc]);
@@ -376,7 +368,7 @@ percentile(L, N, P) ->
     apply_n(L, N, fun(L1, N1) -> percentile_(L1, N1, P) end).
 
 percentile_(L, _N, P) ->
-    case realise(L) of
+    case realise(L, 0, []) of
         [] ->
             0;
         L1 ->
@@ -388,7 +380,7 @@ avg(L, N) ->
     apply_n(L, N, fun avg_/2).
 
 sum(L, N) ->
-    apply_n(realise(L), N, fun sum_/2).
+    apply_n(realise(L, 0, []), N, fun sum_/2).
 
 min_list(L, N) ->
     apply_n(L, N, fun min_/2).
