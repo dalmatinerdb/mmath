@@ -48,12 +48,12 @@ from_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ERL_NIF_TERM list;
   ERL_NIF_TERM cell;
-  ErlNifSInt64 v;
+  ErlNifSInt64 int_v;
+  double float_v;
   ErlNifSInt64* target;
   ERL_NIF_TERM r;
   unsigned count;
-
-
+  dec d;
 
   if (argc != 1)
     return enif_make_badarg(env);
@@ -71,9 +71,14 @@ from_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   for (int i = 0; i < count; i++) {
     if (! enif_get_list_cell(env, list, &cell, &list))
       return enif_make_badarg(env); // TODO return propper error
-    if (!enif_get_int64(env, cell, &v))
+    if (enif_get_int64(env, cell, &int_v))
+      d = dec_from_int64(int_v);
+    else if (enif_get_double(env, cell, &float_v))
+      d = dec_from_double(float_v);
+    // TODO add support for conversion directly from string
+    else
       return enif_make_badarg(env);
-    target[i] = TO_DDB(v);
+    target[i] = dec_to_ddb_number(d);
   }
   return r;
 }
@@ -112,6 +117,8 @@ realize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   return r;
 }
 
+// Does it do anything befside copying array ??
+static ERL_NIF_TERM
 derealize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary a;
