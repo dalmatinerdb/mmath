@@ -6,7 +6,10 @@
 
 
 to_list_test() ->
-    ?assertEqual([36] , mmath_bin:to_list(<<1,0,0,0,0,0,0,36>>)).
+    ?assertEqual([36.0] , mmath_bin:to_list(<<1,0,0,0,0,0,0,36>>)).
+
+to_list_float_test() ->
+    ?assertEqual([3.6], mmath_bin:to_list(<<2,-13,36000000000000:48>>)).
 
 form_pos_int_test() ->
     ?assertEqual(<<1,0,0,0,0,0,0,36>>, mmath_bin:from_list([36])).

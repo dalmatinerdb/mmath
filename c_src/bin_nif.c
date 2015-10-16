@@ -22,7 +22,7 @@ to_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ERL_NIF_TERM *acc;
   ERL_NIF_TERM r;
   ErlNifSInt64* vs;
-  ErlNifSInt64 last = 0;
+  dec last = {.coefficient = 0, .exponent = 0};
   unsigned count;
 
   if (argc != 1)
@@ -35,8 +35,8 @@ to_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   for (unsigned i = 0 ; i < count; i++) {
     if (IS_SET(vs[i]))
-      last = FROM_DDB(vs[i]);
-    acc[i] = enif_make_int64(env, last);
+      last = dec_deserialize(vs[i]);
+    acc[i] = enif_make_double(env, last.coefficient * pow(10, last.exponent));
   }
   r = enif_make_list_from_array(env, acc, count);
   free(acc);
@@ -78,7 +78,7 @@ from_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     // TODO add support for conversion directly from string
     else
       return enif_make_badarg(env);
-    target[i] = dec_to_ddb_number(d);
+    target[i] = dec_serialize(d);
   }
   return r;
 }
@@ -117,7 +117,6 @@ realize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   return r;
 }
 
-// Does it do anything befside copying array ??
 static ERL_NIF_TERM
 derealize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {

@@ -24,6 +24,7 @@ mul(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifSInt64 m;
   ErlNifSInt64* target;
   int count;
+  dec d;
 
   if (argc != 2)
     return enif_make_badarg(env);
@@ -38,7 +39,8 @@ mul(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   for (int i = 0; i < count; i++) {
     if (IS_SET(vs[i])) {
-      target[i] = TO_DDB(FROM_DDB(vs[i]) * m);
+      d = dec_deserialize(vs[i]);
+      target[i] = dec_serialize(dec_mul(d, m));
     } else {
       target[i] = 0;
     }
@@ -82,6 +84,7 @@ divide(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifSInt64 m;
   ErlNifSInt64* target;
   int count;
+  dec d;
 
   if (argc != 2)
     return enif_make_badarg(env);
@@ -99,7 +102,8 @@ divide(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   for (int i = 0; i < count; i++) {
     if (IS_SET(vs[i])) {
-      target[i] = TO_DDB(FROM_DDB(vs[i]) / m);
+      d = dec_deserialize(vs[i]);
+      target[i] = dec_serialize(dec_div(d, m));
     } else {
       target[i] = 0;
     }

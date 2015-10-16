@@ -5,6 +5,8 @@
 -include_lib("eunit/include/eunit.hrl").
 
 
-%mul_test() ->
-%    Pts = mmath_bin:from_list([12, 15]),
-%    ?assertEqual(<<0>>, mmath_aggr:mul(Pts, 3)).
+mul_test() ->
+    ?assertEqual(<<1, 36:56>>, mmath_aggr:mul(<<1, 12:56>>, 3)).
+
+div_test() ->
+    ?assertEqual(<<1, 4:56>>, mmath_aggr:divide(<<1, 12:56>>, 3)).
