@@ -2,7 +2,15 @@
 #include <sys/byteorder.h>
 #endif
 
+typedef struct {
+    long long coefficient;
+    char exponent;
+} decimal;
+
+#define DDB_ZERO htonll(0x0100000000000000LL)
 #define IS_SET(v) ((v & 0x00000000000000FFLL) != 0)
+#define FROM_DDB(v) dec_deserialize(v)
+#define TO_DDB(v) dec_serialize(v)
 
 #define GET_CHUNK(chunk)                                                \
   if (!enif_get_int64(env, argv[1], &chunk))                            \
@@ -13,30 +21,21 @@
 #define GET_BIN(pos, bin, count, vs)              \
   if (!enif_inspect_binary(env, argv[pos], &bin)) \
     return enif_make_badarg(env);                 \
-  if (bin.size % sizeof(ErlNifSInt64))            \
+  if (bin.size % sizeof(__typeof__(*vs)))              \
     return enif_make_badarg(env);                 \
-  count = bin.size / sizeof(ErlNifSInt64);        \
-  vs = (ErlNifSInt64 *) bin.data
+  count = bin.size / sizeof(__typeof__(*vs));          \
+  vs = (__typeof__(vs)) bin.data
 
-typedef struct {
-    long long coefficient;
-    char exponent;
-} dec;
 
-// Convert from dalmatiner binary format to erlang number
-#define FROM_DDB(v) ((ErlNifSInt64) htonll((v & 0x0000000000000100LL) ? ((v & 0xFFFFFFFFFFFFFF00LL) | 0x00000000000000FFLL) : (v & 0xFFFFFFFFFFFFFF00LL)))
+ErlNifSInt64 dec_serialize(decimal v);
+decimal dec_deserialize(ErlNifSInt64 v);
 
-// Convert erlang number to dalmatiner exchange format (why ntoh ??)
-#define TO_DDB(v) ((ntohll(v) & 0xFFFFFFFFFFFFFF00LL) | 0x0000000000000001LL)
+decimal dec_from_int64(ErlNifSInt64 v);
+decimal dec_from_double(double v);
 
-ErlNifSInt64 dec_serialize(dec v);
-dec dec_deserialize(ErlNifSInt64 v);
-
-dec dec_from_int64(ErlNifSInt64 v);
-dec dec_from_double(double v);
-//dec dec_from_string(char *); // TODO
-
-dec dec_mul(dec v, long m);
-dec dec_div(dec v, long m);
-//dec dec_add(dec v1, dec v2);
-//dec dec_sub(dec v1, dec v2);
+decimal dec_mul(decimal v, long long m);
+decimal dec_div(decimal v, long long m);
+decimal dec_add(decimal a, decimal b);
+decimal dec_add3(decimal a, decimal b, decimal c);
+decimal dec_sub(decimal a, decimal b);
+int dec_cmp(decimal a, decimal b);

@@ -17,7 +17,7 @@
 
 
 ErlNifSInt64
-dec_serialize(dec v) {
+dec_serialize(decimal v) {
   return htonll((! v.exponent) ?
                 ((v.coefficient & 0x00FFFFFFFFFFFFFFLL) | 0x0100000000000000LL) :
                 (v.coefficient & 0x0000FFFFFFFFFFFFLL) |
@@ -26,9 +26,9 @@ dec_serialize(dec v) {
                 );
 }
 
-dec
+decimal
 dec_deserialize(ErlNifSInt64 ev) {
-  dec d;
+  decimal d;
   long long v = ntohll(ev);
   char type = (char)(v & TYPE_MASK);
 
@@ -43,17 +43,17 @@ dec_deserialize(ErlNifSInt64 ev) {
 }
 
 
-dec
+decimal
 dec_from_int64(ErlNifSInt64 v) {
-  dec d = {.exponent = 0, .coefficient = v};
+  decimal d = {.exponent = 0, .coefficient = v};
   return d;
 }
 
 // Very inefficient conversion which is loosing precisions.
 // It is almost always preferable to read value from decimal strings
-dec
+decimal
 dec_from_double(double v) {
-  dec d;
+  decimal d;
   int sign = 1;
 
   if (v < 0) {

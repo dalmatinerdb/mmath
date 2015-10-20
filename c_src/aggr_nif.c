@@ -24,7 +24,6 @@ mul(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifSInt64 m;
   ErlNifSInt64* target;
   int count;
-  dec d;
 
   if (argc != 2)
     return enif_make_badarg(env);
@@ -39,8 +38,7 @@ mul(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   for (int i = 0; i < count; i++) {
     if (IS_SET(vs[i])) {
-      d = dec_deserialize(vs[i]);
-      target[i] = dec_serialize(dec_mul(d, m));
+      target[i] = TO_DDB(dec_mul(FROM_DDB(vs[i]), m));
     } else {
       target[i] = 0;
     }
@@ -53,9 +51,9 @@ mul_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary bin;
   ERL_NIF_TERM r;
-  ErlNifSInt64* vs;
+  decimal* vs;
   ErlNifSInt64 m;
-  ErlNifSInt64* target;
+  decimal* target;
   int count;
 
   if (argc != 2)
@@ -66,11 +64,11 @@ mul_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (!enif_get_int64(env, argv[1], &m))
     return enif_make_badarg(env);
 
-  if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, bin.size, &r)))
+  if (! (target = (decimal*) enif_make_new_binary(env, count * sizeof(decimal), &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   for (int i = 0; i < count; i++) {
-    target[i] = vs[i] * m;
+    target[i] = dec_mul(vs[i], m);
   }
   return r;
 }
@@ -84,7 +82,6 @@ divide(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifSInt64 m;
   ErlNifSInt64* target;
   int count;
-  dec d;
 
   if (argc != 2)
     return enif_make_badarg(env);
@@ -102,8 +99,7 @@ divide(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   for (int i = 0; i < count; i++) {
     if (IS_SET(vs[i])) {
-      d = dec_deserialize(vs[i]);
-      target[i] = dec_serialize(dec_div(d, m));
+      target[i] = TO_DDB(dec_div(FROM_DDB(vs[i]), m));
     } else {
       target[i] = 0;
     }
@@ -116,9 +112,9 @@ divide_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary bin;
   ERL_NIF_TERM r;
-  ErlNifSInt64* vs;
+  decimal* vs;
   ErlNifSInt64 m;
-  ErlNifSInt64* target;
+  decimal* target;
   int count;
 
   if (argc != 2)
@@ -132,11 +128,11 @@ divide_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (!m)
     return enif_make_badarg(env);
 
-  if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, bin.size, &r)))
+  if (! (target = (decimal*) enif_make_new_binary(env, count * sizeof(decimal), &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   for (int i = 0; i < count; i++) {
-    target[i] = vs[i] / m;
+    target[i] = dec_div(vs[i], m);
   }
   return r;
 }
@@ -146,7 +142,7 @@ derivate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary bin;
   ERL_NIF_TERM r;
-  ErlNifSInt64 last;
+  decimal last;
   ErlNifSInt64* target;
   ErlNifSInt64* vs;
   int count;
@@ -171,8 +167,8 @@ derivate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   for (int i = 1; i < count; i++) {
     if (IS_SET(vs[i])) {
       if (has_value) {
-        ErlNifSInt64 this = FROM_DDB(vs[i]);
-        target[i - 1] = TO_DDB(this - last);
+        decimal this = FROM_DDB(vs[i]);
+        target[i - 1] = TO_DDB(dec_sub(this, last));
         last = this;
       } else {
         target[i - 1] = 0;
@@ -181,7 +177,7 @@ derivate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
       }
     } else {
       if (has_value) {
-        target[i - 1] = TO_DDB(0);
+        target[i - 1] = DDB_ZERO;
       } else {
         target[i - 1] = 0;
       }
@@ -195,8 +191,8 @@ derivate_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary bin;
   ERL_NIF_TERM r;
-  ErlNifSInt64* target;
-  ErlNifSInt64* vs;
+  decimal* target;
+  decimal* vs;
   int count;
 
   if (argc != 1)
@@ -207,11 +203,11 @@ derivate_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (count < 1) // can't be empty
     return enif_make_badarg(env);
 
-  if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, bin.size - sizeof(ErlNifSInt64), &r)))
+  if (! (target = (decimal*) enif_make_new_binary(env, bin.size - sizeof(decimal), &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   for (int i = 1; i < count; i++) {
-    target[i - 1] = vs[i] - vs[i-1];
+    target[i - 1] = dec_sub(vs[i], vs[i-1]);
   }
   return r;
 }
@@ -226,7 +222,7 @@ empty(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifSInt64 chunk;         // size to be compressed
   ErlNifSInt64 target_i = 0;  // target position
   ErlNifSInt64 pos = 0;       // position in chunk
-  ErlNifSInt64 aggr = 0;      // aggregated value for this chunk
+  decimal aggr = {0, 0};      // aggregated value for this chunk
   int count;
   int target_size;
 
@@ -247,15 +243,15 @@ empty(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     if (pos == chunk) {
       target[target_i] = TO_DDB(aggr);
       target_i++;
-      aggr = !IS_SET(vs[i]);
+      aggr.coefficient = !IS_SET(vs[i]);
       pos = 0;
     } else {
-      aggr += !IS_SET(vs[i]);
+      aggr.coefficient += !IS_SET(vs[i]);
     }
   }
 
   if (count % chunk) {
-    aggr += (chunk - (count % chunk));
+    aggr.coefficient += (chunk - (count % chunk));
   }
   target[target_i] = TO_DDB(aggr);
 
@@ -272,7 +268,7 @@ min(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifSInt64 chunk;         // size to be compressed
   ErlNifSInt64 target_i = 0;  // target position
   ErlNifSInt64 pos = 0;       // position in chunk
-  ErlNifSInt64 aggr = 0;      // aggregated value for this chunk
+  decimal aggr = {0, 0};      // aggregated value for this chunk
   int count;
   int has_value = 0;
   int target_size;
@@ -320,8 +316,8 @@ min(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
       };
     } else {
       if (IS_SET(vs[i])) {
-        ErlNifSInt64 v = FROM_DDB(vs[i]);
-        if (v < aggr) {
+        decimal v = FROM_DDB(vs[i]);
+        if (dec_cmp(v, aggr) < 0) {
           aggr = v;
         }
       }
@@ -340,11 +336,11 @@ min_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary bin;
   ERL_NIF_TERM r;
-  ErlNifSInt64* vs;
-  ErlNifSInt64* target;
+  decimal* vs;
+  decimal* target;
   ErlNifSInt64 chunk;         // size to be compressed
   ErlNifSInt64 target_i = 0; // target position
-  ErlNifSInt64 aggr;         // target position
+  decimal aggr;         // target position
   uint32_t pos;
   uint32_t count;
   uint32_t target_size;
@@ -355,8 +351,8 @@ min_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   GET_CHUNK(chunk);
   GET_BIN(0, bin, count, vs);
 
-  target_size = ceil((double) count / chunk) * sizeof(ErlNifSInt64);
-  if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, target_size, &r)))
+  target_size = ceil((double) count / chunk) * sizeof(decimal);
+  if (! (target = (decimal*) enif_make_new_binary(env, target_size, &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   // If we don't have any input data we can return right away.
@@ -375,7 +371,7 @@ min_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
       aggr = vs[i];
       pos = 0;
     } else {
-      if (vs[i] < aggr) {
+      if (dec_cmp(vs[i], aggr) < 0) {
         aggr = vs[i];
       };
     }
@@ -397,7 +393,7 @@ max(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifSInt64 chunk;         // size to be compressed
   ErlNifSInt64 target_i = 0;  // target position
   ErlNifSInt64 pos = 0;       // position in chunk
-  ErlNifSInt64 aggr = 0;      // aggregated value for this chunk
+  decimal aggr = {0, 0};      // aggregated value for this chunk
   int count;
   int has_value = 0;
   int target_size;
@@ -445,8 +441,8 @@ max(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
       };
     } else {
       if (IS_SET(vs[i])) {
-        ErlNifSInt64 v = FROM_DDB(vs[i]);
-        if (v > aggr) {
+        decimal v = FROM_DDB(vs[i]);
+        if (dec_cmp(v, aggr) > 0) {
           aggr = v;
         }
       }
@@ -465,11 +461,11 @@ max_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary bin;
   ERL_NIF_TERM r;
-  ErlNifSInt64* vs;
-  ErlNifSInt64* target;
+  decimal* vs;
+  decimal* target;
   ErlNifSInt64 chunk;         // size to be compressed
   ErlNifSInt64 target_i = 0; // target position
-  ErlNifSInt64 aggr;         // target position
+  decimal aggr;         // target position
   uint32_t pos;
   uint32_t count;
   uint32_t target_size;
@@ -480,8 +476,8 @@ max_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   GET_CHUNK(chunk);
   GET_BIN(0, bin, count, vs);
 
-  target_size = ceil((double) count / chunk) * sizeof(ErlNifSInt64);
-  if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, target_size, &r)))
+  target_size = ceil((double) count / chunk) * sizeof(decimal);
+  if (! (target = (decimal*) enif_make_new_binary(env, target_size, &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   // If we don't have any input data we can return right away.
@@ -500,7 +496,7 @@ max_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
       aggr = vs[i];
       pos = 0;
     } else {
-      if (vs[i] > aggr) {
+      if (dec_cmp(vs[i], aggr) > 0) {
         aggr = vs[i];
       };
     }
@@ -521,8 +517,8 @@ sum(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifSInt64 chunk;         // size to be compressed
   ErlNifSInt64 target_i = 0;  // target position
   ErlNifSInt64 pos = 0;       // position in chunk
-  ErlNifSInt64 aggr = 0;      // aggregated value for this chunk
-  ErlNifSInt64 last = 0;
+  decimal aggr = {0, 0};      // aggregated value for this chunk
+  decimal last = {0, 0};
   int count;
   int has_value = 0;
   int has_last = 0;
@@ -581,18 +577,18 @@ sum(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     } else {
       if (IS_SET(vs[i])) {
         last = FROM_DDB(vs[i]);
-        aggr += last;
+        aggr = dec_add(aggr, last);
         has_last = 1;
         has_value = 1;
       } else if (has_last) {
-        aggr += last;
+        aggr = dec_add(aggr, last);
         has_value = 1;
       }
     }
   }
   if (has_value) {
     if (count % chunk) {
-      aggr += (last * (chunk - (count % chunk)));
+      aggr = dec_add(aggr, dec_mul(last, chunk - (count % chunk)));
     }
     target[target_i] = TO_DDB(aggr);
   } else {
@@ -608,9 +604,9 @@ sum_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifSInt64 chunk;         // size to be compressed
 
   ERL_NIF_TERM r;
-  ErlNifSInt64* vs;
-  ErlNifSInt64* target;
-  ErlNifSInt64 aggr;          // Aggregator
+  decimal* vs;
+  decimal* target;
+  decimal aggr;          // Aggregator
 
   uint32_t target_i = 0;      // target position
   uint32_t count;
@@ -623,8 +619,8 @@ sum_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   GET_CHUNK(chunk);
   GET_BIN(0, bin, count, vs);
 
-  target_size = ceil((double) count / chunk) * sizeof(ErlNifSInt64);
-  if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, target_size, &r)))
+  target_size = ceil((double) count / chunk) * sizeof(decimal);
+  if (! (target = (decimal*) enif_make_new_binary(env, target_size, &r)))
     return enif_make_badarg(env); // TODO return propper error
   if (count > 0) {
     aggr = vs[0];
@@ -636,11 +632,11 @@ sum_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         aggr = vs[i];
         pos = 0;
       } else {
-        aggr += vs[i];
+        aggr = dec_add(aggr, vs[i]);
       }
     }
     if (count % chunk) {
-      target[target_i] = aggr + vs[count - 1] * (chunk - (count % chunk));
+      target[target_i] = dec_add(aggr, dec_mul(vs[count - 1], (chunk - (count % chunk))));
     } else {
       target[target_i] = aggr;
     }
@@ -658,8 +654,8 @@ avg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifSInt64 chunk;         // size to be compressed
   ErlNifSInt64 target_i = 0;  // target position
   ErlNifSInt64 pos = 0;       // position in chunk
-  ErlNifSInt64 aggr = 0;      // aggregated value for this chunk
-  ErlNifSInt64 last = 0;
+  decimal aggr = {0, 0};      // aggregated value for this chunk
+  decimal last = {0, 0};
   int count;
   int has_value = 0;
   int has_last = 0;
@@ -693,7 +689,7 @@ avg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   for (int i = 1; i < count; i++, pos++) {
     if (pos == chunk) {
       if (has_value) {
-        target[target_i] = TO_DDB(aggr / chunk);
+        target[target_i] = TO_DDB(dec_div(aggr, chunk));
       } else {
         target[target_i] = 0;
       }
@@ -719,11 +715,11 @@ avg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     } else {
       if (IS_SET(vs[i])) {
         last = FROM_DDB(vs[i]);
-        aggr += last;
+        aggr = dec_add(aggr, last);
         has_last = 1;
         has_value = 1;
       } else if (has_last) {
-        aggr += last;
+        aggr = dec_add(aggr, last);
         has_value = 1;
       }
     }
@@ -731,9 +727,9 @@ avg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   if (has_value) {
     if (count % chunk) {
-      aggr += (last * (chunk - (count % chunk)));
+      aggr = dec_add(aggr, dec_mul(last, (chunk - (count % chunk))));
     }
-    target[target_i] = TO_DDB(aggr / chunk);
+    target[target_i] = TO_DDB(dec_div(aggr, chunk));
   } else {
     target[target_i] = 0;
   }
@@ -745,10 +741,10 @@ avg_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary bin;
   ERL_NIF_TERM r;
-  ErlNifSInt64* vs;
-  ErlNifSInt64* target;
+  decimal* vs;
+  decimal* target;
   ErlNifSInt64 chunk;         // size to be compressed
-  ErlNifSInt64 aggr;          // Aggregator
+  decimal aggr;               // Aggregator
 
   uint32_t target_i = 0;      // target position
   uint32_t count;
@@ -761,8 +757,8 @@ avg_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   GET_CHUNK(chunk);
   GET_BIN(0, bin, count, vs);
 
-  target_size = ceil((double) count / chunk) * sizeof(ErlNifSInt64);
-  if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, target_size, &r)))
+  target_size = ceil((double) count / chunk) * sizeof(decimal);
+  if (! (target = (decimal*) enif_make_new_binary(env, target_size, &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   if (count == 0)
@@ -773,18 +769,18 @@ avg_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   for (uint32_t i = 1; i < count; i++, pos++) {
     if (pos == chunk) {
-      target[target_i] =  aggr / chunk;
+      target[target_i] =  dec_div(aggr, chunk);
       target_i++;
       aggr = vs[i];
       pos = 0;
     } else {
-      aggr += vs[i];
+      aggr = dec_add(aggr, vs[i]);
     }
   }
   if (count % chunk) {
-    aggr +=  vs[count - 1] * (chunk - (count % chunk));
+    aggr = dec_add(aggr, dec_mul(vs[count - 1], (chunk - (count % chunk))));
   }
-  target[target_i] = aggr / chunk;
+  target[target_i] = dec_div(aggr, chunk);
 
   return r;
 }

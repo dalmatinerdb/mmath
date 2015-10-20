@@ -22,7 +22,7 @@ to_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ERL_NIF_TERM *acc;
   ERL_NIF_TERM r;
   ErlNifSInt64* vs;
-  dec last = {.coefficient = 0, .exponent = 0};
+  decimal last = {.coefficient = 0, .exponent = 0};
   unsigned count;
 
   if (argc != 1)
@@ -36,6 +36,7 @@ to_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   for (unsigned i = 0 ; i < count; i++) {
     if (IS_SET(vs[i]))
       last = dec_deserialize(vs[i]);
+    // TODO: use something more efficient than pow
     acc[i] = enif_make_double(env, last.coefficient * pow(10, last.exponent));
   }
   r = enif_make_list_from_array(env, acc, count);
@@ -53,7 +54,7 @@ from_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifSInt64* target;
   ERL_NIF_TERM r;
   unsigned count;
-  dec d;
+  decimal d;
 
   if (argc != 1)
     return enif_make_badarg(env);
@@ -75,7 +76,7 @@ from_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
       d = dec_from_int64(int_v);
     else if (enif_get_double(env, cell, &float_v))
       d = dec_from_double(float_v);
-    // TODO add support for conversion directly from string
+    // TODO add support for conversion directly from string for speed and acuracy
     else
       return enif_make_badarg(env);
     target[i] = dec_serialize(d);
@@ -89,8 +90,8 @@ realize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifBinary a;
   ERL_NIF_TERM r;
   ErlNifSInt64* vs;
-  ErlNifSInt64* target;
-  ErlNifSInt64 last = 0;
+  decimal* target;
+  decimal last = {.coefficient = 0, .exponent = 0};
   int has_last = 0;
   int count;
 
@@ -99,7 +100,7 @@ realize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   GET_BIN(0, a, count, vs);
 
-  if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, count * sizeof(ErlNifSInt64), &r)))
+  if (! (target = (decimal*) enif_make_new_binary(env, count * sizeof(decimal), &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   for (int i = 0; i < count; i++) {
@@ -122,7 +123,7 @@ derealize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary a;
   ERL_NIF_TERM r;
-  ErlNifSInt64* vs;
+  decimal* vs;
   ErlNifSInt64* target;
   int count;
 
@@ -131,7 +132,7 @@ derealize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   GET_BIN(0, a, count, vs);
 
-  if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, a.size, &r)))
+  if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, count * sizeof(ErlNifSInt64), &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   for (int i = 0; i < count; i++) {
