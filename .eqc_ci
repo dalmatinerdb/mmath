@@ -1,4 +1,4 @@
 %-*-Erlang-*-
 {build, "make eqc-compile"}.
 {test_path, "tbin"}.
-{deps, "ebin"}.
+{deps, "_build/default/lib/mmath/ebin"}.
