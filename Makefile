@@ -22,7 +22,7 @@ bench:
 eqc-compile:
 	mkdir ebin
 	mkdir tbin
-	(cd test; erl -noshell -DEQC -DTEST -eval 'make:all([{parse_transform, eqc_cover}, {outdir, "../tbin"}])' -s init stop)
+	(cd eqc; erl -noshell -DEQC -DTEST -eval 'make:all([{parse_transform, eqc_cover}, {outdir, "../tbin"}])' -s init stop)
 	(cd src; erl -noshell -DEQC -DTEST -eval 'make:all([{parse_transform, eqc_cover}, {i, "../include"}, {outdir, "../ebin"}])' -s init stop)
 
 ###
