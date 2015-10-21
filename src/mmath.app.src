@@ -4,6 +4,6 @@
               {registered,[]},
               {applications,[kernel,stdlib]},
               {env,[]},
-              {contributors,["Heinz N. Gies"]},
+              {mainteriners,["Heinz N. Gies"]},
               {licenses,["MIT"]},
               {links,[{"Github","https://github.com/dalmatinerdb/mmath"}]}]}.
