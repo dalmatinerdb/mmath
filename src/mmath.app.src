@@ -1,6 +1,6 @@
 {application,mmath,
              [{description,"math library for metric sequences and binary arrays."},
-              {vsn,"0.1.15"},
+              {vsn,"0.1.15.p1"},
               {registered,[]},
               {applications,[kernel,stdlib]},
               {env,[]},
