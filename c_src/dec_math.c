@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "erl_nif.h"
 #include "mmath.h"
 
