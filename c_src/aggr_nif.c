@@ -1,7 +1,6 @@
 #include "erl_nif.h"
 #include "mmath.h"
 
-#include <stdint.h>
 #include <math.h>
 
 static int

@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "erl_nif.h"
 #include "mmath.h"
 
@@ -9,7 +8,7 @@
 
   THANKS TO COURTESY OF CAFXX, https://gist.github.com/CAFxX/ad150f2403a0604e14cc
 */
-static int
+/*static int
 log10ll(long long v) {
   static const uint64_t thr[64] = {
     10000000000000000000ULL, 0, 0, 0, 1000000000000000000ULL, 0, 0, 100000000000000000ULL, 0, 0,
@@ -23,14 +22,7 @@ log10ll(long long v) {
   uint32_t lz = __builtin_clzll(v);
   return (63 - lz) * 3 / 10 + (v >= thr[lz]);
 }
-
-/* Fast 64bit integer exp */
-static int
-exp10i() {
-  static const uint64_t thr[64] = {
-  };
-}
-
+*/
 
 
 decimal

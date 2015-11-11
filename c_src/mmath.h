@@ -1,5 +1,16 @@
-#ifdef SOLARIS
-#include <sys/byteorder.h>
+#if defined(__linux__)
+#  define __USE_BSD
+#  include <stdint.h>
+#  include <endian.h>
+#elif defined(SOLARIS)
+#  include <sys/byteorder.h>
+#endif
+
+#ifndef htonll
+#  define htonll(v) htobe64(v)
+#endif
+#ifndef ntohll
+#  define ntohll(v) be64toh(v)
 #endif
 
 typedef struct {
