@@ -5,11 +5,20 @@
 -include_lib("eunit/include/eunit.hrl").
 
 
-to_list_test() ->
-    ?assertEqual([36.0] , mmath_bin:to_list(<<1,0,0,0,0,0,0,36>>)).
+to_list_pos_int_test() ->
+    ?assertEqual([36] , mmath_bin:to_list(<<1,0,0,0,0,0,0,36>>)).
 
-to_list_float_test() ->
+to_list_neg_int_test() ->
+    ?assertEqual([-12], mmath_bin:to_list(<<1,-12:56>>)).
+
+to_list_left_aligned_float_test() ->
     ?assertEqual([3.6], mmath_bin:to_list(<<2,-13,36000000000000:48>>)).
+
+to_list_right_aligend_float_test() ->
+    ?assertEqual([0.00000005], mmath_bin:to_list(<<2,-8,5:48>>)).
+
+to_list_negative_float_test() ->
+    ?assertEqual([-0.00000005], mmath_bin:to_list(<<2,-8,-5:48>>)).
 
 form_pos_int_test() ->
     ?assertEqual(<<1,0,0,0,0,0,0,36>>, mmath_bin:from_list([36])).

@@ -4,21 +4,18 @@
 #  include <endian.h>
 #  define htonll(v) htobe64(v)
 #  define ntohll(v) be64toh(v)
-#elif defined(__APPLE__)
-#  include <libkern/OSByteOrder.h>
-#  define htonll(v) OSSwapHostToBigInt64(v)
-#  define ntohll(v) OSSwapBigToHostInt64(v)
+/* On modern Os X'es (>= 10.10) htonll is defined in machine/endian.h */
 #elif defined(SOLARIS)
 #  include <sys/byteorder.h>
 #endif
 
 typedef struct {
-    long long coefficient;
-    char exponent;
+    int64_t coefficient;
+    int8_t exponent;
 } decimal;
 
 #define DDB_ZERO htonll(0x0100000000000000LL)
-#define IS_SET(v) ((v & 0x00000000000000FFLL) != 0)
+#define IS_SET(v) ((ntohll(v) & 0xFF00000000000000LL) != 0LL)
 #define FROM_DDB(v) dec_deserialize(v)
 #define TO_DDB(v) dec_serialize(v)
 
@@ -40,12 +37,18 @@ typedef struct {
 ErlNifSInt64 dec_serialize(decimal v);
 decimal dec_deserialize(ErlNifSInt64 v);
 
-decimal dec_from_int64(ErlNifSInt64 v);
+decimal dec_from_int64(int64_t v);
 decimal dec_from_double(double v);
 
-decimal dec_mul(decimal v, long long m);
-decimal dec_div(decimal v, long long m);
+int64_t dec_to_int64(decimal v);
+double dec_to_double(decimal v);
+
+decimal dec_mul(decimal v, int64_t m);
+decimal dec_div(decimal v, int64_t m);
 decimal dec_add(decimal a, decimal b);
 decimal dec_add3(decimal a, decimal b, decimal c);
 decimal dec_sub(decimal a, decimal b);
+
+decimal dec_neg(decimal a);
+
 int dec_cmp(decimal a, decimal b);

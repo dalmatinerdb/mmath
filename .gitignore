@@ -8,3 +8,5 @@ deps
 .eqc-info
 *.beam
 *.eqc
+.rebar3
+.rebar
