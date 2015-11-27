@@ -6,7 +6,7 @@ A library for performaing math on number 'arrays' in binaries.
 
 Most functions include  a _r version to be used after a number array was 'ralized' (as in missing values were filled)
 
-## Floatin decimals
+## Floating decimals
 
 This branch is work in progress to add decimal floating point support.
 
