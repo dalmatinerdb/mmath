@@ -20,5 +20,8 @@
 
 -define(DATA_SIZE, ((?BITS + ?TYPE_SIZE) div 8)).
 
+%% realized (expanded) data size
+-define(RDATA_SIZE, 16).
+
 -define(B2L(B), mmath_bin:to_list(B)).
 -define(L2B(L), mmath_bin:from_list(L)).
