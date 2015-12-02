@@ -64,7 +64,7 @@ avg(Data, Count) when Count > 0->
     avg(Data, 0, 0, Count, Count, <<>>).
 
 avg_r(Data, Count) ->
-    mmath_bin:realize(sum(mmath_bin:derealize(Data), Count)).
+    mmath_bin:realize(avg(mmath_bin:derealize(Data), Count)).
 
 sum(Data, Count) ->
     sum_int(Data, 0, 0, Count, Count, <<>>).
