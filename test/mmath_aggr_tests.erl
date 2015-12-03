@@ -30,3 +30,21 @@ min_test() ->
     Points = mmath_bin:from_list([-5.25, -11, 21, 12.6]),
     Min = mmath_aggr:min(Points, 4),
     ?assertEqual([-5.25], mmath_bin:to_list(Min)).
+
+% TODO: Investigate why uncommenting this is causing ebin segfaults
+%%add_test() ->
+%%    Points = mmath_bin:from_list([0.21, 0]),
+%%    ?assertEqual(<<2, -14, 21000000000000:48, 1, 0,0,0,0,0,0,0>>, Points),
+%%    Sum = mmath_aggr:sum(Points, 2),
+%%    ?assertEqual([0.21], mmath_bin:to_list(Sum)).
+
+%% This one is supposed to test decimal accuracy
+add_2_test() ->
+    Points = mmath_bin:from_list([0.1, 0.1]),
+    Sum = mmath_aggr:sum(Points, 2),
+    ?assertEqual([0.2], mmath_bin:to_list(Sum)).
+
+avg_test() ->
+    Points = mmath_bin:from_list([0.93, 0.93]),
+    _R = mmath_bin:realize(Points),
+    ?assertEqual([0.93], mmath_bin:to_list(mmath_aggr:avg(Points, 2))).

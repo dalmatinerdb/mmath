@@ -2,7 +2,7 @@
 #include "mmath.h"
 
 #define MAX_DIGITS 14
-#define MAX_COEFFICIENT 1e+14
+#define MAX_COEFFICIENT 1e+14 - 1
 
 /**
  * TODO: switch to int64_t and uint64_t
@@ -48,7 +48,7 @@ dec_mul(decimal v, int64_t m) {
     .coefficient = v.coefficient * m,
     .exponent = v.exponent
   };
-  while (r.coefficient >= 99999999999999) {
+  while (r.coefficient > MAX_COEFFICIENT) {
     r.coefficient /= 10;
     r.exponent += 1;
   }
@@ -62,10 +62,6 @@ dec_div(decimal v, int64_t m) {
     .coefficient = v.coefficient / m,
     .exponent = v.exponent
   };
-  while ((r.coefficient <= 99999999999999) && (r.exponent != 0)) {
-    r.coefficient *= 10;
-    r.exponent -= 1;
-  }
   return r;
 }
 
@@ -75,7 +71,7 @@ dec_add_aligned(int64_t a_coef, int64_t b_coef, int8_t e) {
     .coefficient = a_coef + b_coef,
     .exponent = e
   };
-  if (llabs(r.coefficient) >= MAX_COEFFICIENT) {
+  if (llabs(r.coefficient) > MAX_COEFFICIENT) {
     r.coefficient /= 10;
     r.exponent += 1;
   }
