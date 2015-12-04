@@ -4,7 +4,11 @@
 #  include <endian.h>
 #  define htonll(v) htobe64(v)
 #  define ntohll(v) be64toh(v)
-/* On modern Os X'es (>= 10.10) htonll is defined in machine/endian.h */
+/* On modern Os X'es (>= 10.10) htonll is defined in machine/endian.h, but on older it is missing */
+#elif defined(__APPLE__) && !defined(htonll)
+#  include <libkern/OSByteOrder.h>
+#  define htonll(v) OSSwapHostToBigInt64(v)
+#  define ntohll(v) OSSwapBigToHostInt64(v)
 #elif defined(SOLARIS)
 #  include <sys/byteorder.h>
 #endif
