@@ -2,7 +2,7 @@
 
 -include("../include/mmath.hrl").
 
--import(mmath_helper, [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
+-import(mmath_helper, [int_array/0, number_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
                        non_empty_i_list/0]).
 
 -include_lib("eqc/include/eqc.hrl").
@@ -11,7 +11,7 @@
 -compile(export_all).
 
 prop_sum_int() ->
-    ?FORALL({La, _, Ba}, int_array(),
+    ?FORALL({La, _, Ba}, number_array(),
             begin
                 R1 = sum(La, La),
                 R2 = mmath_bin:to_list(mmath_comb:sum([Ba, Ba])),

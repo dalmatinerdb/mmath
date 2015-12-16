@@ -4,7 +4,7 @@
 
 -import(mmath_helper,
         [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
-         non_empty_i_list/0, fully_defined_int_array/0, realise/1, realise/3]).
+         non_empty_i_list/0, fully_defined_int_array/0, from_decimal/1, realise/1, realise/3]).
 
 -include_lib("eqc/include/eqc.hrl").
 -include_lib("fqc/include/fqci.hrl").
@@ -406,11 +406,12 @@ avg_(L, N) ->
     end div N.
 
 sum_(L, N) ->
-    case length(L) of
+    Ln = [from_decimal(D) || D <- L],
+    case length(Ln) of
         N ->
-            lists:sum(L);
+            lists:sum(Ln);
         Len ->
-            lists:sum(L) + (lists:last(L) * (N - Len))
+            lists:sum(Ln) + (lists:last(Ln) * (N - Len))
     end.
 %%     sum_(L, 0, 0, N).
 

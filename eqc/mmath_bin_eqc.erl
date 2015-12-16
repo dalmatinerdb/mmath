@@ -37,8 +37,8 @@ prop_realize_derealize() ->
 prop_realize() ->
     ?FORALL({T, _, B}, defined_int_array(),
             begin
-                %% This unpacking pattern will work on 64 bit machines.
-                L1 = [I || <<I:64/signed-native, _E:64/signed-native>> <= mmath_bin:realize(B)],
+                %% This unpacking pattern will work on 64 bit machines only.
+                L1 = [{I, E} || <<I:64/signed-native-integer, E:8/signed-native-integer, _:56>> <= mmath_bin:realize(B)],
                 L = realise(T),
                 ?WHENFAIL(io:format(user, "~p =/= ~p~n",
                                     [L, L1]),
