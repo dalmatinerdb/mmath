@@ -43,6 +43,7 @@ decimal dec_deserialize(ErlNifSInt64 v);
 
 decimal dec_from_int64(int64_t v);
 decimal dec_from_double(double v);
+decimal dec_from_binary(int len, char* str);
 
 int64_t dec_to_int64(decimal v);
 double dec_to_double(decimal v);

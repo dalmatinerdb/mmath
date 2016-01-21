@@ -54,6 +54,7 @@ from_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ERL_NIF_TERM cell;
   ErlNifSInt64 int_v;
   double float_v;
+  ErlNifBinary bin_v;
   ErlNifSInt64* target;
   ERL_NIF_TERM r;
   unsigned count;
@@ -67,8 +68,6 @@ from_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (!enif_get_list_length(env, list, &count))
     return enif_make_badarg(env);
 
-
-
   if (!(target = (ErlNifSInt64*) enif_make_new_binary(env, count * sizeof(ErlNifSInt64), &r)))
     return enif_make_badarg(env); // TODO return propper error
 
@@ -79,7 +78,9 @@ from_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
       d = dec_from_int64(int_v);
     else if (enif_get_double(env, cell, &float_v))
       d = dec_from_double(float_v);
-    // TODO add support for conversion directly from string for speed and acuracy
+    else if (enif_inspect_binary(env, cell, &bin_v) ||
+             enif_inspect_iolist_as_binary(env, cell, &bin_v))
+      d = dec_from_binary(bin_v.size, bin_v.data);
     else
       return enif_make_badarg(env);
     target[i] = dec_serialize(d);

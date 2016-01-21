@@ -106,6 +106,39 @@ dec_from_double(double v) {
   return d;
 }
 
+decimal
+dec_from_binary(int len, char* v) {
+  decimal d = {.exponent = 0, .coefficient = 0};
+  char seen_point = 0;
+  char digits = 0;
+  char c, x;
+
+  for (int i = 0; i < len; i++) {
+    c = v[i];
+    if ((i == 0) && (c == '-' || c == '+'))
+      continue;
+    else if (c >= '0' && c <= '9') {
+      x = c - '0';
+      digits += 1;
+    }
+    else if (!seen_point && (c == '.'))
+      seen_point = 1;
+    // TODO: add scientific notataion support
+    // TODO: report error on invalid character
+
+    // TODO: keep extra precision if integer oveflows coefficient,
+    //       but still falls into integer boundries
+    if (digits <= COEFFICIENT_DIGITS) {
+      d.coefficient = d.coefficient * 10 + x;
+      if (seen_point)
+        d.exponent -= 1;
+    }
+    else if (!seen_point)
+      d.exponent += 1;
+  }
+  return d;
+}
+
 int64_t dec_to_int64(decimal v) {
   return v.coefficient * qpow10(v.exponent);
 }
