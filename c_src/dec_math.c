@@ -85,12 +85,12 @@ dec_add_not_aligned(decimal big, decimal small) {
   int8_t e, de;
   int64_t a_coef, b_coef;
 
-  e = small.exponent; // -13
-  de = big.exponent - e; // 13
+  e = small.exponent;
+  de = big.exponent - e;
   b_coef = small.coefficient;
 
   if (big.coefficient != 0) {
-    over_digits = qlog10(big.coefficient) + de - MAX_DIGITS - 1;
+    over_digits = qlog10(labs(big.coefficient)) + de - MAX_DIGITS - 1;
   }
   if (over_digits > 0) {
     e += over_digits;
@@ -115,7 +115,7 @@ dec_add(decimal a, decimal b) {
   }
 }
 
-decimal
+inline decimal
 dec_add3(decimal a, decimal b, decimal c) {
   return dec_add(dec_add(a, b), c);
 }
