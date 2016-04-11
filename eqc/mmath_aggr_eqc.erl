@@ -8,7 +8,6 @@
          realise/1, realise/3, almost_equal/2]).
 
 -include_lib("eqc/include/eqc.hrl").
--include_lib("fqc/include/fqci.hrl").
 
 -compile(export_all).
 
