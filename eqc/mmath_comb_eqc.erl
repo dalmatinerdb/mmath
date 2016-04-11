@@ -6,7 +6,6 @@
                        non_empty_i_list/0]).
 
 -include_lib("eqc/include/eqc.hrl").
--include_lib("fqc/include/fqci.hrl").
 
 -compile(export_all).
 
