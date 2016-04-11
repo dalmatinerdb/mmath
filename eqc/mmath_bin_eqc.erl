@@ -3,10 +3,10 @@
 -include("../include/mmath.hrl").
 
 -import(mmath_helper, [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
-                       non_empty_i_list/0, fully_defined_int_array/0, realise/1]).
+                       non_empty_i_list/0, fully_defined_int_array/0, realise/1,
+                       almost_equal/2, defined_number_array/0, from_decimal/1]).
 
 -include_lib("eqc/include/eqc.hrl").
--include_lib("fqc/include/fqci.hrl").
 
 -compile(export_all).
 
@@ -35,12 +35,13 @@ prop_realize_derealize() ->
             realise(L) == ?B2L(mmath_bin:derealize(mmath_bin:realize(B)))).
 
 prop_realize() ->
-    ?FORALL({T, _, B}, defined_int_array(),
+    ?FORALL({T, _, B}, defined_number_array(),
             begin
                 %% This unpacking pattern will work on 64 bit machines only.
-                L1 = [{I, E} || <<I:64/signed-native-integer, E:8/signed-native-integer, _:56>> <= mmath_bin:realize(B)],
+                L1 = [from_decimal({I, E}) || <<I:64/signed-native-integer, E:8/signed-native-integer, _:56>> 
+                                                  <= mmath_bin:realize(B)],
                 L = realise(T),
                 ?WHENFAIL(io:format(user, "~p =/= ~p~n",
                                     [L, L1]),
-                          L == L1)
+                          almost_equal(L, L1))
             end).

@@ -3,8 +3,9 @@
 -include("../include/mmath.hrl").
 
 -import(mmath_helper,
-        [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
-         non_empty_i_list/0, fully_defined_int_array/0, from_decimal/1, realise/1, realise/3]).
+        [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0, 
+         defined_number_array/0, non_empty_i_list/0, fully_defined_int_array/0,
+         realise/1, realise/3, almost_equal/2]).
 
 -include_lib("eqc/include/eqc.hrl").
 -include_lib("fqc/include/fqci.hrl").
@@ -140,14 +141,14 @@ prop_avg_len_undefined() ->
             ceiling(L/N) == mmath_bin:length(mmath_aggr:avg(mmath_bin:empty(L), N))).
 
 prop_sum() ->
-    ?FORALL({{L, _, B}, N}, {defined_int_array(), pos_int()},
+    ?FORALL({{L, _, B}, N}, {defined_number_array(), pos_int()},
             begin
                 LRes = sum(L, N),
                 BRes = mmath_bin:to_list(mmath_aggr:sum(B, N)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [LRes, BRes]),
-                   LRes == BRes)
+                   almost_equal(LRes, BRes))
             end).
 
 prop_sum_len_undefined() ->
@@ -406,12 +407,11 @@ avg_(L, N) ->
     end div N.
 
 sum_(L, N) ->
-    Ln = [from_decimal(D) || D <- L],
-    case length(Ln) of
+    case length(L) of
         N ->
-            lists:sum(Ln);
+            lists:sum(L);
         Len ->
-            lists:sum(Ln) + (lists:last(Ln) * (N - Len))
+            lists:sum(L) + (lists:last(L) * (N - Len))
     end.
 %%     sum_(L, 0, 0, N).
 
