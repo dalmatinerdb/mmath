@@ -9,7 +9,7 @@
  */
 
 /* 
-  Fast 64bit integer log10
+  Fast 64bit integer log10 (It returns floor of actual float)
   WARNING: calling ilog10c(0) yields undefined behaviour!
 
   THANKS TO COURTESY OF CAFXX, https://gist.github.com/CAFxX/ad150f2403a0604e14cc
@@ -85,17 +85,22 @@ dec_add_not_aligned(decimal big, decimal small) {
   int8_t e, de;
   int64_t a_coef, b_coef;
 
+  if (big.coefficient == 0) {
+    return small;
+  }
+  if (small.coefficient == 0) {
+    return big;
+  }
+
   e = small.exponent;
   de = big.exponent - e;
   b_coef = small.coefficient;
+  over_digits = qlog10(labs(big.coefficient)) + de - MAX_DIGITS - 1;
 
-  if (big.coefficient != 0) {
-    over_digits = qlog10(labs(big.coefficient)) + de - MAX_DIGITS - 1;
-  }
   if (over_digits > 0) {
     e += over_digits;
     de -= over_digits;
-    b_coef /= qipow10(over_digits);
+    b_coef /= (int64_t)qipow10(over_digits);
   }
 
   a_coef = big.coefficient * qipow10(de);
