@@ -5,11 +5,11 @@
 -include("../include/mmath.hrl").
 
 -export([int_array/0, number_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
-         defined_number_array/0,
-         non_empty_i_list/0, fully_defined_int_array/0, to_decimal/1, from_decimal/1,
-         realise/1, realise/3, almost_equal/2]).
+         defined_number_array/0, non_empty_i_list/0, fully_defined_int_array/0,
+         fully_defined_number_array/0, to_decimal/1, from_decimal/1, realise/1,
+         realise/3, almost_equal/2]).
 
--define(MAX_RELATIVE_ERROR, math:pow(10, 1 - ?DEC_PRECISION)).
+-define(MAX_RELATIVE_ERROR, math:pow(10, 2 - ?DEC_PRECISION)).
 
 defined_int_array() ->
     ?SUCHTHAT({R, _, _}, int_array(), [ok || {true, _} <- R] =/= []).
@@ -19,6 +19,9 @@ defined_number_array() ->
 
 fully_defined_int_array() ->
     ?SUCHTHAT({R, _, _}, int_array(), [ok || {false, _} <- R] =:= []).
+
+fully_defined_number_array() ->
+    ?SUCHTHAT({R, _, _}, number_array(), [ok || {false, _} <- R] =/= []).
 
 int_array() ->
     ?LET(L, list({frequency([{2, false}, {8, true}]), int()}),
