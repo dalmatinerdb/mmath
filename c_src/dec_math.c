@@ -2,7 +2,7 @@
 #include "mmath.h"
 
 #define MAX_DIGITS 14
-#define MAX_COEFFICIENT 1e+14
+#define MAX_COEFFICIENT (long)1e+14
 
 /**
  * TODO: switch to int64_t and uint64_t
@@ -41,6 +41,22 @@ qipow10(uint8_t v) {
   return p[v];
 }
 
+static inline void
+dec_reduce(decimal *v) {
+  int8_t d;
+  int64_t c = llabs(v->coefficient);
+  if (c > MAX_COEFFICIENT) {
+    if (c < (MAX_COEFFICIENT * 10)) {
+      v->coefficient /= 10;
+      v->exponent += 1;
+    } else {
+      d = qlog10(c / MAX_COEFFICIENT) + 1;
+      v->coefficient /= (int64_t)qipow10(d);
+      v->exponent += d;
+    }
+  }
+}
+
 decimal
 dec_mul(decimal v, int64_t m) {
   // TODO fix in situation when m is so big, that it will overflow coefficient
@@ -48,10 +64,7 @@ dec_mul(decimal v, int64_t m) {
     .coefficient = v.coefficient * m,
     .exponent = v.exponent
   };
-  while (r.coefficient > MAX_COEFFICIENT) {
-    r.coefficient /= 10;
-    r.exponent += 1;
-  }
+  dec_reduce(&r);
   return r;
 }
 
@@ -71,10 +84,7 @@ dec_add_aligned(int64_t a_coef, int64_t b_coef, int8_t e) {
     .coefficient = a_coef + b_coef,
     .exponent = e
   };
-  if (llabs(r.coefficient) > MAX_COEFFICIENT) {
-    r.coefficient /= 10;
-    r.exponent += 1;
-  }
+  dec_reduce(&r);
   return r;
 }
 
