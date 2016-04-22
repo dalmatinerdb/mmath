@@ -114,8 +114,8 @@ prop_sum_r_comp() ->
     ?FORALL({{_, _, B}, N}, {fully_defined_int_array(), pos_int()},
             begin
                 R = mmath_bin:realize(B),
-                BRes = mmath_aggr:avg(B, N),
-                RRes = mmath_aggr:avg_r(R, N),
+                BRes = mmath_aggr:sum(B, N),
+                RRes = mmath_aggr:sum_r(R, N),
                 RRes2 = mmath_bin:derealize(RRes),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
