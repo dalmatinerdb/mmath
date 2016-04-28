@@ -69,7 +69,7 @@ merge(A, [], Acc) ->
     merge([], A, Acc).
 
 avg(A, B) ->
-    [N div 2 ||  N <- sum(A, B)].
+    [N / 2 ||  N <- sum(A, B)].
 
 sum(A, B) ->
     sum(A, B, 0, 0, []).

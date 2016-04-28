@@ -3,7 +3,7 @@
 -include("mmath.hrl").
 
 -export([convert/1, from_list/1, to_list/1, empty/1, length/1,
-         realize/1, derealize/1]).
+         realize/1, derealize/1, confidence_r/1]).
 
 -define(APPNAME, mmath).
 -define(LIBNAME, bin_nif).
@@ -68,3 +68,6 @@ realize(<<>>, _, Acc) ->
 
 derealize(Data) ->
     << <<?INT:?TYPE_SIZE, D:?BITS/?INT_TYPE>> || <<D:64/integer-native>> <= Data>>.
+
+confidence_r(_) ->
+    ok.

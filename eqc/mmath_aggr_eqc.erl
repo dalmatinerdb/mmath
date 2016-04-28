@@ -4,7 +4,8 @@
 
 -import(mmath_helper,
         [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0, epsilon/2,
-         non_empty_i_list/0, fully_defined_int_array/0, realise/1, realise/3]).
+         epsilon/3, non_empty_i_list/0, fully_defined_int_array/0, realise/1,
+         realise/3, confidence/1]).
 
 -include_lib("eqc/include/eqc.hrl").
 
@@ -82,6 +83,7 @@ prop_min_r_comp() ->
                              [?B2L(BRes), ?B2L(RRes2)]),
                    ?B2L(BRes) == ?B2L(RRes2))
             end).
+
 
 prop_avg_r_comp() ->
     ?FORALL({{_, _, B}, N}, {fully_defined_int_array(), pos_int()},

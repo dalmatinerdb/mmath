@@ -6,7 +6,7 @@
 
 -export([int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
          non_empty_i_list/0, fully_defined_int_array/0, realise/1, realise/3,
-         epsilon/3, epsilon/2]).
+         epsilon/3, epsilon/2, confidence/1]).
 -define(EPSILON, 0.00001).
 
 defined_int_array() ->
@@ -45,6 +45,13 @@ to_bin([], Acc) ->
     Acc.
 
 
+confidence_({false, _}) ->
+    0.0;
+confidence_(_) ->
+    100.0.
+confidence(L) ->
+    [confidence_(E) || E <- L].
+
 realise([]) ->
     [];
 realise(L) ->
@@ -74,5 +81,3 @@ epsilon([A | Ra], [B | Rb], E) ->
     abs(A - B) < E andalso epsilon(Ra, Rb, E);
 epsilon([], [], _) ->
     true.
-
-

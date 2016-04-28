@@ -2,8 +2,9 @@
 
 -include("../include/mmath.hrl").
 
--import(mmath_helper, [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
-                       non_empty_i_list/0, fully_defined_int_array/0, realise/1]).
+-import(mmath_helper, [int_array/0, pos_int/0, non_neg_int/0, realise/1,
+                       defined_int_array/0, non_empty_i_list/0, confidence/1,
+                       fully_defined_int_array/0]).
 
 -include_lib("eqc/include/eqc.hrl").
 
@@ -31,18 +32,23 @@ prop_l2b() ->
 
 prop_realize_derealize() ->
     ?FORALL({L, _, B}, int_array(),
-            realise(L) == ?B2L(mmath_bin:derealize(mmath_bin:realize(B)))).
-
-prop_realize_derealize_2() ->
-    ?FORALL({_L, _, B}, int_array(),
             begin
-                R = mmath_bin:realize(B),
-                D  = mmath_bin:derealize(R),
+                Exp = realise(L),
+                Calc = ?B2L(mmath_bin:derealize(mmath_bin:realize(B))),
                 ?WHENFAIL(io:format(user, "~p =/= ~p~n",
-                                    [B, D]),
-                          B == D)
-            end
-           ).
+                                    [Exp, Calc]),
+                          Exp == Calc)
+            end).
+
+prop_confidence() ->
+    ?FORALL({L, _, B}, int_array(),
+            begin
+                CExp = confidence(L),
+                CCalc = ?B2L(mmath_bin:derealize(mmath_bin:confidence_r(mmath_bin:realize(B)))),
+                ?WHENFAIL(io:format(user, "~p =/= ~p~n",
+                                    [CExp, CCalc]),
+                          CExp == CCalc)
+            end).
 
 prop_realize() ->
     ?FORALL({T, _, B}, defined_int_array(),

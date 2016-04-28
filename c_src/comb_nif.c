@@ -66,8 +66,8 @@ sum2_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   decimal* vs_a;
   decimal* vs_b;
   decimal* target;
-  decimal last_a = {0, 0};
-  decimal last_b = {0, 0};
+  decimal last_a = {0, 0, 0};
+  decimal last_b = {0, 0, 0};
 
   int count_a;
   int count_b;
@@ -91,10 +91,19 @@ sum2_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     }
   } else {
     for (int i = 0; i < count; i++) {
-      if (i < count_a)
+      // If we have a valid A or B for this opint
+      // we copy it in, otherwise we reuse the
+      // prior one and set confidence to 0.
+      if (i < count_a) {
         last_a = vs_a[i];
-      if (i < count_b)
+      } else {
+        last_a.confidence = 0;
+      }
+      if (i < count_b) {
         last_b = vs_b[i];
+      } else {
+        last_b.confidence = 0;
+      }
       // if neither A nor B are set here we keep a blank
       target[i] = dec_add(last_a, last_b);
     }
@@ -113,9 +122,9 @@ sum3(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifSInt64* vs_b;
   ErlNifSInt64* vs_c;
   ErlNifSInt64* target;
-  decimal last_a = {0, 0};
-  decimal last_b = {0, 0};
-  decimal last_c = {0, 0};
+  decimal last_a = {0, 0, 0};
+  decimal last_b = {0, 0, 0};
+  decimal last_c = {0, 0, 0};
 
   int count_a;
   int count_b;
@@ -164,9 +173,9 @@ sum3_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   decimal* vs_b;
   decimal* vs_c;
   decimal* target;
-  decimal last_a = {0, 0};
-  decimal last_b = {0, 0};
-  decimal last_c = {0, 0};
+  decimal last_a = {0, 0, 0};
+  decimal last_b = {0, 0, 0};
+  decimal last_c = {0, 0, 0};
 
   int count_a;
   int count_b;
@@ -194,12 +203,21 @@ sum3_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     }
   } else {
     for (int i = 0; i < count; i++) {
-      if (i < count_a)
+      if (i < count_a) {
         last_a = vs_a[i];
-      if (i < count_b)
+      } else {
+        last_a.confidence = 0;
+      }
+      if (i < count_b){
         last_b = vs_b[i];
-      if (i < count_c)
+      } else {
+        last_b.confidence = 0;
+      }
+      if (i < count_c){
         last_c = vs_c[i];
+      } else {
+        last_c.confidence = 0;
+      }
       target[i] = dec_add3(last_a, last_b, last_c);
     }
   }
