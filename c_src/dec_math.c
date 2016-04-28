@@ -4,10 +4,6 @@
 #define MAX_DIGITS 14
 #define MAX_COEFFICIENT (long)1e+14
 
-/**
- * TODO: switch to int64_t and uint64_t
- */
-
 /* 
   Fast 64bit integer log10 (It returns floor of actual float)
   WARNING: calling ilog10c(0) yields undefined behaviour!

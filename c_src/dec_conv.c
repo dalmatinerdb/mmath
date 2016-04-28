@@ -100,9 +100,14 @@ dec_from_double(double v) {
   if (v < 0) {
     sign = -1;
     v *= -1;
-  }           
-  d.exponent = (int8_t)ceil(log10(v)) - COEFFICIENT_DIGITS;
-  d.coefficient = (int64_t)(v / qpow10(d.exponent)) * sign;
+  }
+  if (v == 0) {
+    d.exponent = 0;
+    d.coefficient = 0;
+  } else {
+    d.exponent = (int8_t)ceil(log10(v)) - COEFFICIENT_DIGITS;
+    d.coefficient = (int64_t)(v / qpow10(d.exponent)) * sign;
+  }
   return d;
 }
 
