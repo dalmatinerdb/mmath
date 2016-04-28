@@ -17,6 +17,7 @@
 -export([map/2,
          scale/2, scale_r/2,
          derivate/1, derivate_r/1,
+         confidence_r/1,
          mul/2, mul_r/2,
          divide/2, divide_r/2]).
 -export([percentile/3]).
@@ -258,6 +259,9 @@ derivate(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, Rest/binary>>) ->
 
 derivate(<<?NONE:?TYPE_SIZE, 0:?BITS/?INT_TYPE, Rest/binary>>) ->
     der_int(Rest, find_first(Rest), <<>>).
+
+confidence_r(_) ->
+    ok.
 
 der_int(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, Rest/binary>>, Last, Acc) ->
     der_int(Rest, I, <<Acc/binary, ?INT:?TYPE_SIZE, (I - Last):?BITS/?INT_TYPE>>);

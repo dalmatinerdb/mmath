@@ -818,6 +818,30 @@ avg_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   return r;
 }
 
+static ERL_NIF_TERM
+confidence_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  ErlNifBinary a;
+  ERL_NIF_TERM r;
+  decimal temp = {.exponent = -3, .confidence = CERTAIN};
+  decimal* vs;
+  decimal* target;
+  int count;
+
+  if (argc != 1)
+    return enif_make_badarg(env);
+
+  GET_BIN(0, a, count, vs);
+
+  if (! (target = (decimal*) enif_make_new_binary(env, count * sizeof(decimal), &r)))
+    return enif_make_badarg(env); // TODO return propper error
+  for (int i = 0; i < count; i++) {
+    target[i] = temp;
+    target[i].coefficient = vs[i].confidence;
+  }
+  return r;
+}
+
 static ErlNifFunc nif_funcs[] = {
   {"mul",        2, mul},
   {"mul_r",      2, mul_r},
@@ -833,7 +857,9 @@ static ErlNifFunc nif_funcs[] = {
   {"avg",        2, avg},
   {"avg_r",      2, avg_r},
   {"derivate",   1, derivate},
-  {"derivate_r", 1, derivate_r}
+  {"derivate_r", 1, derivate_r},
+  {"confidence_r", 1, confidence_r}
+
 };
 
 // Initialize this NIF library.

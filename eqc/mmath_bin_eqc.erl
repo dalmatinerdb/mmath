@@ -40,16 +40,6 @@ prop_realize_derealize() ->
                           Exp == Calc)
             end).
 
-prop_confidence() ->
-    ?FORALL({L, _, B}, int_array(),
-            begin
-                CExp = confidence(L),
-                CCalc = ?B2L(mmath_bin:derealize(mmath_bin:confidence_r(mmath_bin:realize(B)))),
-                ?WHENFAIL(io:format(user, "~p =/= ~p~n",
-                                    [CExp, CCalc]),
-                          CExp == CCalc)
-            end).
-
 prop_realize() ->
     ?FORALL({T, _, B}, defined_int_array(),
             begin

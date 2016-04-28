@@ -22,7 +22,7 @@ prop_avg_r_conf() ->
                 CAvgL = avg(ConfLPad, N),
                 R = mmath_bin:realize(B),
                 A = mmath_aggr:avg_r(R, N),
-                C = mmath_bin:confidence_r(A),
+                C = mmath_aggr:confidence_r(A),
                 ConfR = ?B2L(mmath_bin:derealize(C)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
@@ -40,7 +40,7 @@ prop_sum_r_conf() ->
                 CAvgL = avg(ConfLPad, N),
                 R = mmath_bin:realize(B),
                 A = mmath_aggr:sum_r(R, N),
-                C = mmath_bin:confidence_r(A),
+                C = mmath_aggr:confidence_r(A),
                 ConfR = ?B2L(mmath_bin:derealize(C)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
@@ -57,7 +57,7 @@ prop_max_r_conf() ->
                 CAvgL = avg(ConfLPad, N),
                 R = mmath_bin:realize(B),
                 A = mmath_aggr:max_r(R, N),
-                C = mmath_bin:confidence_r(A),
+                C = mmath_aggr:confidence_r(A),
                 ConfR = ?B2L(mmath_bin:derealize(C)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
@@ -75,7 +75,7 @@ prop_min_r_conf() ->
                 CAvgL = avg(ConfLPad, N),
                 R = mmath_bin:realize(B),
                 A = mmath_aggr:min_r(R, N),
-                C = mmath_bin:confidence_r(A),
+                C = mmath_aggr:confidence_r(A),
                 ConfR = ?B2L(mmath_bin:derealize(C)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
@@ -100,7 +100,7 @@ prop_comb_sum2_r_conf() ->
                 R1 = mmath_bin:realize(B1),
                 R2 = mmath_bin:realize(B2),
                 Comb = mmath_comb:sum_r([R1, R2]),
-                C = mmath_bin:confidence_r(Comb),
+                C = mmath_aggr:confidence_r(Comb),
                 ConfR = ?B2L(mmath_bin:derealize(C)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
@@ -110,6 +110,15 @@ prop_comb_sum2_r_conf() ->
                    epsilon(CAvgL, ConfR, 0.001))
             end).
 
+prop_confidence() ->
+    ?FORALL({L, _, B}, int_array(),
+            begin
+                CExp = confidence(L),
+                CCalc = ?B2L(mmath_bin:derealize(mmath_aggr:confidence_r(mmath_bin:realize(B)))),
+                ?WHENFAIL(io:format(user, "~p =/= ~p~n",
+                                    [CExp, CCalc]),
+                          CExp == CCalc)
+            end).
 %% yes this is bad, so what?!?
 pad_to_n(_L, 0) ->
     [];

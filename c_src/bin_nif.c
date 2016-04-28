@@ -146,37 +146,11 @@ derealize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   return r;
 }
 
-
-static ERL_NIF_TERM
-confidence_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
-{
-  ErlNifBinary a;
-  ERL_NIF_TERM r;
-  decimal temp = {.exponent = -3, .confidence = CERTAIN};
-  decimal* vs;
-  decimal* target;
-  int count;
-
-  if (argc != 1)
-    return enif_make_badarg(env);
-
-  GET_BIN(0, a, count, vs);
-
-  if (! (target = (decimal*) enif_make_new_binary(env, count * sizeof(decimal), &r)))
-    return enif_make_badarg(env); // TODO return propper error
-  for (int i = 0; i < count; i++) {
-    target[i] = temp;
-    target[i].coefficient = vs[i].confidence;
-  }
-  return r;
-}
-
 static ErlNifFunc nif_funcs[] = {
   {"from_list",    1, from_list},
   {"to_list",      1, to_list},
   {"realize",      1, realize},
   {"derealize",    1, derealize},
-  {"confidence_r", 1, confidence_r}
 };
 
 // Initialize this NIF library.
