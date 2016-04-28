@@ -68,7 +68,7 @@ dec_deserialize(ErlNifSInt64 ev) {
   int64_t v = ntohll(ev);
   char type = (uint8_t)((v & TYPE_MASK) >> 56);
 
-  d.certenty = CERTAIN;
+  d.confidence = CERTAIN;
   
   if (type == INTEGER_TYPE) {
     d.exponent = 0;
@@ -89,7 +89,7 @@ dec_deserialize(ErlNifSInt64 ev) {
 
 decimal
 dec_from_int64(int64_t v) {
-  decimal d = {.exponent = 0, .coefficient = v, .certenty = CERTAIN};
+  decimal d = {.exponent = 0, .coefficient = v, .confidence = CERTAIN};
   return d;
 }
 
@@ -106,13 +106,13 @@ dec_from_double(double v) {
   }
   d.exponent = (int8_t)ceil(log10(v)) - COEFFICIENT_DIGITS;
   d.coefficient = (int64_t)(v / qpow10(d.exponent)) * sign;
-  d.certenty = CERTAIN;
+  d.confidence = CERTAIN;
   return d;
 }
 
 decimal
 dec_from_binary(int len, char* v) {
-  decimal d = {.exponent = 0, .coefficient = 0, .certenty = CERTAIN};
+  decimal d = {.exponent = 0, .coefficient = 0, .confidence = CERTAIN};
   char seen_point = 0;
   char digits = 0;
   char c, x;

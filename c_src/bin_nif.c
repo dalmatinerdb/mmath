@@ -95,7 +95,7 @@ realize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ERL_NIF_TERM r;
   ErlNifSInt64* vs;
   decimal* target;
-  decimal last = {.coefficient = 0, .exponent = 0, .certenty = 0};
+  decimal last = {.coefficient = 0, .exponent = 0, .confidence = 0};
   int has_last = 0;
   int count;
 
@@ -108,13 +108,13 @@ realize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     return enif_make_badarg(env); // TODO return propper error
 
   for (int i = 0; i < count; i++) {
-    last.certenty = 0;
+    last.confidence = 0;
     if (IS_SET(vs[i])) {
       last = FROM_DDB(vs[i]);
       if (! has_last) {
         for (int j = 0; j < i; j++) {
           target[j] = last;
-          target[j].certenty = 0;
+          target[j].confidence = 0;
         }
         has_last = 1;
       }
@@ -141,7 +141,7 @@ derealize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (! (target = (ErlNifSInt64*) enif_make_new_binary(env, count * sizeof(ErlNifSInt64), &r)))
     return enif_make_badarg(env); // TODO return propper error
   for (int i = 0; i < count; i++) {
-    if (vs[i].certenty > 0) {
+    if (vs[i].confidence > 0) {
       target[i] = TO_DDB(vs[i]);
     } else {
       target[i] = DDB_UNSET;

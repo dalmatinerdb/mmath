@@ -17,7 +17,7 @@
 
 typedef struct {
   int64_t coefficient;
-  uint32_t certenty;
+  uint32_t confidence;
   int8_t  exponent;
 } decimal;
 
