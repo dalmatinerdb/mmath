@@ -10,10 +10,10 @@
 -define(TYPE_SIZE, 8).
 
 %% The size of exponent field for floating point decimals
--define(EXPONENT_SIZE, 8).
+-define(DEC_EXP_SIZE, 8).
 
 %% The size of coefficient field for floating point decimals
--define(COEFFICIENT_SIZE, 48).
+-define(DEC_COEF_SIZE, 48).
 
 %% Value types defined so far.
 
