@@ -3,9 +3,9 @@
 -include("../include/mmath.hrl").
 
 -import(mmath_helper,
-        [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0, 
-         defined_number_array/0, epsilon/2, non_empty_i_list/0, 
-         fully_defined_int_array/0, realise/1, realise/3]).
+        [number_array/0, pos_int/0, non_neg_int/0, defined_number_array/0,
+         non_empty_number_list/0, fully_defined_number_array/0, realise/1,
+         realise/3, almost_equal/2]).
 
 -include_lib("eqc/include/eqc.hrl").
 
@@ -16,23 +16,23 @@ prop_n_length_chunks() ->
             ceiling(length(L) / N) =:= length(n_length_chunks(L, N))).
 
 prop_avg_all() ->
-    ?FORALL(L, non_empty_i_list(),
+    ?FORALL(L, non_empty_number_list(),
             begin
                 BRes = ?B2L(mmath_aggr:avg(?L2B(L), length(L))),
                 LRes = [lists:sum(L) / length(L)],
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [BRes, LRes]),
-                   epsilon(BRes, LRes))
+                   almost_equal(BRes, LRes))
             end).
 
 prop_avg_len() ->
-    ?FORALL({L, N}, {non_empty_i_list(), pos_int()},
+    ?FORALL({L, N}, {non_empty_number_list(), pos_int()},
             ceiling(length(L)/N) == length(?B2L(mmath_aggr:avg(?L2B(L), N)))).
 
 
 prop_scale_r_comp() ->
-    ?FORALL({{_, _, B}, N}, {fully_defined_int_array(), pos_int()},
+    ?FORALL({{_, _, B}, N}, {fully_defined_number_array(), pos_int()},
             begin
                 R = mmath_bin:realize(B),
                 BRes = mmath_aggr:scale(B, N),
@@ -41,11 +41,11 @@ prop_scale_r_comp() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [?B2L(BRes), ?B2L(RRes2)]),
-                   ?B2L(BRes) == ?B2L(RRes2))
+                   almost_equal(?B2L(BRes), ?B2L(RRes2)))
             end).
 
 prop_mul_r_comp() ->
-    ?FORALL({{_, _, B}, N}, {fully_defined_int_array(), pos_int()},
+    ?FORALL({{_, _, B}, N}, {fully_defined_number_array(), pos_int()},
             begin
                 R = mmath_bin:realize(B),
                 BRes = mmath_aggr:mul(B, N),
@@ -54,11 +54,11 @@ prop_mul_r_comp() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [?B2L(BRes), ?B2L(RRes2)]),
-                   ?B2L(BRes) == ?B2L(RRes2))
+                   almost_equal(?B2L(BRes), ?B2L(RRes2)))
             end).
 
 prop_div_r_comp() ->
-    ?FORALL({{L, _, B}, N}, {int_array(), pos_int()},
+    ?FORALL({{L, _, B}, N}, {number_array(), pos_int()},
             begin
                 R = mmath_bin:realize(B),
                 B1 = ?L2B(realise(L)),
@@ -68,11 +68,11 @@ prop_div_r_comp() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [?B2L(BRes), ?B2L(RRes2)]),
-                   ?B2L(BRes) == ?B2L(RRes2))
+                   almost_equal(?B2L(BRes), ?B2L(RRes2)))
             end).
 
 prop_min_r_comp() ->
-    ?FORALL({{_, _, B}, N}, {fully_defined_int_array(), pos_int()},
+    ?FORALL({{_, _, B}, N}, {fully_defined_number_array(), pos_int()},
             begin
                 R = mmath_bin:realize(B),
                 BRes = mmath_aggr:min(B, N),
@@ -81,11 +81,11 @@ prop_min_r_comp() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [?B2L(BRes), ?B2L(RRes2)]),
-                   ?B2L(BRes) == ?B2L(RRes2))
+                   almost_equal(?B2L(BRes), ?B2L(RRes2)))
             end).
 
 prop_avg_r_comp() ->
-    ?FORALL({{_, _, B}, N}, {fully_defined_int_array(), pos_int()},
+    ?FORALL({{_, _, B}, N}, {fully_defined_number_array(), pos_int()},
             begin
                 R = mmath_bin:realize(B),
                 BRes = mmath_aggr:avg(B, N),
@@ -94,12 +94,12 @@ prop_avg_r_comp() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [?B2L(BRes), ?B2L(RRes2)]),
-                   ?B2L(BRes) == ?B2L(RRes2))
+                   almost_equal(?B2L(BRes), ?B2L(RRes2)))
             end).
 
 
 prop_max_r_comp() ->
-    ?FORALL({{_, _, B}, N}, {fully_defined_int_array(), pos_int()},
+    ?FORALL({{_, _, B}, N}, {fully_defined_number_array(), pos_int()},
             begin
                 R = mmath_bin:realize(B),
                 BRes = mmath_aggr:max(B, N),
@@ -108,11 +108,11 @@ prop_max_r_comp() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [?B2L(BRes), ?B2L(RRes2)]),
-                   ?B2L(BRes) == ?B2L(RRes2))
+                   almost_equal(?B2L(BRes), ?B2L(RRes2)))
             end).
 
 prop_sum_r_comp() ->
-    ?FORALL({{_, _, B}, N}, {fully_defined_int_array(), pos_int()},
+    ?FORALL({{_, _, B}, N}, {fully_defined_number_array(), pos_int()},
             begin
                 R = mmath_bin:realize(B),
                 BRes = mmath_aggr:sum(B, N),
@@ -121,18 +121,18 @@ prop_sum_r_comp() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [?B2L(BRes), ?B2L(RRes2)]),
-                   ?B2L(BRes) == ?B2L(RRes2))
+                   almost_equal(?B2L(BRes), ?B2L(RRes2)))
             end).
 
 prop_avg_impl() ->
-    ?FORALL({{_, L, B}, N}, {fully_defined_int_array(), pos_int()},
+    ?FORALL({{_, L, B}, N}, {fully_defined_number_array(), pos_int()},
             begin
                 LRes = avg(L, N),
                 BRes = mmath_bin:to_list(mmath_aggr:avg(B, N)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [LRes, BRes]),
-                   epsilon(LRes, BRes))
+                   almost_equal(LRes, BRes))
             end).
 
 prop_avg_len_undefined() ->
@@ -147,7 +147,7 @@ prop_sum() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [LRes, BRes]),
-                   epsilon(LRes, BRes))
+                   almost_equal(LRes, BRes))
             end).
 
 prop_sum_len_undefined() ->
@@ -156,8 +156,8 @@ prop_sum_len_undefined() ->
 
 %% We need to know about unset values for min!
 prop_min() ->
-    ?FORALL({{L, _, B}, N}, {defined_int_array(), pos_int()},
-            min_list(L, N) == mmath_bin:to_list(mmath_aggr:min(B, N))).
+    ?FORALL({{L, _, B}, N}, {defined_number_array(), pos_int()},
+            almost_equal(min_list(L, N), mmath_bin:to_list(mmath_aggr:min(B, N)))).
 
 prop_min_len_undefined() ->
     ?FORALL({L, N}, {non_neg_int(), pos_int()},
@@ -165,14 +165,14 @@ prop_min_len_undefined() ->
 
 %% We need to know about unset values for min!
 prop_max() ->
-    ?FORALL({{L, _, B}, N}, {defined_int_array(), pos_int()},
+    ?FORALL({{L, _, B}, N}, {defined_number_array(), pos_int()},
             begin
                 LRes = max_list(L, N),
                 BRes = mmath_bin:to_list(mmath_aggr:max(B, N)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [LRes, BRes]),
-                   LRes == BRes)
+                   almost_equal(LRes, BRes))
             end).
 
 prop_max_len_undefined() ->
@@ -187,60 +187,63 @@ prop_max_len_undefined() ->
             end).
 
 prop_der() ->
-    ?FORALL({L, _, B}, defined_int_array(),
+    ?FORALL({L, _, B}, defined_number_array(),
             begin
                 LRes = derivate(L),
                 BRes = mmath_bin:to_list(mmath_aggr:derivate(B)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [LRes, BRes]),
-                   LRes == BRes)
+                   almost_equal(LRes, BRes))
             end).
 
 prop_der_len_undefined() ->
     ?FORALL(L, non_neg_int(),
             erlang:max(0, L - 1) == mmath_bin:length(mmath_aggr:derivate(mmath_bin:empty(L)))).
 
-prop_scale_int() ->
-    ?FORALL({{_, L, B}, S}, {defined_int_array(), real()},
+prop_scale() ->
+    ?FORALL({{_, L, B}, S}, {defined_number_array(), real()},
             begin
-                LRes = scale_i(L, S),
+                LRes = scale_n(L, S),
                 BRes = mmath_bin:to_list(mmath_aggr:scale(B,S)),
             ?WHENFAIL(
                io:format(user, "~p =/= ~p~n",
                          [LRes, BRes]),
-               LRes == BRes)
+               almost_equal(LRes, BRes))
             end).
 
-prop_mul_int() ->
-    ?FORALL({{_, L, B}, S}, {defined_int_array(), int()},
+prop_mul() ->
+    ?FORALL({{_, L, B}, S}, {defined_number_array(), int()},
             begin
-                LRes = mul_i(L, S),
+                LRes = mul_n(L, S),
                 BRes = mmath_bin:to_list(mmath_aggr:mul(B,S)),
             ?WHENFAIL(
                io:format(user, "~p =/= ~p~n",
                          [LRes, BRes]),
-               LRes == BRes)
+               almost_equal(LRes, BRes))
             end).
 
-prop_div_int() ->
-    ?FORALL({{_, L, B}, S}, {defined_int_array(), pos_int()},
+prop_div() ->
+    ?FORALL({{_, L, B}, S}, {defined_number_array(), pos_int()},
             begin
-                LRes = div_i(L, S),
+                LRes = div_n(L, S),
                 BRes = mmath_bin:to_list(mmath_aggr:divide(B,S)),
             ?WHENFAIL(
                io:format(user, "~p =/= ~p~n",
                          [LRes, BRes]),
-               epsilon(LRes, BRes))
+               almost_equal(LRes, BRes))
             end).
 
-prop_map_int() ->
-    ?FORALL({{_, L, B}, S}, {defined_int_array(), real()},
+prop_map() ->
+    ?FORALL({{_, L, B}, S}, {defined_number_array(), real()},
 			begin
-				Scale = fun(V) ->
-								round(V * S)
-						end,
-                scale_i(L, S) == mmath_bin:to_list(mmath_aggr:map(B, Scale))
+				Scale = fun(V) -> V * S end,
+                LRes = scale_n(L, S),
+                BRes = mmath_bin:to_list(mmath_aggr:map(B, Scale)),
+            ?WHENFAIL(
+               io:format(user, "~p =/= ~p~n",
+                         [LRes, BRes]),
+               almost_equal(LRes, BRes))
 			end).
 
 prop_scale_len_undefined() ->
@@ -248,22 +251,22 @@ prop_scale_len_undefined() ->
             L == mmath_bin:length(mmath_aggr:scale(mmath_bin:empty(L), 1))).
 
 prop_combine_sum_identity() ->
-    ?FORALL({_, _, A}, defined_int_array(),
+    ?FORALL({_, _, A}, defined_number_array(),
             mmath_comb:sum([A]) == A).
 
 prop_combine_sum_N() ->
-    ?FORALL({{_, _, A}, N}, {defined_int_array(), pos_int()},
+    ?FORALL({{_, _, A}, N}, {defined_number_array(), pos_int()},
             begin
-                LRes = mmath_aggr:mul(A, N),
-                BRes = mmath_comb:sum([A || _ <- lists:seq(1, N)]),
+                LRes = mmath_bin:to_list(mmath_aggr:mul(A, N)),
+                BRes = mmath_bin:to_list(mmath_comb:sum([A || _ <- lists:seq(1, N)])),
                 ?WHENFAIL(
-                   io:format(user, "sum(~p*~p) -> ~p =/= ~p~n",
-                             [A, N, LRes, BRes]),
-                   LRes == BRes)
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
             end).
 
 prop_combine_sum_r_comp() ->
-    ?FORALL({{_, _, B1}, {_, _, B2}}, {fully_defined_int_array(), fully_defined_int_array()},
+    ?FORALL({{_, _, B1}, {_, _, B2}}, {fully_defined_number_array(), fully_defined_number_array()},
             begin
                 RB1 = mmath_bin:realize(B1),
                 RB2 = mmath_bin:realize(B2),
@@ -275,22 +278,22 @@ prop_combine_sum_r_comp() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [?B2L(BRes), ?B2L(RRes2)]),
-                   ?B2L(BRes) == ?B2L(RRes2))
+                   almost_equal(?B2L(BRes), ?B2L(RRes2)))
             end).
 
 prop_combine_avg_N() ->
-    ?FORALL({{_, _, A}, N}, {defined_int_array(), pos_int()},
+    ?FORALL({{_, _, A}, N}, {defined_number_array(), pos_int()},
             begin
                 LRes = ?B2L(mmath_aggr:mul(A, 1)),
                 BRes = ?B2L(mmath_comb:avg([A || _ <- lists:seq(1, N+1)])),
                 ?WHENFAIL(
                    io:format(user, "avg(~p*~p) -> ~p =/= ~p~n",
                              [A, N, LRes, BRes]),
-                   epsilon(LRes, BRes))
+                   almost_equal(LRes, BRes))
             end).
 
 prop_combine_avg2_r_comp() ->
-    ?FORALL({{_, _, B1}, {_, _, B2}}, {fully_defined_int_array(), fully_defined_int_array()},
+    ?FORALL({{_, _, B1}, {_, _, B2}}, {fully_defined_number_array(), fully_defined_number_array()},
             begin
                 RB1 = mmath_bin:realize(B1),
                 RB2 = mmath_bin:realize(B2),
@@ -307,7 +310,7 @@ prop_combine_avg2_r_comp() ->
 
 prop_combine_avg3_r_comp() ->
     ?FORALL({{_, _, B1}, {_, _, B2}, {_, _, B3}},
-            {fully_defined_int_array(), fully_defined_int_array(), fully_defined_int_array()},
+            {fully_defined_number_array(), fully_defined_number_array(), fully_defined_number_array()},
             begin
                 RB1 = mmath_bin:realize(B1),
                 RB2 = mmath_bin:realize(B2),
@@ -325,7 +328,7 @@ prop_combine_avg3_r_comp() ->
 
 
 prop_count_empty() ->
-    ?FORALL({{L, _, B}, N}, {int_array(), pos_int()},
+    ?FORALL({{L, _, B}, N}, {number_array(), pos_int()},
             begin
                 Act = mmath_bin:to_list(mmath_aggr:empty(B, N)),
                 Exp = empty(L, N),
@@ -334,35 +337,25 @@ prop_count_empty() ->
             end).
 
 prop_combine_percentile_int() ->
-    ?FORALL({{L, _, A}, N, PRaw}, {defined_int_array(), pos_int(), choose(0, 1000)},
+    ?FORALL({{L, _, A}, N, PRaw}, {defined_number_array(), pos_int(), choose(0, 1000)},
             begin
                 P = PRaw/1000,
                 Exp = percentile(L, N, P),
-                Act = to_list(mmath_aggr:percentile(A, N, P), []),
+                Act = mmath_bin:to_list(mmath_aggr:percentile(A, N, P)),
                 ?WHENFAIL(io:format(user, "Exp: ~p~nAct: ~p~n",
                                     [Exp, Act]),
-                          Exp == Act)
+                          almost_equal(Exp, Act))
             end).
 
 
-to_list(<<?INT:?TYPE_SIZE, V:?BITS/?INT_TYPE, R/binary>>, Acc) ->
-    to_list(R, [V | Acc]);
-to_list(<<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, R/binary>>, Acc) ->
-    to_list(R, [0 | Acc]);
-to_list(<<>>, Acc) ->
-    lists:reverse(Acc).
-
-scale_i(L, S) ->
-    [round(N*S) || N <- L].
-
-mul_i(L, S) ->
+scale_n(L, S) ->
     [N * S || N <- L].
 
-div_i(L, S) ->
-    [N / S || N <- L].
+mul_n(L, S) ->
+    [N * S || N <- L].
 
-scale_f(L, S) ->
-    [N*S || N <- L].
+div_n(L, S) ->
+    [N / S || N <- L].
 
 percentile(L, N, P) ->
     apply_n(L, N, fun(L1, N1) -> percentile_(L1, N1, P) end).
@@ -412,20 +405,6 @@ sum_(L, N) ->
         Len ->
             lists:sum(L) + (lists:last(L) * (N - Len))
     end.
-%%     sum_(L, 0, 0, N).
-
-%% %%sum_(L, Sum, Last, Count)
-%% sum_([], Sum, _Last, 0)  ->
-%%     Sum;
-
-%% sum_([], Sum, Last, C)  ->
-%%     Sum + (Last  * C);
-
-%% sum_([{true, V} | R], Sum, _Last, C)  ->
-%%     sum_(R, Sum + V, V, C -1);
-
-%% sum_([{false, _} | R], Sum, Last, C)  ->
-%%     sum_(R, Sum + Last, Last, C -1).
 
 min_(L, _N) ->
     case lists:sort([V || {true, V} <- L]) of
