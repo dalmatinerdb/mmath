@@ -7,8 +7,8 @@
 -export([int_array/0, number_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
          defined_number_array/0, non_empty_i_list/0, fully_defined_int_array/0,
          fully_defined_number_array/0, to_decimal/1, from_decimal/1, realise/1,
-         realise/3, almost_equal/2]).
-
+         realise/3, epsilon/3, epsilon/2, almost_equal/2]).
+-define(EPSILON, 0.00001).
 -define(MAX_RELATIVE_ERROR, math:pow(10, 2 - ?DEC_PRECISION)).
 
 defined_int_array() ->
@@ -124,3 +124,13 @@ almost_equal([], []) ->
     true;
 almost_equal([AFirst|ARest], [BFirst|BRest]) ->
     almost_equal_number(AFirst, BFirst) and almost_equal(ARest, BRest).
+
+epsilon(A, B) ->
+    epsilon(A, B, ?EPSILON).
+
+epsilon(A, B, E) when is_number(A), is_number(B) ->
+    abs(A - B) < E;
+epsilon([A | Ra], [B | Rb], E) ->
+    abs(A - B) < E andalso epsilon(Ra, Rb, E);
+epsilon([], [], _) ->
+    true.

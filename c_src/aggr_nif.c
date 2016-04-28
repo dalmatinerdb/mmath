@@ -624,9 +624,9 @@ sum_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     return enif_make_badarg(env); // TODO return propper error
   if (count > 0) {
     aggr = vs[0];
-    pos = 2;
+    pos = 1;
     for (uint32_t i = 1; i < count; i++, pos++) {
-      if (pos == count) {
+      if (pos == chunk) {
         target[target_i] = aggr;
         target_i++;
         aggr = vs[i];
