@@ -3,7 +3,7 @@
 -include("../include/mmath.hrl").
 
 -import(mmath_helper, [int_array/0, number_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
-                       non_empty_i_list/0, almost_equal/2]).
+                       non_empty_i_list/0, epsilon/2]).
 
 -include_lib("eqc/include/eqc.hrl").
 
@@ -15,7 +15,7 @@ prop_sum_number() ->
                 R1 = sum(La, La),
                 R2 = mmath_bin:to_list(mmath_comb:sum([Ba, Ba])),
                 ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R2]),
-                          almost_equal(R1, R2))
+                          epsilon(R1, R2))
             end).
 
 prop_mul_int() ->

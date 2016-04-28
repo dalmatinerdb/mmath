@@ -3,8 +3,8 @@
 -include("../include/mmath.hrl").
 
 -import(mmath_helper, [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
-                       non_empty_i_list/0, fully_defined_int_array/0, realise/1,
-                       almost_equal/2, defined_number_array/0, from_decimal/1]).
+                       non_empty_i_list/0, fully_defined_int_array/0, from_decimal/1,
+                       realise/1, epsilon/2, defined_number_array/0]).
 
 -include_lib("eqc/include/eqc.hrl").
 
@@ -43,5 +43,5 @@ prop_realize() ->
                 L = realise(T),
                 ?WHENFAIL(io:format(user, "~p =/= ~p~n",
                                     [L, L1]),
-                          almost_equal(L, L1))
+                          epsilon(L, L1))
             end).

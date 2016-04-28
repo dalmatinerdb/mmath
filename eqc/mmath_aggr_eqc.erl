@@ -5,7 +5,7 @@
 -import(mmath_helper,
         [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0, 
          defined_number_array/0, epsilon/2, non_empty_i_list/0, 
-         fully_defined_int_array/0, realise/1, realise/3, almost_equal/2]).
+         fully_defined_int_array/0, realise/1, realise/3]).
 
 -include_lib("eqc/include/eqc.hrl").
 
@@ -147,7 +147,7 @@ prop_sum() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [LRes, BRes]),
-                   almost_equal(LRes, BRes))
+                   epsilon(LRes, BRes))
             end).
 
 prop_sum_len_undefined() ->
