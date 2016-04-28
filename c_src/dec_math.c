@@ -57,6 +57,25 @@ dec_reduce(decimal *v) {
   }
 }
 
+static inline void
+dec_inflate(decimal *v) {
+  int64_t c = llabs(v->coefficient);
+  if(c == 0) return;
+  // We take some big steps first, to speed things up a little
+  // might not even be needed
+  // I'm sure this can be mathed away.
+  while ((c * 10000) < MAX_COEFFICIENT) {
+    v->coefficient *= 10000;
+    v->exponent -= 4;
+    c *= 10000;
+  }
+  while ((c * 10) < MAX_COEFFICIENT) {
+    v->coefficient *= 10;
+    v->exponent -= 1;
+    c *= 10;
+  }
+}
+
 decimal
 dec_mul(decimal v, int64_t m) {
   // TODO fix in situation when m is so big, that it will overflow coefficient
@@ -71,10 +90,12 @@ dec_mul(decimal v, int64_t m) {
 decimal
 dec_div(decimal v, int64_t m) {
   // TODO: Improve accuracy by adjusting coefficient before dividing
+  dec_inflate(&v);
   decimal r = {
     .coefficient = v.coefficient / m,
     .exponent = v.exponent
   };
+  dec_reduce(&r);
   return r;
 }
 

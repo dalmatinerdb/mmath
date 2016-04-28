@@ -5,7 +5,9 @@
 -include("../include/mmath.hrl").
 
 -export([int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
-         non_empty_i_list/0, fully_defined_int_array/0, realise/1, realise/3]).
+         non_empty_i_list/0, fully_defined_int_array/0, realise/1, realise/3,
+         epsilon/3, epsilon/2]).
+-define(EPSILON, 0.00001).
 
 defined_int_array() ->
     ?SUCHTHAT({R, _, _}, int_array(), [ok || {true, _} <- R] =/= []).
@@ -62,3 +64,15 @@ realise([{true, V} | R], _, Acc) ->
     realise(R, V, [V | Acc]);
 realise([{false, _} | R], L, Acc) ->
     realise(R, L, [L | Acc]).
+
+epsilon(A, B) ->
+    epsilon(A, B, ?EPSILON).
+
+epsilon(A, B, E) when is_number(A), is_number(B) ->
+    abs(A - B) < E;
+epsilon([A | Ra], [B | Rb], E) ->
+    abs(A - B) < E andalso epsilon(Ra, Rb, E);
+epsilon([], [], _) ->
+    true.
+
+

@@ -3,7 +3,7 @@
 -include("../include/mmath.hrl").
 
 -import(mmath_helper,
-        [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
+        [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0, epsilon/2,
          non_empty_i_list/0, fully_defined_int_array/0, realise/1, realise/3]).
 
 -include_lib("eqc/include/eqc.hrl").
@@ -18,11 +18,11 @@ prop_avg_all() ->
     ?FORALL(L, non_empty_i_list(),
             begin
                 BRes = ?B2L(mmath_aggr:avg(?L2B(L), length(L))),
-                LRes = [round(lists:sum(L) div length(L))],
+                LRes = [lists:sum(L) / length(L)],
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [BRes, LRes]),
-                   BRes == LRes)
+                   epsilon(BRes, LRes))
             end).
 
 prop_avg_len() ->
@@ -131,7 +131,7 @@ prop_avg_impl() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [LRes, BRes]),
-                   LRes == BRes)
+                   epsilon(LRes, BRes))
             end).
 
 prop_avg_len_undefined() ->
@@ -230,7 +230,7 @@ prop_div_int() ->
             ?WHENFAIL(
                io:format(user, "~p =/= ~p~n",
                          [LRes, BRes]),
-               LRes == BRes)
+               epsilon(LRes, BRes))
             end).
 
 prop_map_int() ->
@@ -280,12 +280,12 @@ prop_combine_sum_r_comp() ->
 prop_combine_avg_N() ->
     ?FORALL({{_, _, A}, N}, {defined_int_array(), pos_int()},
             begin
-                LRes = mmath_aggr:mul(A, 1),
-                BRes = mmath_comb:avg([A || _ <- lists:seq(1, N+1)]),
+                LRes = ?B2L(mmath_aggr:mul(A, 1)),
+                BRes = ?B2L(mmath_comb:avg([A || _ <- lists:seq(1, N+1)])),
                 ?WHENFAIL(
                    io:format(user, "avg(~p*~p) -> ~p =/= ~p~n",
                              [A, N, LRes, BRes]),
-                   LRes == BRes)
+                   epsilon(LRes, BRes))
             end).
 
 prop_combine_avg2_r_comp() ->
@@ -355,10 +355,10 @@ scale_i(L, S) ->
     [round(N*S) || N <- L].
 
 mul_i(L, S) ->
-    [N*S || N <- L].
+    [N * S || N <- L].
 
 div_i(L, S) ->
-    [N div S || N <- L].
+    [N / S || N <- L].
 
 scale_f(L, S) ->
     [N*S || N <- L].
@@ -402,7 +402,7 @@ avg_(L, N) ->
             lists:sum(L);
         Len ->
             lists:sum(L) + (lists:last(L) * (N - Len))
-    end div N.
+    end / N.
 
 sum_(L, N) ->
     case length(L) of
