@@ -4,28 +4,18 @@
 
 -include("../include/mmath.hrl").
 
--export([int_array/0, number_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
-         defined_number_array/0, non_empty_i_list/0, fully_defined_int_array/0,
-         fully_defined_number_array/0, to_decimal/1, from_decimal/1, realise/1,
-         realise/3, epsilon/3, epsilon/2]).
+-export([number_array/0, pos_int/0, non_neg_int/0, supported_number/0,
+         defined_number_array/0, non_empty_number_list/0, 
+         fully_defined_number_array/0, from_decimal/1, realise/1, realise/3,
+         almost_equal/3, almost_equal/2]).
 
 -define(EPSILON, math:pow(10, 3 - ?DEC_PRECISION)).
-
-defined_int_array() ->
-    ?SUCHTHAT({R, _, _}, int_array(), [ok || {true, _} <- R] =/= []).
 
 defined_number_array() ->
     ?SUCHTHAT({R, _, _}, number_array(), [ok || {true, _} <- R] =/= []).
 
-fully_defined_int_array() ->
-    ?SUCHTHAT({R, _, _}, int_array(), [ok || {false, _} <- R] =:= []).
-
 fully_defined_number_array() ->
-    ?SUCHTHAT({R, _, _}, number_array(), [ok || {false, _} <- R] =/= []).
-
-int_array() ->
-    ?LET(L, list({frequency([{2, false}, {8, true}]), int()}),
-         {L, to_list(L, 0, []), to_bin(L, <<>>)}).
+    ?SUCHTHAT({R, _, _}, number_array(), [ok || {false, _} <- R] =:= []).
 
 number_array() ->
     ?LET(L, list({frequency([{2, false}, {8, true}]), supported_number()}),
@@ -41,26 +31,26 @@ supported_number() ->
     oneof([supported_int(), real()]).
 
 supported_int() ->
-    choose(-(1 bsl (?COEFFICIENT_SIZE - 1)), (1 bsl ?COEFFICIENT_SIZE) - 1).
+    choose(-(1 bsl (?DEC_COEF_SIZE - 1)), (1 bsl ?DEC_COEF_SIZE) - 1).
 
-non_empty_i_list() ->
-    ?SUCHTHAT(L, list(int()), L =/= []).
+non_empty_number_list() ->
+    ?SUCHTHAT(L, list(supported_number()), L =/= []).
 
-floor(X) when X < 0 ->
+ceil(X) when X < 0 ->
+    trunc(X);
+ceil(X) ->
     T = trunc(X),
     case X - T == 0 of
         true -> T;
-        false -> T - 1
-    end;
-floor(X) -> 
-    trunc(X).
+        false -> T + 1
+    end.
 
 to_decimal(V) when V == 0.0 ->
     {0, 0};
 to_decimal(V) when is_integer(V) ->
     {V, 0};
 to_decimal(V) when is_float(V) ->
-    E = floor(math:log10(abs(V))) - ?DEC_PRECISION + 1,
+    E = ceil(math:log10(abs(V))) - ?DEC_PRECISION,
     C = trunc(V / math:pow(10, E)),
     {C, E}.
 
@@ -80,9 +70,12 @@ to_bin([{false, _} | R], Acc) ->
 to_bin([{true, V} | R], Acc) when is_integer(V) ->
     to_bin(R, <<Acc/binary, ?INT:?TYPE_SIZE, V:?BITS/?INT_TYPE>>);
 
+to_bin([{true, V} | R], Acc) when V == 0.0 ->
+    to_bin(R, <<Acc/binary, ?INT:?TYPE_SIZE, 0:?BITS/?INT_TYPE>>);
+
 to_bin([{true, V} | R], Acc) when is_float(V) ->
     {C, E} = to_decimal(V),
-    to_bin(R, <<Acc/binary, ?DEC:?TYPE_SIZE, E:?EXPONENT_SIZE/?INT_TYPE, C:?COEFFICIENT_SIZE/?INT_TYPE>>);
+    to_bin(R, <<Acc/binary, ?DEC:?TYPE_SIZE, E:?DEC_EXP_SIZE/?INT_TYPE, C:?DEC_COEF_SIZE/?INT_TYPE>>);
 
 to_bin([], Acc) ->
     Acc.
@@ -112,16 +105,16 @@ realise([{true, V} | R], _, Acc) ->
 realise([{false, _} | R], L, Acc) ->
     realise(R, L, [L | Acc]).
 
-epsilon(A, B) ->
-    epsilon(A, B, ?EPSILON).
+almost_equal(A, B) ->
+    almost_equal(A, B, ?EPSILON).
 
-epsilon(A, B, _) when A == 0 , B == 0 ->
+almost_equal(A, B, _) when A == 0 , B == 0 ->
     true;
-epsilon(A, B, E) when A == 0 , is_number(B) ->
+almost_equal(A, B, E) when A == 0 , is_number(B) ->
     (abs(A - B) / abs(B)) < E;
-epsilon(A, B, E) when is_number(A), is_number(B) ->
+almost_equal(A, B, E) when is_number(A), is_number(B) ->
     (abs(A - B) / abs(A)) < E;
-epsilon([A | Ra], [B | Rb], E) ->
-    epsilon(A, B, E) andalso epsilon(Ra, Rb, E);
-epsilon([], [], _) ->
+almost_equal([A | Ra], [B | Rb], E) ->
+    almost_equal(A, B, E) andalso almost_equal(Ra, Rb, E);
+almost_equal([], [], _) ->
     true.
