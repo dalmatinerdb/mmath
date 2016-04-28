@@ -83,7 +83,6 @@ dec_deserialize(ErlNifSInt64 ev) {
   return d;
 }
 
-
 decimal
 dec_from_int64(int64_t v) {
   decimal d = {.exponent = 0, .coefficient = v};
@@ -99,7 +98,7 @@ dec_from_double(double v) {
 
   if (v < 0) {
     sign = -1;
-    v *= -1;
+    v = fabs(v);
   }
   if (v == 0) {
     d.exponent = 0;

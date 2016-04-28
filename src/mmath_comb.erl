@@ -138,24 +138,10 @@ sum(<<?NONE:?TYPE_SIZE, _A:?BITS/?INT_TYPE, RA/binary>>,
 mul(Es) ->
     rcomb(fun mul/2, Es, []).
 
-mul(A,B) ->
-    mul(A, B, 1, 1, <<>>).
-
-mul(<<>>, <<>>, _LA, _LB, Acc) ->
-    Acc;
-mul(<<?INT:?TYPE_SIZE, A:?BITS/?INT_TYPE, RA/binary>>,
-    <<?INT:?TYPE_SIZE, B:?BITS/?INT_TYPE, RB/binary>>, _LA, _LB, Acc) ->
-    mul(RA, RB, A, B, <<Acc/binary, ?INT:?TYPE_SIZE, (A*B):?BITS/?INT_TYPE>>);
-mul(<<?INT:?TYPE_SIZE, A:?BITS/?INT_TYPE, RA/binary>>,
-    <<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, RB/binary>>, _LA, LB, Acc) ->
-    mul(RA, RB, A, LB, <<Acc/binary, ?INT:?TYPE_SIZE, (A*LB):?BITS/?INT_TYPE>>);
-mul(<<?NONE:?TYPE_SIZE, _A:?BITS/?INT_TYPE, RA/binary>>,
-    <<?INT:?TYPE_SIZE, B:?BITS/?INT_TYPE, RB/binary>>, LA, _LB, Acc) ->
-    mul(RA, RB, LA, B, <<Acc/binary, ?INT:?TYPE_SIZE, (LA*B):?BITS/?INT_TYPE>>);
-mul(<<?NONE:?TYPE_SIZE, _A:?BITS/?INT_TYPE, RA/binary>>,
-    <<?NONE:?TYPE_SIZE, _B:?BITS/?INT_TYPE, RB/binary>>, LA, LB, Acc) ->
-    mul(RA, RB, LA, LB, <<Acc/binary, ?INT:?TYPE_SIZE, (LA*LB):?BITS/?INT_TYPE>>).
-
+mul(A, B) ->
+    zip(fun (VA, VB) -> 
+                VA * VB
+        end, A, B).
 
 zip(Fn, Es) ->
     rcomb(fun (A, B) -> zip(Fn, A, B) end, Es, []).
@@ -165,26 +151,27 @@ zip(Fn, A, B) ->
 
 zip(<<>>, <<>>, _LA, _LB, _Fn, Acc) ->
     Acc;
-zip(<<?INT:?TYPE_SIZE, A:?BITS/?INT_TYPE, RA/binary>>,
-    <<?INT:?TYPE_SIZE, B:?BITS/?INT_TYPE, RB/binary>>, _LA, _LB, Fn, Acc) ->
-    zip(RA, RB, A, B, Fn, apply(Fn, A, B, Acc));
 
-zip(<<?INT:?TYPE_SIZE, A:?BITS/?INT_TYPE, RA/binary>>,
-    <<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, RB/binary>>, _LA, LB, Fn, Acc) ->
-    zip(RA, RB, A, LB, Fn,  apply(Fn, A, LB, Acc));
-zip(<<?NONE:?TYPE_SIZE, _A:?BITS/?INT_TYPE, RA/binary>>,
-    <<?INT:?TYPE_SIZE, B:?BITS/?INT_TYPE, RB/binary>>, LA, _LB, Fn, Acc) ->
-    zip(RA, RB, LA, B, Fn, apply(Fn, LA, B, Acc));
-zip(<<?NONE:?TYPE_SIZE, _A:?BITS/?INT_TYPE, RA/binary>>,
-    <<?NONE:?TYPE_SIZE, _B:?BITS/?INT_TYPE, RB/binary>>, LA, LB, Fn, Acc) ->
-    zip(RA, RB, LA, LB, Fn, apply(Fn, LA, LB, Acc)).
+zip(<<DA:?DATA_SIZE/binary, RA/binary>>,
+    <<DB:?DATA_SIZE/binary, RB/binary>>, LA, LB, Fn, Acc) ->
+    A = binary_to_value(DA, LA),
+    B = binary_to_value(DB, LB),
+    zip(RA, RB, A, B, Fn, apply(Fn, A, B, Acc)).
+
+binary_to_value(<<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE>>, L) ->
+    L;
+binary_to_value(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE>>, _L) ->
+    I;
+binary_to_value(<<D:?DATA_SIZE/binary>>, _L) ->
+    [V] = mmath_bin:to_list(D),
+    V.
 
 apply(Fn, A, B, Acc) ->
 	case Fn(A, B) of
-		V when is_integer(V) ->
-			<<Acc/binary, ?INT:?TYPE_SIZE, (A*B):?BITS/?INT_TYPE>>;
-		V when is_float(V) ->
-			<<Acc/binary, ?INT:?TYPE_SIZE, (round(A*B)):?BITS/?INT_TYPE>>
+		V when is_integer(V), abs(V) < (1 bsl (?BITS - 1)) ->
+			<<Acc/binary, ?INT:?TYPE_SIZE, (V):?BITS/?INT_TYPE>>;
+		V ->
+			<<Acc/binary, (mmath_bin:from_list([float(V)]))/binary>>
 	end.
 
 merge(A, B) ->

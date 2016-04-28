@@ -36,10 +36,11 @@ to_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   for (unsigned i = 0 ; i < count; i++) {
     if (IS_SET(vs[i]))
       last = dec_deserialize(vs[i]);
-    if (last.exponent >= 0)
+    if (dec_is_int(last))
       acc[i] = enif_make_int64(env, dec_to_int64(last));
     else
-      // Maybe use bitstring representation for floats that do not loose precision
+      // Maybe we should use bitstring representation for floats,
+      // because it don't loose precision
       acc[i] = enif_make_double(env, dec_to_double(last));
   }
   r = enif_make_list_from_array(env, acc, count);

@@ -48,6 +48,8 @@ decimal dec_from_binary(int len, char* str);
 int64_t dec_to_int64(decimal v);
 double dec_to_double(decimal v);
 
+int dec_is_int(decimal v);
+
 decimal dec_mul(decimal v, int64_t m);
 decimal dec_div(decimal v, int64_t m);
 decimal dec_add(decimal a, decimal b);
