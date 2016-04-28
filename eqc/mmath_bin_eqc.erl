@@ -33,6 +33,17 @@ prop_realize_derealize() ->
     ?FORALL({L, _, B}, int_array(),
             realise(L) == ?B2L(mmath_bin:derealize(mmath_bin:realize(B)))).
 
+prop_realize_derealize_2() ->
+    ?FORALL({_L, _, B}, int_array(),
+            begin
+                R = mmath_bin:realize(B),
+                D  = mmath_bin:derealize(R),
+                ?WHENFAIL(io:format(user, "~p =/= ~p~n",
+                                    [B, D]),
+                          B == D)
+            end
+           ).
+
 prop_realize() ->
     ?FORALL({T, _, B}, defined_int_array(),
             begin

@@ -751,6 +751,7 @@ avg_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   uint32_t pos = 0;
   uint32_t target_size;
 
+
   if (argc != 2)
     return enif_make_badarg(env);
 
