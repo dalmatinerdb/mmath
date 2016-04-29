@@ -19,6 +19,13 @@ prop_length() ->
     ?FORALL(Length, non_neg_int(),
             mmath_bin:length(mmath_bin:empty(Length)) == Length).
 
+prop_length_r() ->
+    ?FORALL(Length, non_neg_int(),
+            begin
+                R = mmath_bin:realize(mmath_bin:empty(Length)),
+                mmath_bin:length_r(R) == Length
+            end).
+
 prop_l2b_b2l() ->
     ?FORALL(List, list(supported_number()),
             almost_equal(List, ?B2L(?L2B(List)))).
@@ -56,4 +63,12 @@ prop_realize() ->
                 ?WHENFAIL(io:format(user, "~p =/= ~p~n",
                                     [L, L1]),
                           almost_equal(L, L1))
+            end).
+
+prop_complete_size_r() ->
+    ?FORALL({L, N, Reminder}, {non_neg_int(), non_neg_int(), choose(0,7)},
+            begin
+                R = mmath_bin:realize(mmath_bin:empty(L * N)),
+                B = <<R/binary, 0:(Reminder * 8)/integer>>,
+                Reminder == size(B) - mmath_bin:complete_size_r(B, N)
             end).

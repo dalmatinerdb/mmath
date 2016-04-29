@@ -90,6 +90,22 @@ from_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 }
 
 static ERL_NIF_TERM
+length_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  ERL_NIF_TERM list;
+  ErlNifBinary bin;
+  int count;
+
+  if (argc != 1)
+    return enif_make_badarg(env);
+
+  if (!enif_inspect_binary(env, argv[0], &bin))
+    return enif_make_badarg(env);
+
+  return enif_make_int(env, bin.size / sizeof(decimal));
+}
+
+static ERL_NIF_TERM
 realize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary a;
@@ -146,13 +162,31 @@ derealize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   return r;
 }
 
+static ERL_NIF_TERM
+complete_size_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  ERL_NIF_TERM list;
+  ErlNifBinary bin;
+  ErlNifSInt64 chunk;
 
+  if (argc != 2)
+    return enif_make_badarg(env);
+
+  GET_CHUNK(chunk);
+
+  if (!enif_inspect_binary(env, argv[0], &bin))
+    return enif_make_badarg(env);
+
+  return enif_make_int(env, bin.size - (bin.size % (sizeof(decimal) * chunk)));
+}
 
 static ErlNifFunc nif_funcs[] = {
   {"from_list",    1, from_list},
   {"to_list",      1, to_list},
+  {"length_r",     1, length_r},
   {"realize",      1, realize},
-  {"derealize",    1, derealize}
+  {"derealize",    1, derealize},
+  {"complete_size_r", 2, complete_size_r}
 };
 
 // Initialize this NIF library.

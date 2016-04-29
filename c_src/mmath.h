@@ -27,15 +27,15 @@ typedef struct {
   if (!enif_get_int64(env, argv[1], &chunk))                            \
     return enif_make_badarg(env);                                       \
   if (chunk < 1)                                                        \
-    return enif_make_badarg(env)
+    return enif_make_badarg(env);
 
 #define GET_BIN(pos, bin, count, vs)              \
   if (!enif_inspect_binary(env, argv[pos], &bin)) \
     return enif_make_badarg(env);                 \
-  if (bin.size % sizeof(__typeof__(*vs)))              \
+  if (bin.size % sizeof(__typeof__(*vs)))         \
     return enif_make_badarg(env);                 \
-  count = bin.size / sizeof(__typeof__(*vs));          \
-  vs = (__typeof__(vs)) bin.data
+  count = bin.size / sizeof(__typeof__(*vs));     \
+  vs = (__typeof__(vs)) bin.data;
 
 
 ErlNifSInt64 dec_serialize(decimal v);

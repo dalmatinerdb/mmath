@@ -2,8 +2,8 @@
 
 -include("mmath.hrl").
 
--export([convert/1, from_list/1, to_list/1, empty/1, length/1,
-         realize/1, derealize/1]).
+-export([convert/1, from_list/1, to_list/1, empty/1, length/1, length_r/1,
+         realize/1, derealize/1, complete_size_r/2]).
 
 -define(APPNAME, mmath).
 -define(LIBNAME, bin_nif).
@@ -41,6 +41,9 @@ to_list_int(<<>>, _, Acc) ->
 length(B) ->
     trunc(byte_size(B)/?DATA_SIZE).
 
+length_r(_B) ->
+    exit(nif_library_not_loaded).
+
 empty(Length) ->
     <<0:((?TYPE_SIZE + ?BITS)*Length)/?INT_TYPE>>.
 
@@ -68,3 +71,6 @@ realize(<<>>, _, Acc) ->
 
 derealize(Data) ->
     << <<?INT:?TYPE_SIZE, D:?BITS/?INT_TYPE>> || <<D:64/integer-native>> <= Data>>.
+
+complete_size_r(_B, _N) ->
+    exit(nif_library_not_loaded).
