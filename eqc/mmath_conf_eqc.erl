@@ -1,9 +1,9 @@
--module(mmath_conf_eeq).
+-module(mmath_conf_eqc).
 
 -include("../include/mmath.hrl").
 
 -import(mmath_helper,
-        [int_array/0, pos_int/0, epsilon/3, confidence/1]).
+        [number_array/0, pos_int/0, almost_equal/3, confidence/1]).
 
 -import(mmath_aggr_eqc,
         [avg/2]).
@@ -15,7 +15,7 @@
 
 
 prop_avg_r_conf() ->
-    ?FORALL({{L, _, B}, N}, {int_array(), pos_int()},
+    ?FORALL({{L, _, B}, N}, {number_array(), pos_int()},
             begin
                 ConfL = confidence(L),
                 ConfLPad = pad_to_n(ConfL, N),
@@ -27,13 +27,13 @@ prop_avg_r_conf() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [CAvgL, ConfR]),
-                   %% we adjust epsilon since the confidence function
+                   %% we adjust almost_equal since the confidence function
                    %% only returns 3 digets after the decimal point
-                   epsilon(CAvgL, ConfR, 0.001))
+                   almost_equal(CAvgL, ConfR, 0.001))
             end).
 
 prop_sum_r_conf() ->
-    ?FORALL({{L, _, B}, N}, {int_array(), pos_int()},
+    ?FORALL({{L, _, B}, N}, {number_array(), pos_int()},
             begin
                 ConfL = confidence(L),
                 ConfLPad = pad_to_n(ConfL, N),
@@ -45,12 +45,12 @@ prop_sum_r_conf() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [CAvgL, ConfR]),
-                   %% we adjust epsilon since the confidence function
+                   %% we adjust almost_equal since the confidence function
                    %% only returns 3 digets after the decimal point
-                   epsilon(CAvgL, ConfR, 0.001))
+                   almost_equal(CAvgL, ConfR, 0.001))
             end).
 prop_max_r_conf() ->
-    ?FORALL({{L, _, B}, N}, {int_array(), pos_int()},
+    ?FORALL({{L, _, B}, N}, {number_array(), pos_int()},
             begin
                 ConfL = confidence(L),
                 ConfLPad = pad_to_n(ConfL, N),
@@ -62,13 +62,13 @@ prop_max_r_conf() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [CAvgL, ConfR]),
-                   %% we adjust epsilon since the confidence function
+                   %% we adjust almost_equal since the confidence function
                    %% only returns 3 digets after the decimal point
-                   epsilon(CAvgL, ConfR, 0.001))
+                   almost_equal(CAvgL, ConfR, 0.001))
             end).
 
 prop_min_r_conf() ->
-    ?FORALL({{L, _, B}, N}, {int_array(), pos_int()},
+    ?FORALL({{L, _, B}, N}, {number_array(), pos_int()},
             begin
                 ConfL = confidence(L),
                 ConfLPad = pad_to_n(ConfL, N),
@@ -80,14 +80,14 @@ prop_min_r_conf() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [CAvgL, ConfR]),
-                   %% we adjust epsilon since the confidence function
+                   %% we adjust almost_equal since the confidence function
                    %% only returns 3 digets after the decimal point
-                   epsilon(CAvgL, ConfR, 0.001))
+                   almost_equal(CAvgL, ConfR, 0.001))
             end).
 
 prop_comb_sum2_r_conf() ->
     ?FORALL({{L1, _, B1}, {L2, _, B2}},
-            {int_array(), int_array()},
+            {number_array(), number_array()},
             begin
                 N = max(length(L1), length(L2)),
                 ConfL1 = confidence(L1),
@@ -103,15 +103,15 @@ prop_comb_sum2_r_conf() ->
                 C = mmath_aggr:confidence_r(Comb),
                 ConfR = ?B2L(mmath_bin:derealize(C)),
                 ?WHENFAIL(
-                   io:format(user, "~p =/= ~p~n",
-                             [CAvgL, ConfR]),
-                   %% we adjust epsilon since the confidence function
-                   %% only returns 3 digets after the decimal point
-                   epsilon(CAvgL, ConfR, 0.001))
+                   io:format(user, "~p =/= ~p (~p)~n",
+                             [CAvgL, ConfR, {R1, R2}]),
+                   %% we adjust almost_equal since the confidence function
+                   %% only returns 3 digits after the decimal point
+                   almost_equal(CAvgL, ConfR, 0.001))
             end).
 
 prop_confidence() ->
-    ?FORALL({L, _, B}, int_array(),
+    ?FORALL({L, _, B}, number_array(),
             begin
                 CExp = confidence(L),
                 CCalc = ?B2L(mmath_bin:derealize(mmath_aggr:confidence_r(mmath_bin:realize(B)))),

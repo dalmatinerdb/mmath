@@ -86,7 +86,6 @@ dec_deserialize(ErlNifSInt64 ev) {
   return d;
 }
 
-
 decimal
 dec_from_int64(int64_t v) {
   decimal d = {.exponent = 0, .coefficient = v, .confidence = CERTAIN};
@@ -97,16 +96,20 @@ dec_from_int64(int64_t v) {
 // It is almost always preferable to read value from decimal strings
 decimal
 dec_from_double(double v) {
-  decimal d;
+  decimal d = {.confidence = CERTAIN};
   int sign = 1;
 
   if (v < 0) {
     sign = -1;
-    v *= -1;
+    v = fabs(v);
   }
-  d.exponent = (int8_t)ceil(log10(v)) - COEFFICIENT_DIGITS;
-  d.coefficient = (int64_t)(v / qpow10(d.exponent)) * sign;
-  d.confidence = CERTAIN;
+  if (v == 0) {
+    d.exponent = 0;
+    d.coefficient = 0;
+  } else {
+    d.exponent = (int8_t)ceil(log10(v)) - COEFFICIENT_DIGITS;
+    d.coefficient = (int64_t)(v / qpow10(d.exponent)) * sign;
+  }
   return d;
 }
 

@@ -1,12 +1,9 @@
 #include "erl_nif.h"
 #include "mmath.h"
 
+#define INT_DIGITS 17
 #define MAX_DIGITS 14
 #define MAX_COEFFICIENT (long)1e+14
-
-/**
- * TODO: switch to int64_t and uint64_t
- */
 
 /* 
   Fast 64bit integer log10 (It returns floor of actual float)
@@ -74,6 +71,13 @@ dec_inflate(decimal *v) {
     v->exponent -= 1;
     c *= 10;
   }
+}
+
+int
+dec_is_int(decimal d) {
+  return (d.exponent >= 0) &&
+    ((d.coefficient == 0) ||
+     (qlog10(abs(d.coefficient)) + d.exponent <= INT_DIGITS));
 }
 
 decimal

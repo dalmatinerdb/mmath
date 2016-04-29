@@ -2,49 +2,57 @@
 
 -include("../include/mmath.hrl").
 
--import(mmath_helper, [int_array/0, pos_int/0, non_neg_int/0, defined_int_array/0,
-                       non_empty_i_list/0]).
+-import(mmath_helper, [number_array/0, defined_number_array/0, almost_equal/2]).
 
 -include_lib("eqc/include/eqc.hrl").
 
 -compile(export_all).
 
-prop_sum_int() ->
-    ?FORALL({La, _, Ba}, int_array(),
+prop_sum() ->
+    ?FORALL({La, _, Ba}, number_array(),
             begin
                 R1 = sum(La, La),
                 R2 = mmath_bin:to_list(mmath_comb:sum([Ba, Ba])),
-                ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R2]), R1 == R2)
+                ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R2]),
+                          almost_equal(R1, R2))
             end).
 
-prop_mul_int() ->
-    ?FORALL({La, _, Ba}, int_array(),
+prop_mul() ->
+    ?FORALL({La, _, Ba}, number_array(),
             begin
                 R1 = mul(La, La),
                 R2 = mmath_bin:to_list(mmath_comb:mul([Ba, Ba])),
-                ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R2]), R1 == R2)
+                ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R2]),
+                          almost_equal(R1, R2))
             end).
 
-prop_avg_int() ->
-    ?FORALL({La, _, Ba}, int_array(),
+prop_avg() ->
+    ?FORALL({La, _, Ba}, number_array(),
             begin
                 R1 = avg(La, La),
                 R2 = mmath_bin:to_list(mmath_comb:avg([Ba, Ba])),
-                ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R2]), R1 == R2)
+                ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R2]),
+                          almost_equal(R1, R2))
             end).
 
-prop_zip_int() ->
-    ?FORALL({La, _, Ba}, int_array(),
+prop_zip() ->
+    ?FORALL({La, _, Ba}, number_array(),
             begin
 				F = fun(A, B) -> A * B end,
                 R1 = mul(La, La),
                 R2 = mmath_bin:to_list(mmath_comb:zip(F, [Ba, Ba])),
-                ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R2]), R1 == R2)
+                ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R2]),
+                          almost_equal(R1, R2))
             end).
 
-prop_merge_int() ->
-    ?FORALL({{La, _, Ba}, {Lb, _, Bb}}, {int_array(), int_array()},
-            merge(La, Lb) == mmath_bin:to_list(mmath_comb:merge([Ba, Bb]))).
+prop_merge() ->
+    ?FORALL({{La, _, Ba}, {Lb, _, Bb}}, {number_array(), number_array()},
+            begin
+                R1 = merge(La, Lb),
+                R2 = mmath_bin:to_list(mmath_comb:merge([Ba, Bb])),
+                ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R2]),
+                          almost_equal(R1, R2))
+            end).
 
 merge(A, B) ->
     merge(A, B, []).

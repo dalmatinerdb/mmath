@@ -44,11 +44,11 @@ load_nif() ->
 scale_r(Data, F) ->
     mmath_bin:realize(scale(mmath_bin:derealize(Data), F)).
 
-scale(<<>>, _) ->
-    <<>>;
-
 scale(Bin, Scale) ->
-    scale_int(Bin, 0, Scale, <<>>).
+    Fn = fun(V) ->
+                 V * Scale
+         end,
+    map(Bin, Fn).
 
 empty(Data, Count) ->
     empty(Data, 0, Count, Count, <<>>).
@@ -113,14 +113,16 @@ percentile_int(Data, Size, Pos, Percentile, Acc)
     <<D:Size/binary, R/binary>> = Data,
     L = mmath_bin:to_list(D),
     V = lists:nth(Pos, lists:sort(L)),
+    B = mmath_bin:from_list([V]),
     percentile_int(R, Size, Pos, Percentile,
-                   <<Acc/binary, ?INT:?TYPE_SIZE, V:?BITS/?INT_TYPE>>);
+                   <<Acc/binary, B/binary>>);
 
 percentile_int(D, _, _, Percentile, Acc) ->
     L = mmath_bin:to_list(D),
     Len = mmath_bin:length(D),
     V = lists:nth(erlang:min(Len, round(Len * Percentile) + 1), lists:sort(L)),
-    <<Acc/binary, ?INT:?TYPE_SIZE, V:?BITS/?INT_TYPE>>.
+    B = mmath_bin:from_list([V]),
+    <<Acc/binary, B/binary>>.
 
 
 avg(R, Last, Sum, 0, Count, Acc) ->
@@ -209,13 +211,6 @@ max_int(<<>>, undefined, _, _, Acc) ->
 max_int(<<>>, Max, _, _, Acc) ->
     <<Acc/binary, ?INT:?TYPE_SIZE, Max:?BITS/?INT_TYPE>>.
 
-scale_int(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, Rest/binary>>, _, S, Acc) ->
-    scale_int(Rest, I, S, <<Acc/binary, ?INT:?TYPE_SIZE, (round(I*S)):?BITS/?INT_TYPE>>);
-scale_int(<<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, Rest/binary>>, I, S, Acc) ->
-    scale_int(Rest, I, S, <<Acc/binary, ?INT:?TYPE_SIZE, (round(I*S)):?BITS/?INT_TYPE>>);
-scale_int(<<>>, _, _, Acc) ->
-    Acc.
-
 mul_r(M, D) ->
     mmath_bin:realize(mul(mmath_bin:derealize(M), D)).
 
@@ -271,22 +266,25 @@ der_int(<<>>, _, Acc) ->
     Acc.
 
 map(Bin, Fn) ->
-	map(Bin, 0, Fn, <<>>).
+    map(Bin, 0, Fn, <<>>).
 
 map(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, Rest/binary>>, _, Fn, Acc) ->
-	map(Rest, I, Fn, apl(Fn, I, Acc));
+    map(Rest, I, Fn, apl(Fn, I, Acc));
 map(<<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, Rest/binary>>, L, Fn, Acc) ->
-	map(Rest, L, Fn, apl(Fn, L, Acc));
+    map(Rest, L, Fn, apl(Fn, L, Acc));
+map(<<B:?DATA_SIZE/binary, Rest/binary>>, _, Fn, Acc) ->
+    [V] = mmath_bin:to_list(B),
+    map(Rest, V, Fn, apl(Fn, V, Acc));
 map(<<>>, _, _, Acc) ->
     Acc.
 
 apl(Fn, V, Acc) ->
-	case Fn(V) of
-		V1 when is_integer(V1) ->
-			<<Acc/binary, ?INT:?TYPE_SIZE, V1:?BITS/?INT_TYPE>>;
-		V1 when is_float(V1) ->
-			<<Acc/binary, ?INT:?TYPE_SIZE, (round(V1)):?BITS/?INT_TYPE>>
-	end.
+    case Fn(V) of
+        V1 when is_integer(V1) ->
+            <<Acc/binary, ?INT:?TYPE_SIZE, V1:?BITS/?INT_TYPE>>;
+        V1 when is_float(V1) ->
+            <<Acc/binary, (mmath_bin:from_list([V1]))/binary>>
+    end.
 
 find_first(<<>>) ->
     0;
