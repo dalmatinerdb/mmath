@@ -167,12 +167,12 @@ binary_to_value(<<D:?DATA_SIZE/binary>>, _L) ->
     V.
 
 apply(Fn, A, B, Acc) ->
-	case Fn(A, B) of
-		V when is_integer(V), abs(V) < (1 bsl (?BITS - 1)) ->
-			<<Acc/binary, ?INT:?TYPE_SIZE, (V):?BITS/?INT_TYPE>>;
-		V ->
-			<<Acc/binary, (mmath_bin:from_list([float(V)]))/binary>>
-	end.
+    case Fn(A, B) of
+        V when is_integer(V), abs(V) < (1 bsl (?BITS - 1)) ->
+            <<Acc/binary, ?INT:?TYPE_SIZE, (V):?BITS/?INT_TYPE>>;
+        V ->
+            <<Acc/binary, (mmath_bin:from_list([float(V)]))/binary>>
+    end.
 
 merge(A, B) ->
     merge(A, B, <<>>).

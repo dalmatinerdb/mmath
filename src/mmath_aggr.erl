@@ -266,25 +266,25 @@ der_int(<<>>, _, Acc) ->
     Acc.
 
 map(Bin, Fn) ->
-	map(Bin, 0, Fn, <<>>).
+    map(Bin, 0, Fn, <<>>).
 
 map(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, Rest/binary>>, _, Fn, Acc) ->
-	map(Rest, I, Fn, apl(Fn, I, Acc));
+    map(Rest, I, Fn, apl(Fn, I, Acc));
 map(<<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, Rest/binary>>, L, Fn, Acc) ->
-	map(Rest, L, Fn, apl(Fn, L, Acc));
+    map(Rest, L, Fn, apl(Fn, L, Acc));
 map(<<B:?DATA_SIZE/binary, Rest/binary>>, _, Fn, Acc) ->
     [V] = mmath_bin:to_list(B),
-	map(Rest, V, Fn, apl(Fn, V, Acc));
+    map(Rest, V, Fn, apl(Fn, V, Acc));
 map(<<>>, _, _, Acc) ->
     Acc.
 
 apl(Fn, V, Acc) ->
-	case Fn(V) of
-		V1 when is_integer(V1) ->
-			<<Acc/binary, ?INT:?TYPE_SIZE, V1:?BITS/?INT_TYPE>>;
-		V1 when is_float(V1) ->
-			<<Acc/binary, (mmath_bin:from_list([V1]))/binary>>
-	end.
+    case Fn(V) of
+        V1 when is_integer(V1) ->
+            <<Acc/binary, ?INT:?TYPE_SIZE, V1:?BITS/?INT_TYPE>>;
+        V1 when is_float(V1) ->
+            <<Acc/binary, (mmath_bin:from_list([V1]))/binary>>
+    end.
 
 find_first(<<>>) ->
     0;

@@ -70,7 +70,8 @@ realize(<<>>, _, Acc) ->
     Acc.
 
 derealize(Data) ->
-    << <<?INT:?TYPE_SIZE, D:?BITS/?INT_TYPE>> || <<D:64/integer-native>> <= Data>>.
+    << <<?INT:?TYPE_SIZE, D:?BITS/?INT_TYPE>> ||
+        <<D:64/integer-native>> <= Data>>.
 
 complete_size_r(_B, _N) ->
     exit(nif_library_not_loaded).
