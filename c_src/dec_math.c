@@ -73,7 +73,7 @@ dec_inflate(decimal *v) {
   }
 }
 
-inline int
+int
 dec_is_int(decimal d) {
   return (d.exponent >= 0) &&
     ((d.coefficient == 0) ||
