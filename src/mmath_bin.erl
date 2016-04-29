@@ -15,7 +15,7 @@
 -include("mmath.hrl").
 
 -export([from_list/1, to_list/1, empty/1, length/1, length_r/1,
-         realize/1, derealize/1, complete_size_r/2, rdatasize/0]).
+         realize/1, derealize/1, rdatasize/0]).
 
 -define(APPNAME, mmath).
 -define(LIBNAME, bin_nif).
@@ -92,10 +92,6 @@ realize(_Data) ->
 %%--------------------------------------------------------------------
 derealize(_Data) ->
     exit(nif_library_not_loaded).
-
-complete_size_r(_B, _N) ->
-    exit(nif_library_not_loaded).
-
 
 %%--------------------------------------------------------------------
 %% @doc

@@ -160,31 +160,12 @@ derealize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   return r;
 }
 
-static ERL_NIF_TERM
-complete_size_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
-{
-  ERL_NIF_TERM list;
-  ErlNifBinary bin;
-  ErlNifSInt64 chunk;
-
-  if (argc != 2)
-    return enif_make_badarg(env);
-
-  GET_CHUNK(chunk);
-
-  if (!enif_inspect_binary(env, argv[0], &bin))
-    return enif_make_badarg(env);
-
-  return enif_make_int(env, bin.size - (bin.size % (sizeof(decimal) * chunk)));
-}
-
 static ErlNifFunc nif_funcs[] = {
   {"from_list",    1, from_list},
   {"to_list",      1, to_list},
   {"rdatasize",    0, rdatasize},
   {"realize",      1, realize},
-  {"derealize",    1, derealize},
-  {"complete_size_r", 2, complete_size_r}
+  {"derealize",    1, derealize}
 };
 
 // Initialize this NIF library.

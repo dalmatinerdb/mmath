@@ -64,11 +64,3 @@ prop_realize() ->
                                     [L, L1]),
                           almost_equal(L, L1))
             end).
-
-prop_complete_size_r() ->
-    ?FORALL({L, N, Reminder}, {non_neg_int(), non_neg_int(), choose(0,7)},
-            begin
-                R = mmath_bin:realize(mmath_bin:empty(L * N)),
-                B = <<R/binary, 0:(Reminder * 8)/integer>>,
-                Reminder == size(B) - mmath_bin:complete_size_r(B, N)
-            end).
