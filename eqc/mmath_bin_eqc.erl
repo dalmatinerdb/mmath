@@ -31,13 +31,13 @@ prop_l2b_b2l() ->
             almost_equal(List, ?B2L(?L2B(List)))).
 
 prop_b2l() ->
-    ?FORALL({_, L, B}, number_array(),
-            almost_equal(L, ?B2L(B))).
+    ?FORALL({L0, _, B}, number_array(),
+            almost_equal(realise(L0), ?B2L(mmath_bin:derealize(B)))).
 
 prop_l2b() ->
     ?FORALL({_, L, B}, fully_defined_number_array(),
             begin
-                B1 = ?L2B(L),
+                B1 = mmath_bin:realize(?L2B(L)),
                 ?WHENFAIL(io:format(user, "~p =/= ~p~n",
                                     [B, B1]),
                           B == B1)
@@ -47,7 +47,7 @@ prop_realize_derealize() ->
     ?FORALL({L, _, B}, number_array(),
             begin
                 Exp = realise(L),
-                Calc = ?B2L(mmath_bin:derealize(mmath_bin:realize(B))),
+                Calc = ?B2L(mmath_bin:derealize(mmath_bin:realize(mmath_bin:derealize(B)))),
                 ?WHENFAIL(io:format(user, "~p =/= ~p~n",
                                     [Exp, Calc]),
                           almost_equal(Exp, Calc))
@@ -58,7 +58,7 @@ prop_realize() ->
             begin
                 %% This unpacking pattern will work on 64 bit machines only.
                 L1 = [from_decimal({I, E}) || <<I:64/signed-native, _C:32/unsigned-native, E:8/signed-native, _:24>>
-                                                  <= mmath_bin:realize(B)],
+                                                  <= B],
                 L = realise(T),
                 ?WHENFAIL(io:format(user, "~p =/= ~p~n",
                                     [L, L1]),

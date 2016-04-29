@@ -5,7 +5,7 @@
 -include("../include/mmath.hrl").
 
 -export([number_array/0, pos_int/0, non_neg_int/0, supported_number/0,
-         defined_number_array/0, non_empty_number_list/0, 
+         defined_number_array/0, non_empty_number_list/0, pad_to_n/2,
          fully_defined_number_array/0, from_decimal/1, realise/1, realise/3,
          almost_equal/3, almost_equal/2, confidence/1]).
 
@@ -19,7 +19,7 @@ fully_defined_number_array() ->
 
 number_array() ->
     ?LET(L, list({frequency([{2, false}, {8, true}]), supported_number()}),
-         {L, to_list(L, 0, []), to_bin(L, <<>>)}).
+         {L, to_list(L, 0, []), to_bin(L)}).
 
 pos_int() ->
     ?LET(I, int(), abs(I)+1).
@@ -63,6 +63,8 @@ to_list([{true, V} | R], _, Acc) ->
     to_list(R, V, [V | Acc]);
 to_list([], _, Acc) ->
     lists:reverse(Acc).
+to_bin(Es) ->
+    mmath_bin:realize(to_bin(Es, <<>>)).
 
 to_bin([{false, _} | R], Acc) ->
     to_bin(R, <<Acc/binary, ?NONE:?TYPE_SIZE, 0:?BITS/?INT_TYPE>>);
@@ -123,3 +125,13 @@ almost_equal([A | Ra], [B | Rb], E) ->
     almost_equal(A, B, E) andalso almost_equal(Ra, Rb, E);
 almost_equal([], [], _) ->
     true.
+
+%% yes this is bad, so what?!?
+pad_to_n(_L, 0) ->
+    [];
+pad_to_n([], N)  ->
+    pad_to_n([0], N);
+pad_to_n(L, N) when (length(L) rem N) == 0 ->
+    L;
+pad_to_n(L, N) ->
+    pad_to_n(L ++ [0], N).

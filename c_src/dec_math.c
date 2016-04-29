@@ -118,16 +118,17 @@ dec_add_aligned(int64_t a_coef, int64_t b_coef, int8_t e, uint32_t confidence) {
 
 /* Add decimal b to a. Decimal a has always bigger coefficient */
 static decimal
-dec_add_not_aligned(decimal big, decimal small) {
+dec_add_not_aligned(decimal big, decimal small, uint32_t confidence) {
   int8_t over_digits = 0;
   int8_t e, de;
   int64_t a_coef, b_coef;
-  uint32_t confidence = (big.confidence + small.confidence)/2;
 
   if (big.coefficient == 0) {
+    small.confidence = confidence;
     return small;
   }
   if (small.coefficient == 0) {
+    big.confidence = confidence;
     return big;
   }
 
@@ -148,14 +149,15 @@ dec_add_not_aligned(decimal big, decimal small) {
 
 inline decimal
 dec_add(decimal a, decimal b) {
+  uint32_t confidence = (a.confidence + b.confidence) / 2;
   if (a.exponent == b.exponent) {
     return dec_add_aligned(a.coefficient, b.coefficient, a.exponent,
-                           (a.confidence + b.confidence)/2);
+                           confidence);
   } else {
     if (a.exponent >= b.exponent) {
-      return dec_add_not_aligned(a, b);
+      return dec_add_not_aligned(a, b, confidence);
     } else {
-      return dec_add_not_aligned(b, a);
+      return dec_add_not_aligned(b, a, confidence);
     }
   }
 }

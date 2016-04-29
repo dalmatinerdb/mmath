@@ -3,7 +3,7 @@
 -include("../include/mmath.hrl").
 
 -import(mmath_helper,
-        [number_array/0, pos_int/0, almost_equal/3, confidence/1]).
+        [number_array/0, pos_int/0, almost_equal/3, confidence/1, pad_to_n/2]).
 
 -import(mmath_aggr_eqc,
         [avg/2]).
@@ -12,17 +12,19 @@
 
 -compile(export_all).
 
+array_and_int() ->
+    ?SUCHTHAT({{L, _, _}, _I},
+              {number_array(), pos_int()},
+              length(L) > 0).
 
-
-prop_avg_r_conf() ->
-    ?FORALL({{L, _, B}, N}, {number_array(), pos_int()},
+prop_avg_conf() ->
+    ?FORALL({{L, _, B}, N}, array_and_int(),
             begin
                 ConfL = confidence(L),
                 ConfLPad = pad_to_n(ConfL, N),
                 CAvgL = avg(ConfLPad, N),
-                R = mmath_bin:realize(B),
-                A = mmath_aggr:avg_r(R, N),
-                C = mmath_aggr:confidence_r(A),
+                A = mmath_aggr:avg(B, N),
+                C = mmath_aggr:confidence(A),
                 ConfR = ?B2L(mmath_bin:derealize(C)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
@@ -32,15 +34,14 @@ prop_avg_r_conf() ->
                    almost_equal(CAvgL, ConfR, 0.001))
             end).
 
-prop_sum_r_conf() ->
-    ?FORALL({{L, _, B}, N}, {number_array(), pos_int()},
+prop_sum_conf() ->
+    ?FORALL({{L, _, B}, N}, array_and_int(),
             begin
                 ConfL = confidence(L),
                 ConfLPad = pad_to_n(ConfL, N),
                 CAvgL = avg(ConfLPad, N),
-                R = mmath_bin:realize(B),
-                A = mmath_aggr:sum_r(R, N),
-                C = mmath_aggr:confidence_r(A),
+                A = mmath_aggr:sum(B, N),
+                C = mmath_aggr:confidence(A),
                 ConfR = ?B2L(mmath_bin:derealize(C)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
@@ -49,33 +50,14 @@ prop_sum_r_conf() ->
                    %% only returns 3 digets after the decimal point
                    almost_equal(CAvgL, ConfR, 0.001))
             end).
-prop_max_r_conf() ->
-    ?FORALL({{L, _, B}, N}, {number_array(), pos_int()},
+prop_max_conf() ->
+    ?FORALL({{L, _, B}, N}, array_and_int(),
             begin
                 ConfL = confidence(L),
                 ConfLPad = pad_to_n(ConfL, N),
                 CAvgL = avg(ConfLPad, N),
-                R = mmath_bin:realize(B),
-                A = mmath_aggr:max_r(R, N),
-                C = mmath_aggr:confidence_r(A),
-                ConfR = ?B2L(mmath_bin:derealize(C)),
-                ?WHENFAIL(
-                   io:format(user, "~p =/= ~p~n",
-                             [CAvgL, ConfR]),
-                   %% we adjust almost_equal since the confidence function
-                   %% only returns 3 digets after the decimal point
-                   almost_equal(CAvgL, ConfR, 0.001))
-            end).
-
-prop_min_r_conf() ->
-    ?FORALL({{L, _, B}, N}, {number_array(), pos_int()},
-            begin
-                ConfL = confidence(L),
-                ConfLPad = pad_to_n(ConfL, N),
-                CAvgL = avg(ConfLPad, N),
-                R = mmath_bin:realize(B),
-                A = mmath_aggr:min_r(R, N),
-                C = mmath_aggr:confidence_r(A),
+                A = mmath_aggr:max(B, N),
+                C = mmath_aggr:confidence(A),
                 ConfR = ?B2L(mmath_bin:derealize(C)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
@@ -85,7 +67,24 @@ prop_min_r_conf() ->
                    almost_equal(CAvgL, ConfR, 0.001))
             end).
 
-prop_comb_sum2_r_conf() ->
+prop_min_conf() ->
+    ?FORALL({{L, _, B}, N}, array_and_int(),
+            begin
+                ConfL = confidence(L),
+                ConfLPad = pad_to_n(ConfL, N),
+                CAvgL = avg(ConfLPad, N),
+                A = mmath_aggr:min(B, N),
+                C = mmath_aggr:confidence(A),
+                ConfR = ?B2L(mmath_bin:derealize(C)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [CAvgL, ConfR]),
+                   %% we adjust almost_equal since the confidence function
+                   %% only returns 3 digets after the decimal point
+                   almost_equal(CAvgL, ConfR, 0.001))
+            end).
+
+prop_comb_sum2_conf() ->
     ?FORALL({{L1, _, B1}, {L2, _, B2}},
             {number_array(), number_array()},
             begin
@@ -94,17 +93,13 @@ prop_comb_sum2_r_conf() ->
                 ConfL2 = confidence(L2),
                 ConfL1Pad = pad_to_n(ConfL1, N),
                 ConfL2Pad = pad_to_n(ConfL2, N),
-                ConfL1PadS = [{true, V} || V <- ConfL1Pad],
-                ConfL2PadS = [{true, V} || V <- ConfL2Pad],
-                CAvgL = mmath_comb_eqc:avg(ConfL1PadS, ConfL2PadS),
-                R1 = mmath_bin:realize(B1),
-                R2 = mmath_bin:realize(B2),
-                Comb = mmath_comb:sum_r([R1, R2]),
-                C = mmath_aggr:confidence_r(Comb),
+                CAvgL = mmath_comb_eqc:avg(ConfL1Pad, ConfL2Pad),
+                Comb = mmath_comb:sum([B1, B2]),
+                C = mmath_aggr:confidence(Comb),
                 ConfR = ?B2L(mmath_bin:derealize(C)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p (~p)~n",
-                             [CAvgL, ConfR, {R1, R2}]),
+                             [CAvgL, ConfR, {B1, B2}]),
                    %% we adjust almost_equal since the confidence function
                    %% only returns 3 digits after the decimal point
                    almost_equal(CAvgL, ConfR, 0.001))
@@ -114,15 +109,8 @@ prop_confidence() ->
     ?FORALL({L, _, B}, number_array(),
             begin
                 CExp = confidence(L),
-                CCalc = ?B2L(mmath_bin:derealize(mmath_aggr:confidence_r(mmath_bin:realize(B)))),
+                CCalc = ?B2L(mmath_bin:derealize(mmath_aggr:confidence(B))),
                 ?WHENFAIL(io:format(user, "~p =/= ~p~n",
                                     [CExp, CCalc]),
                           CExp == CCalc)
             end).
-%% yes this is bad, so what?!?
-pad_to_n(_L, 0) ->
-    [];
-pad_to_n(L, N) when (length(L) rem N) == 0 ->
-    L;
-pad_to_n(L, N) ->
-    pad_to_n(L ++ [0], N).
