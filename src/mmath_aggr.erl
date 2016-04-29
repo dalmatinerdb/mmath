@@ -2,7 +2,7 @@
 %%% @author Heinz Nikolaus Gies <heinz@licenser.net>
 %%% @copyright (C) 2014, Heinz Nikolaus Gies
 %%% @doc
-%%%
+%%% Functions that aggregate metrics by grouping together chunks of values
 %%% @end
 %%% Created :  8 Jun 2014 by Heinz Nikolaus Gies <heinz@licenser.net>
 %%%-------------------------------------------------------------------
@@ -33,45 +33,42 @@ load_nif() ->
              end,
     erlang:load_nif(SoName, 0).
 
+%%--------------------------------------------------------------------
+%% @doc
+%% Aggregates a binary by combining the chunks into the average (mean)
+%% of their values.
+%% @end
+%%--------------------------------------------------------------------
+-spec avg(binary(), pos_integer()) -> binary().
 avg(_Data, _Count) when _Count > 0 ->
     exit(nif_library_not_loaded).
 
-
+%%--------------------------------------------------------------------
+%% @doc
+%% Aggregates a binary by combining the chunks into the sum of their
+%% values.
+%% @end
+%%--------------------------------------------------------------------
+-spec sum(binary(), pos_integer()) -> binary().
 sum(_Data, _Count) when _Count > 0 ->
     exit(nif_library_not_loaded).
 
+%%--------------------------------------------------------------------
+%% @doc
+%% Aggregates a binary by combining the chunks into the minimum value
+%% in the chunk.
+%% @end
+%%--------------------------------------------------------------------
+-spec min(binary(), pos_integer()) -> binary().
 min(_Data, _Count) when _Count > 0 ->
     exit(nif_library_not_loaded).
 
-
+%%--------------------------------------------------------------------
+%% @doc
+%% Aggregates a binary by combining the chunks into the maximum value
+%% in the chunk.
+%% @end
+%%--------------------------------------------------------------------
+-spec max(binary(), pos_integer()) -> binary().
 max(_Data, _Count) when _Count > 0  ->
     exit(nif_library_not_loaded).
-
-
-%% map(Bin, Fn) ->
-%%     map(Bin, 0, Fn, <<>>).
-
-%% map(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, Rest/binary>>, _, Fn, Acc) ->
-%%     map(Rest, I, Fn, apl(Fn, I, Acc));
-%% map(<<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, Rest/binary>>, L, Fn, Acc) ->
-%%     map(Rest, L, Fn, apl(Fn, L, Acc));
-%% map(<<B:?DATA_SIZE/binary, Rest/binary>>, _, Fn, Acc) ->
-%%     [V] = mmath_bin:to_list(B),
-%%     map(Rest, V, Fn, apl(Fn, V, Acc));
-%% map(<<>>, _, _, Acc) ->
-%%     Acc.
-
-%% apl(Fn, V, Acc) ->
-%%     case Fn(V) of
-%%         V1 when is_integer(V1) ->
-%%             <<Acc/binary, ?INT:?TYPE_SIZE, V1:?BITS/?INT_TYPE>>;
-%%         V1 when is_float(V1) ->
-%%             <<Acc/binary, (mmath_bin:from_list([V1]))/binary>>
-%%     end.
-
-%% find_first(<<>>) ->
-%%     0;
-%% find_first(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, _/binary>>) ->
-%%     I;
-%% find_first(<<?NONE:?TYPE_SIZE, 0:?BITS/?INT_TYPE, Rest/binary>>) ->
-%%     find_first(Rest).
