@@ -59,7 +59,7 @@ sum(_A, _B, _C) ->
 
 
 avg(Es) ->
-    mmath_aggr:divide(sum(Es), length(Es)).
+    mmath_trans:divide(sum(Es), length(Es)).
 
 %%merge(Es) ->
 %%    rcomb(fun merge/2, Es, []).

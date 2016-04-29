@@ -16,89 +16,6 @@ upgrade(ErlNifEnv* env, void** priv, void** old_priv, ERL_NIF_TERM load_info)
 }
 
 static ERL_NIF_TERM
-mul(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
-{
-  ErlNifBinary bin;
-  ERL_NIF_TERM r;
-  decimal* vs;
-  ErlNifSInt64 m;
-  decimal* target;
-  int count;
-
-  if (argc != 2)
-    return enif_make_badarg(env);
-
-  GET_BIN(0, bin, count, vs);
-
-  if (!enif_get_int64(env, argv[1], &m))
-    return enif_make_badarg(env);
-
-  if (! (target = (decimal*) enif_make_new_binary(env, count * sizeof(decimal), &r)))
-    return enif_make_badarg(env); // TODO return propper error
-
-  for (int i = 0; i < count; i++) {
-    target[i] = dec_mul(vs[i], m);
-  }
-  return r;
-}
-
-static ERL_NIF_TERM
-divide(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
-{
-  ErlNifBinary bin;
-  ERL_NIF_TERM r;
-  decimal* vs;
-  ErlNifSInt64 m;
-  decimal* target;
-  int count;
-
-  if (argc != 2)
-    return enif_make_badarg(env);
-
-  GET_BIN(0, bin, count, vs);
-
-  if (!enif_get_int64(env, argv[1], &m))
-    return enif_make_badarg(env);
-
-  if (!m)
-    return enif_make_badarg(env);
-
-  if (! (target = (decimal*) enif_make_new_binary(env, count * sizeof(decimal), &r)))
-    return enif_make_badarg(env); // TODO return propper error
-
-  for (int i = 0; i < count; i++) {
-    target[i] = dec_div(vs[i], m);
-  }
-  return r;
-}
-
-static ERL_NIF_TERM
-derivate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
-{
-  ErlNifBinary bin;
-  ERL_NIF_TERM r;
-  decimal* target;
-  decimal* vs;
-  int count;
-
-  if (argc != 1)
-    return enif_make_badarg(env);
-
-  GET_BIN(0, bin, count, vs);
-
-  if (count < 1) // can't be empty
-    return enif_make_badarg(env);
-
-  if (! (target = (decimal*) enif_make_new_binary(env, bin.size - sizeof(decimal), &r)))
-    return enif_make_badarg(env); // TODO return propper error
-
-  for (int i = 1; i < count; i++) {
-    target[i - 1] = dec_sub(vs[i], vs[i-1]);
-  }
-  return r;
-}
-
-static ERL_NIF_TERM
 min(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary bin;
@@ -330,40 +247,12 @@ avg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   return r;
 }
 
-static ERL_NIF_TERM
-confidence(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
-{
-  ErlNifBinary a;
-  ERL_NIF_TERM r;
-  decimal temp = {.exponent = -3, .confidence = CERTAIN};
-  decimal* vs;
-  decimal* target;
-  int count;
-
-  if (argc != 1)
-    return enif_make_badarg(env);
-
-  GET_BIN(0, a, count, vs);
-
-  if (! (target = (decimal*) enif_make_new_binary(env, count * sizeof(decimal), &r)))
-    return enif_make_badarg(env); // TODO return propper error
-  for (int i = 0; i < count; i++) {
-    target[i] = temp;
-    target[i].coefficient = vs[i].confidence;
-  }
-  return r;
-}
 
 static ErlNifFunc nif_funcs[] = {
   {"min",        2, min},
   {"max",        2, max},
   {"sum",        2, sum},
-  {"avg",        2, avg},
-  {"mul",        2, mul},
-  {"divide",     2, divide},
-  {"derivate",   1, derivate},
-  {"confidence", 1, confidence}
-
+  {"avg",        2, avg}
 };
 
 // Initialize this NIF library.

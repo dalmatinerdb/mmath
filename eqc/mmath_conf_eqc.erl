@@ -24,7 +24,7 @@ prop_avg_conf() ->
                 ConfLPad = pad_to_n(ConfL, N),
                 CAvgL = avg(ConfLPad, N),
                 A = mmath_aggr:avg(B, N),
-                C = mmath_aggr:confidence(A),
+                C = mmath_trans:confidence(A),
                 ConfR = ?B2L(mmath_bin:derealize(C)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
@@ -41,7 +41,7 @@ prop_sum_conf() ->
                 ConfLPad = pad_to_n(ConfL, N),
                 CAvgL = avg(ConfLPad, N),
                 A = mmath_aggr:sum(B, N),
-                C = mmath_aggr:confidence(A),
+                C = mmath_trans:confidence(A),
                 ConfR = ?B2L(mmath_bin:derealize(C)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
@@ -57,7 +57,7 @@ prop_max_conf() ->
                 ConfLPad = pad_to_n(ConfL, N),
                 CAvgL = avg(ConfLPad, N),
                 A = mmath_aggr:max(B, N),
-                C = mmath_aggr:confidence(A),
+                C = mmath_trans:confidence(A),
                 ConfR = ?B2L(mmath_bin:derealize(C)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
@@ -74,7 +74,7 @@ prop_min_conf() ->
                 ConfLPad = pad_to_n(ConfL, N),
                 CAvgL = avg(ConfLPad, N),
                 A = mmath_aggr:min(B, N),
-                C = mmath_aggr:confidence(A),
+                C = mmath_trans:confidence(A),
                 ConfR = ?B2L(mmath_bin:derealize(C)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
@@ -95,7 +95,7 @@ prop_comb_sum2_conf() ->
                 ConfL2Pad = pad_to_n(ConfL2, N),
                 CAvgL = mmath_comb_eqc:avg(ConfL1Pad, ConfL2Pad),
                 Comb = mmath_comb:sum([B1, B2]),
-                C = mmath_aggr:confidence(Comb),
+                C = mmath_trans:confidence(Comb),
                 ConfR = ?B2L(mmath_bin:derealize(C)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p (~p)~n",
@@ -109,7 +109,7 @@ prop_confidence() ->
     ?FORALL({L, _, B}, number_array(),
             begin
                 CExp = confidence(L),
-                CCalc = ?B2L(mmath_bin:derealize(mmath_aggr:confidence(B))),
+                CCalc = ?B2L(mmath_bin:derealize(mmath_trans:confidence(B))),
                 ?WHENFAIL(io:format(user, "~p =/= ~p~n",
                                     [CExp, CCalc]),
                           CExp == CCalc)

@@ -1,4 +1,4 @@
--module(mmath_aggr_eqc).
+-module(mmath_trans_eqc).
 
 -include("../include/mmath.hrl").
 
@@ -11,106 +11,59 @@
 
 -compile(export_all).
 
-prop_n_length_chunks() ->
-    ?FORALL({L, N}, {list(int()), pos_int()},
-            ceiling(length(L) / N) =:= length(n_length_chunks(L, N))).
-
-prop_avg_all() ->
-    ?FORALL(L, non_empty_number_list(),
+prop_der() ->
+    ?FORALL({L, _, B}, defined_number_array(),
             begin
-                BRes = to_list_d(mmath_aggr:avg(mmath_bin:realize(?L2B(L)), length(L))),
-                LRes = [lists:sum(L) / length(L)],
+                LRes = derivate(L),
+                BRes = to_list_d(mmath_trans:derivate(B)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
-                             [BRes, LRes]),
-                   almost_equal(BRes, LRes))
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
             end).
 
-prop_avg_len() ->
-    ?FORALL({L, N}, {non_empty_number_list(), pos_int()},
-            ceiling(length(L)/N) == len_r(mmath_aggr:avg(mmath_bin:realize(?L2B(L)), N))).
+prop_der_len_undefined() ->
+    ?FORALL(L, non_neg_int(),
+            erlang:max(0, L - 1) == len_r(mmath_trans:derivate(empty_r(L)))).
 
-prop_combine_avg_N() ->
+prop_mul() ->
+    ?FORALL({{L0, _, B}, S}, {defined_number_array(), int()},
+            begin
+                L = realise(L0),
+                LRes = mul_n(L, S),
+                BRes = to_list_d(mmath_trans:mul(B,S)),
+            ?WHENFAIL(
+               io:format(user, "~p =/= ~p~n",
+                         [LRes, BRes]),
+               almost_equal(LRes, BRes))
+            end).
+
+prop_div() ->
+    ?FORALL({{L0, _, B}, S}, {defined_number_array(), pos_int()},
+            begin
+                L = realise(L0),
+                LRes = div_n(L, S),
+                BRes = to_list_d(mmath_trans:divide(B,S)),
+            ?WHENFAIL(
+               io:format(user, "~p =/= ~p~n",
+                         [LRes, BRes]),
+               almost_equal(LRes, BRes))
+            end).
+
+prop_combine_sum_identity() ->
+    ?FORALL({_, _, A}, defined_number_array(),
+            mmath_comb:sum([A]) == A).
+
+prop_combine_sum_N() ->
     ?FORALL({{_, _, A}, N}, {defined_number_array(), pos_int()},
             begin
-                LRes = to_list_d(mmath_trans:mul(A, 1)),
-                BRes = to_list_d(mmath_comb:avg([A || _ <- lists:seq(1, N+1)])),
-                ?WHENFAIL(
-                   io:format(user, "avg(~p*~p) -> ~p =/= ~p~n",
-                             [A, N, LRes, BRes]),
-                   almost_equal(LRes, BRes))
-            end).
-
-
-prop_avg_impl() ->
-    ?FORALL({{L0, _, B}, N}, {fully_defined_number_array(), pos_int()},
-            begin
-                L = realise(L0),
-                LRes = avg(L, N),
-                BRes = to_list_d(mmath_aggr:avg(B, N)),
+                LRes = to_list_d(mmath_trans:mul(A, N)),
+                BRes = to_list_d(mmath_comb:sum([A || _ <- lists:seq(1, N)])),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [LRes, BRes]),
                    almost_equal(LRes, BRes))
             end).
-
-prop_avg_len_undefined() ->
-    ?FORALL({L, N}, {non_neg_int(), pos_int()},
-            ceiling(L/N) == len_r(mmath_aggr:avg(empty_r(L), N))).
-
-prop_sum() ->
-    ?FORALL({{L0, _, B}, N}, {defined_number_array(), pos_int()},
-            begin
-                L = realise(L0),
-                LRes = sum(L, N),
-                BRes = to_list_d(mmath_aggr:sum(B, N)),
-                ?WHENFAIL(
-                   io:format(user, "~p =/= ~p~n",
-                             [LRes, BRes]),
-                   almost_equal(LRes, BRes))
-            end).
-
-
-prop_sum_len_undefined() ->
-    ?FORALL({L, N}, {non_neg_int(), pos_int()},
-            ceiling(L/N) == len_r(mmath_aggr:sum(empty_r(L), N))).
-
-%% We need to know about unset values for min!
-prop_min() ->
-    ?FORALL({{L0, _, B}, N}, {defined_number_array(), pos_int()},
-            begin
-                L = realise(L0),
-                almost_equal(min_list(L, N), to_list_d(mmath_aggr:min(B, N)))
-            end).
-
-prop_min_len_undefined() ->
-    ?FORALL({L, N}, {non_neg_int(), pos_int()},
-            ceiling(L/N) == len_r(mmath_aggr:min(empty_r(L), N))).
-
-%% We need to know about unset values for min!
-prop_max() ->
-    ?FORALL({{L0, _, B}, N}, {defined_number_array(), pos_int()},
-            begin
-                L = realise(L0),
-                LRes = max_list(L, N),
-                BRes = to_list_d(mmath_aggr:max(B, N)),
-                ?WHENFAIL(
-                   io:format(user, "~p =/= ~p~n",
-                             [LRes, BRes]),
-                   almost_equal(LRes, BRes))
-            end).
-
-prop_max_len_undefined() ->
-    ?FORALL({L, N}, {non_neg_int(), pos_int()},
-            begin
-                LRes = ceiling(L/N),
-                BRes = len_r(mmath_aggr:max(empty_r(L), N)),
-                ?WHENFAIL(
-                   io:format(user, "~p =/= ~p~n",
-                             [LRes, BRes]),
-                   LRes == BRes)
-            end).
-
 
 %% prop_combine_sum_r_comp() ->
 %%     ?FORALL({{_, _, B1}, {_, _, B2}}, {fully_defined_number_array(), fully_defined_number_array()},

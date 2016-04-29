@@ -13,12 +13,6 @@
          avg/2,
          min/2,
          max/2]).
--export([
-         %%map/2,
-         derivate/1,
-         confidence/1,
-         mul/2,
-         divide/2]).
 
 -include("mmath.hrl").
 
@@ -53,17 +47,6 @@ min(_Data, _Count) when _Count > 0 ->
 max(_Data, _Count) when _Count > 0  ->
     exit(nif_library_not_loaded).
 
-mul(_M, _D) ->
-    exit(nif_library_not_loaded).
-
-divide(_M, _D) ->
-    exit(nif_library_not_loaded).
-
-derivate(_) ->
-    exit(nif_library_not_loaded).
-
-confidence(_) ->
-    exit(nif_library_not_loaded).
 
 %% map(Bin, Fn) ->
 %%     map(Bin, 0, Fn, <<>>).
