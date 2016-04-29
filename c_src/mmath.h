@@ -13,12 +13,16 @@
 #  include <sys/byteorder.h>
 #endif
 
+#define CERTAIN 100000
+
 typedef struct {
-    int64_t coefficient;
-    int8_t exponent;
+  int64_t coefficient;
+  uint32_t confidence;
+  int8_t  exponent;
 } decimal;
 
 #define DDB_ZERO htonll(0x0100000000000000LL)
+#define DDB_UNSET htonll(0x0000000000000000LL)
 #define IS_SET(v) ((ntohll(v) & 0xFF00000000000000LL) != 0LL)
 #define FROM_DDB(v) dec_deserialize(v)
 #define TO_DDB(v) dec_serialize(v)

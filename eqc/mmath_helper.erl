@@ -7,7 +7,7 @@
 -export([number_array/0, pos_int/0, non_neg_int/0, supported_number/0,
          defined_number_array/0, non_empty_number_list/0, 
          fully_defined_number_array/0, from_decimal/1, realise/1, realise/3,
-         almost_equal/3, almost_equal/2]).
+         almost_equal/3, almost_equal/2, confidence/1]).
 
 -define(EPSILON, math:pow(10, 3 - ?DEC_PRECISION)).
 
@@ -81,8 +81,13 @@ to_bin([], Acc) ->
     Acc.
 
 
-%% Expand values to list of values that can be understand by mmath_bin:from_list
-%%
+confidence_({false, _}) ->
+    0.0;
+confidence_(_) ->
+    100.0.
+confidence(L) ->
+    [confidence_(E) || E <- L].
+
 realise([]) ->
     [];
 realise(L) ->

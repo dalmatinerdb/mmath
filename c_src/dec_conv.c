@@ -12,6 +12,7 @@
 #define EXPONENT_MASK    0x00FF000000000000LL
 #define COEFFICIENT_MASK 0x0000FFFFFFFFFFFFLL
 #define COEFFICIENT_SIGN_MASK 0x0000800000000000LL
+#define DECIMAL_TAG      0x0200000000000000LL
 
 #define EMPTY_TYPE   0
 #define INTEGER_TYPE 0x01
@@ -54,10 +55,10 @@ qpow10(int8_t v) {
 ErlNifSInt64
 dec_serialize(decimal v) {
   return htonll((! v.exponent) ?
-                ((v.coefficient & 0x00FFFFFFFFFFFFFFLL) | 0x0100000000000000LL) :
+                ((v.coefficient & VALUE_MASK) | 0x0100000000000000LL) :
                 (v.coefficient & 0x0000FFFFFFFFFFFFLL) |
                 ((int64_t)(v.exponent & 0xFF) << COEFFICIENT_BITS) |
-                0x0200000000000000LL
+                DECIMAL_TAG
                 );
 }
 
@@ -67,6 +68,8 @@ dec_deserialize(ErlNifSInt64 ev) {
   int64_t v = ntohll(ev);
   char type = (uint8_t)((v & TYPE_MASK) >> 56);
 
+  d.confidence = CERTAIN;
+  
   if (type == INTEGER_TYPE) {
     d.exponent = 0;
     d.coefficient = v & VALUE_MASK;
@@ -85,7 +88,7 @@ dec_deserialize(ErlNifSInt64 ev) {
 
 decimal
 dec_from_int64(int64_t v) {
-  decimal d = {.exponent = 0, .coefficient = v};
+  decimal d = {.exponent = 0, .coefficient = v, .confidence = CERTAIN};
   return d;
 }
 
@@ -93,7 +96,7 @@ dec_from_int64(int64_t v) {
 // It is almost always preferable to read value from decimal strings
 decimal
 dec_from_double(double v) {
-  decimal d;
+  decimal d = {.confidence = CERTAIN};
   int sign = 1;
 
   if (v < 0) {
@@ -112,7 +115,7 @@ dec_from_double(double v) {
 
 decimal
 dec_from_binary(int len, char* v) {
-  decimal d = {.exponent = 0, .coefficient = 0};
+  decimal d = {.exponent = 0, .coefficient = 0, .confidence = CERTAIN};
   char seen_point = 0;
   char digits = 0;
   char c, x;

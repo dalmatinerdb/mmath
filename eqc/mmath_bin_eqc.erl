@@ -5,7 +5,7 @@
 -import(mmath_helper, [number_array/0, pos_int/0, non_neg_int/0,
                        supported_number/0, defined_number_array/0,
                        fully_defined_number_array/0, from_decimal/1,
-                       realise/1, almost_equal/2]).
+                       realise/1, confidence/1, almost_equal/2]).
 
 -include_lib("eqc/include/eqc.hrl").
 
@@ -46,11 +46,11 @@ prop_l2b() ->
 prop_realize_derealize() ->
     ?FORALL({L, _, B}, number_array(),
             begin
-                LRes = realise(L),
-                BRes = ?B2L(mmath_bin:derealize(mmath_bin:realize(B))),
+                Exp = realise(L),
+                Calc = ?B2L(mmath_bin:derealize(mmath_bin:realize(B))),
                 ?WHENFAIL(io:format(user, "~p =/= ~p~n",
-                                    [LRes, BRes]),
-                          almost_equal(LRes, BRes))
+                                    [Exp, Calc]),
+                          almost_equal(Exp, Calc))
             end).
 
 prop_realize() ->

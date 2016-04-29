@@ -85,7 +85,8 @@ dec_mul(decimal v, int64_t m) {
   // TODO fix in situation when m is so big, that it will overflow coefficient
   decimal r = {
     .coefficient = v.coefficient * m,
-    .exponent = v.exponent
+    .exponent = v.exponent,
+    .confidence = v.confidence
   };
   dec_reduce(&r);
   return r;
@@ -97,17 +98,19 @@ dec_div(decimal v, int64_t m) {
   dec_inflate(&v);
   decimal r = {
     .coefficient = v.coefficient / m,
-    .exponent = v.exponent
+    .exponent = v.exponent,
+    .confidence = v.confidence
   };
   dec_reduce(&r);
   return r;
 }
 
 static decimal
-dec_add_aligned(int64_t a_coef, int64_t b_coef, int8_t e) {
+dec_add_aligned(int64_t a_coef, int64_t b_coef, int8_t e, uint32_t confidence) {
   decimal r = {
     .coefficient = a_coef + b_coef,
-    .exponent = e
+    .exponent = e,
+    .confidence = confidence
   };
   dec_reduce(&r);
   return r;
@@ -119,6 +122,7 @@ dec_add_not_aligned(decimal big, decimal small) {
   int8_t over_digits = 0;
   int8_t e, de;
   int64_t a_coef, b_coef;
+  uint32_t confidence = (big.confidence + small.confidence)/2;
 
   if (big.coefficient == 0) {
     return small;
@@ -139,13 +143,14 @@ dec_add_not_aligned(decimal big, decimal small) {
   }
 
   a_coef = big.coefficient * qipow10(de);
-  return dec_add_aligned(a_coef, b_coef, e);
+  return dec_add_aligned(a_coef, b_coef, e, confidence);
 }
 
 inline decimal
 dec_add(decimal a, decimal b) {
   if (a.exponent == b.exponent) {
-    return dec_add_aligned(a.coefficient, b.coefficient, a.exponent);
+    return dec_add_aligned(a.coefficient, b.coefficient, a.exponent,
+                           (a.confidence + b.confidence)/2);
   } else {
     if (a.exponent >= b.exponent) {
       return dec_add_not_aligned(a, b);
@@ -168,8 +173,9 @@ dec_sub(decimal a, decimal b) {
 inline decimal
 dec_neg(decimal a) {
   return (decimal) {
-    .coefficient = - a.coefficient,
-    .exponent = a.exponent
+    .coefficient = -a.coefficient,
+      .exponent = a.exponent,
+      .confidence = a.confidence
   };
 }
 
