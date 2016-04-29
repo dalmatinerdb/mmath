@@ -2,7 +2,7 @@
 %%% @author Heinz Nikolaus Gies <heinz@licenser.net>
 %%% @copyright (C) 2014, Heinz Nikolaus Gies
 %%% @doc
-%%% Functions that transform metric 
+%%% Functions that transform metric.
 %%% @end
 %%% Created :  8 Jun 2014 by Heinz Nikolaus Gies <heinz@licenser.net>
 %%%-------------------------------------------------------------------

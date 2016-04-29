@@ -90,19 +90,16 @@ from_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 }
 
 static ERL_NIF_TERM
-length_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+rdatasize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ERL_NIF_TERM list;
   ErlNifBinary bin;
   int count;
 
-  if (argc != 1)
+  if (argc != 0)
     return enif_make_badarg(env);
 
-  if (!enif_inspect_binary(env, argv[0], &bin))
-    return enif_make_badarg(env);
-
-  return enif_make_int(env, bin.size / sizeof(decimal));
+  return enif_make_int(env, sizeof(decimal));
 }
 
 static ERL_NIF_TERM
@@ -184,7 +181,7 @@ complete_size_r(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 static ErlNifFunc nif_funcs[] = {
   {"from_list",    1, from_list},
   {"to_list",      1, to_list},
-  {"length_r",     1, length_r},
+  {"rdatasize",    0, rdatasize},
   {"realize",      1, realize},
   {"derealize",    1, derealize},
   {"complete_size_r", 2, complete_size_r}
