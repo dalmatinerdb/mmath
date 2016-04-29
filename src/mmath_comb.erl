@@ -112,16 +112,20 @@ sum(<<>>, <<>>, _LA, _LB, Acc) ->
     Acc;
 sum(<<?INT:?TYPE_SIZE, A:?BITS/?INT_TYPE, RA/binary>>,
     <<>>, _LA, LB, Acc) ->
-    sum(RA, <<>>, A, LB, <<Acc/binary, ?INT:?TYPE_SIZE, (A+LB):?BITS/?INT_TYPE>>);
+    Acc1 = <<Acc/binary, ?INT:?TYPE_SIZE, (A+LB):?BITS/?INT_TYPE>>,
+    sum(RA, <<>>, A, LB, Acc1);
 sum(<<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, RA/binary>>,
     <<>>, LA, LB, Acc) ->
-    sum(RA, <<>>, LA, LB, <<Acc/binary, ?INT:?TYPE_SIZE, (LA+LB):?BITS/?INT_TYPE>>);
+    Acc1 = <<Acc/binary, ?INT:?TYPE_SIZE, (LA+LB):?BITS/?INT_TYPE>>,
+    sum(RA, <<>>, LA, LB, Acc1);
 sum(<<>>,
     <<?INT:?TYPE_SIZE, B:?BITS/?INT_TYPE, RB/binary>>, LA, _LB, Acc) ->
-    sum(<<>>, RB, LA, B, <<Acc/binary, ?INT:?TYPE_SIZE, (LA+B):?BITS/?INT_TYPE>>);
+    Acc1 = <<Acc/binary, ?INT:?TYPE_SIZE, (LA+B):?BITS/?INT_TYPE>>,
+    sum(<<>>, RB, LA, B, Acc1);
 sum(<<>>,
     <<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, RB/binary>>, LA, LB, Acc) ->
-    sum(<<>>, RB, LA, LB, <<Acc/binary, ?INT:?TYPE_SIZE, (LA+LB):?BITS/?INT_TYPE>>);
+    Acc1 = <<Acc/binary, ?INT:?TYPE_SIZE, (LA+LB):?BITS/?INT_TYPE>>,
+    sum(<<>>, RB, LA, LB, Acc1);
 sum(<<?INT:?TYPE_SIZE, A:?BITS/?INT_TYPE, RA/binary>>,
     <<?INT:?TYPE_SIZE, B:?BITS/?INT_TYPE, RB/binary>>, _LA, _LB, Acc) ->
     sum(RA, RB, A, B, <<Acc/binary, ?INT:?TYPE_SIZE, (A+B):?BITS/?INT_TYPE>>);
@@ -133,13 +137,14 @@ sum(<<?NONE:?TYPE_SIZE, _A:?BITS/?INT_TYPE, RA/binary>>,
     sum(RA, RB, LA, B, <<Acc/binary, ?INT:?TYPE_SIZE, (LA+B):?BITS/?INT_TYPE>>);
 sum(<<?NONE:?TYPE_SIZE, _A:?BITS/?INT_TYPE, RA/binary>>,
     <<?NONE:?TYPE_SIZE, _B:?BITS/?INT_TYPE, RB/binary>>, LA, LB, Acc) ->
-    sum(RA, RB, LA, LB, <<Acc/binary, ?INT:?TYPE_SIZE, (LA+LB):?BITS/?INT_TYPE>>).
+    Acc1 = <<Acc/binary, ?INT:?TYPE_SIZE, (LA+LB):?BITS/?INT_TYPE>>,
+    sum(RA, RB, LA, LB, Acc1).
 
 mul(Es) ->
     rcomb(fun mul/2, Es, []).
 
 mul(A, B) ->
-    zip(fun (VA, VB) -> 
+    zip(fun (VA, VB) ->
                 VA * VB
         end, A, B).
 
@@ -178,12 +183,12 @@ merge(A, B) ->
     merge(A, B, <<>>).
 
 merge(<<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, R1/binary>>,
-        <<D:?DATA_SIZE/binary, R2/binary>>,
-        Acc) ->
+      <<D:?DATA_SIZE/binary, R2/binary>>,
+      Acc) ->
     merge(R1, R2, <<Acc/binary, D/binary>>);
 merge(<<D:?DATA_SIZE/binary, R1/binary>>,
-        <<_:?DATA_SIZE/binary, R2/binary>>,
-        Acc) ->
+      <<_:?DATA_SIZE/binary, R2/binary>>,
+      Acc) ->
     merge(R1, R2, <<Acc/binary, D/binary>>);
 merge(<<>>, <<>>, Acc) ->
     Acc;

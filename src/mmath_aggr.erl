@@ -146,10 +146,12 @@ avg(<<?INT:?TYPE_SIZE, I0:?BITS/?INT_TYPE,
     Sum1 = Sum + I0 + I1 + I2 + I3 + I4 + I5 + I6 + I7 + I8 + I9,
     avg(R, I9, Sum1, N - 10, Count, Acc);
 
-avg(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, R/binary>>, _Last, Sum, N, Count, Acc) ->
+avg(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, R/binary>>,
+    _Last, Sum, N, Count, Acc) ->
     avg(R, I, Sum + I, N - 1, Count, Acc);
 
-avg(<<?NONE:?TYPE_SIZE, 0:?BITS/?INT_TYPE, R/binary>>, Last, Sum, N, Count, Acc) ->
+avg(<<?NONE:?TYPE_SIZE, 0:?BITS/?INT_TYPE, R/binary>>,
+    Last, Sum, N, Count, Acc) ->
     avg(R, Last, Sum + Last, N-1, Count, Acc);
 
 avg(<<>>, _, 0, _Count, _Count, Acc) ->
@@ -162,9 +164,11 @@ avg(<<>>, _, Sum, _Missing, Count, Acc) ->
 sum_int(R, Last, Sum, 0, Count, Acc) ->
     Acc1 = <<Acc/binary, ?INT:?TYPE_SIZE, Sum:?BITS/?INT_TYPE>>,
     sum_int(R, Last, 0, Count, Count, Acc1);
-sum_int(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, R/binary>>, _, Sum, N, Count, Acc) ->
+sum_int(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, R/binary>>,
+        _, Sum, N, Count, Acc) ->
     sum_int(R, I, Sum+I, N-1, Count, Acc);
-sum_int(<<?NONE:?TYPE_SIZE, 0:?BITS/?INT_TYPE, R/binary>>, Last, Sum, N, Count, Acc) ->
+sum_int(<<?NONE:?TYPE_SIZE, 0:?BITS/?INT_TYPE, R/binary>>,
+        Last, Sum, N, Count, Acc) ->
     sum_int(R, Last, Sum+Last, N-1, Count, Acc);
 sum_int(<<>>, _, 0, _Count, _Count, Acc) ->
     Acc;
@@ -177,7 +181,8 @@ min_int(R, undefined, 0, Count, Acc) ->
 min_int(R, V, 0, Count, Acc) ->
     Acc1 = <<Acc/binary, ?INT:?TYPE_SIZE, V:?BITS/?INT_TYPE>>,
     min_int(R, undefined, Count, Count, Acc1);
-min_int(<<?INT:?TYPE_SIZE, V:?BITS/?INT_TYPE, R/binary>>, undefined, N, Count, Acc) ->
+min_int(<<?INT:?TYPE_SIZE, V:?BITS/?INT_TYPE, R/binary>>,
+        undefined, N, Count, Acc) ->
     min_int(R, V, N-1, Count, Acc);
 min_int(<<?INT:?TYPE_SIZE, V:?BITS/?INT_TYPE, R/binary>>, Min, N, Count, Acc)
   when V <  Min->
@@ -197,12 +202,15 @@ max_int(R, undefined, 0, Count, Acc) ->
 max_int(R, V, 0, Count, Acc) ->
     Acc1 = <<Acc/binary, ?INT:?TYPE_SIZE, V:?BITS/?INT_TYPE>>,
     max_int(R, undefined, Count, Count, Acc1);
-max_int(<<?INT:?TYPE_SIZE, V:?BITS/?INT_TYPE, R/binary>>, undefined, N, Count, Acc) ->
+max_int(<<?INT:?TYPE_SIZE, V:?BITS/?INT_TYPE, R/binary>>,
+        undefined, N, Count, Acc) ->
     max_int(R, V, N-1, Count, Acc);
-max_int(<<?INT:?TYPE_SIZE, V:?BITS/?INT_TYPE, R/binary>>, Max, N, Count, Acc)
+max_int(<<?INT:?TYPE_SIZE, V:?BITS/?INT_TYPE, R/binary>>,
+        Max, N, Count, Acc)
   when V >  Max->
     max_int(R, V, N-1, Count, Acc);
-max_int(<<_:?TYPE_SIZE, _:?BITS/?INT_TYPE, R/binary>>, Max, N, Count, Acc) ->
+max_int(<<_:?TYPE_SIZE, _:?BITS/?INT_TYPE, R/binary>>,
+        Max, N, Count, Acc) ->
     max_int(R, Max, N-1, Count, Acc);
 max_int(<<>>, _, _Count, _Count, Acc) ->
     Acc;
@@ -228,7 +236,7 @@ mul_int(<<>>, _, _, Acc) ->
     Acc.
 
 divide_r(M, D) ->
-        mmath_bin:realize(divide(mmath_bin:derealize(M), D)).
+    mmath_bin:realize(divide(mmath_bin:derealize(M), D)).
 
 divide(<<>>, _) ->
     <<>>;
@@ -237,9 +245,11 @@ divide(Bin, Divide) when is_integer(Divide) ->
     divide_int(Bin, 0, Divide, <<>>).
 
 divide_int(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, Rest/binary>>, _, S, Acc) ->
-    divide_int(Rest, I, S, <<Acc/binary, ?INT:?TYPE_SIZE, (I div S):?BITS/?INT_TYPE>>);
+    Acc1 = <<Acc/binary, ?INT:?TYPE_SIZE, (I div S):?BITS/?INT_TYPE>>,
+    divide_int(Rest, I, S, Acc1);
 divide_int(<<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, Rest/binary>>, I, S, Acc) ->
-    divide_int(Rest, I, S, <<Acc/binary, ?INT:?TYPE_SIZE, (I div S):?BITS/?INT_TYPE>>);
+    Acc1 = <<Acc/binary, ?INT:?TYPE_SIZE, (I div S):?BITS/?INT_TYPE>>,
+    divide_int(Rest, I, S, Acc1);
 divide_int(<<>>, _, _, Acc) ->
     Acc.
 
@@ -259,7 +269,8 @@ confidence_r(_) ->
     ok.
 
 der_int(<<?INT:?TYPE_SIZE, I:?BITS/?INT_TYPE, Rest/binary>>, Last, Acc) ->
-    der_int(Rest, I, <<Acc/binary, ?INT:?TYPE_SIZE, (I - Last):?BITS/?INT_TYPE>>);
+    Acc1 = <<Acc/binary, ?INT:?TYPE_SIZE, (I - Last):?BITS/?INT_TYPE>>,
+    der_int(Rest, I, Acc1);
 der_int(<<?NONE:?TYPE_SIZE, 0:?BITS/?INT_TYPE, Rest/binary>>, Last, Acc) ->
     der_int(Rest, Last, <<Acc/binary, ?INT:?TYPE_SIZE, 0:?BITS/?INT_TYPE>>);
 der_int(<<>>, _, Acc) ->
