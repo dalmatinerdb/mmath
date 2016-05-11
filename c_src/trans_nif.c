@@ -89,7 +89,7 @@ derivate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (count < 1) // can't be empty
     return enif_make_badarg(env);
 
-  if (! (target = (decimal*) enif_make_new_binary(env, bin.size - sizeof(decimal), &r)))
+  if (! (target = (decimal*) enif_make_new_binary(env, (count - 1) * sizeof(decimal), &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   for (int i = 1; i < count; i++) {
@@ -103,7 +103,6 @@ confidence(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary a;
   ERL_NIF_TERM r;
-  decimal temp = {.exponent = -3, .confidence = CERTAIN};
   decimal* vs;
   decimal* target;
   int count;
@@ -116,8 +115,18 @@ confidence(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (! (target = (decimal*) enif_make_new_binary(env, count * sizeof(decimal), &r)))
     return enif_make_badarg(env); // TODO return propper error
   for (int i = 0; i < count; i++) {
-    target[i] = temp;
-    target[i].coefficient = vs[i].confidence;
+    if (vs[i].confidence != 0)
+      target[i] = (decimal){
+        .coefficient = vs[i].confidence,
+        .exponent = -3,
+        .confidence = CERTAIN
+      };
+    else
+      target[i] = (decimal){
+        .coefficient = 0,
+        .exponent = 0,
+        .confidence = CERTAIN
+      };
   }
   return r;
 }
