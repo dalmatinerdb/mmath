@@ -86,7 +86,7 @@ to_bin([], Acc) ->
 confidence_({false, _}) ->
     0.0;
 confidence_(_) ->
-    100.0.
+    1.0.
 confidence(L) ->
     [confidence_(E) || E <- L].
 

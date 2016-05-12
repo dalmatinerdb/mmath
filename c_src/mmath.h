@@ -13,7 +13,7 @@
 #  include <sys/byteorder.h>
 #endif
 
-#define CERTAIN 100000
+#define CERTAIN 1000000
 
 typedef struct {
   int64_t coefficient;

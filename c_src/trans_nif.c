@@ -118,7 +118,7 @@ confidence(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     if (vs[i].confidence != 0)
       target[i] = (decimal){
         .coefficient = vs[i].confidence,
-        .exponent = -3,
+        .exponent = -6,
         .confidence = CERTAIN
       };
     else
