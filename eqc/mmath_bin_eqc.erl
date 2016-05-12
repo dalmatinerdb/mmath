@@ -57,7 +57,7 @@ prop_realize() ->
     ?FORALL({T, _, B}, defined_number_array(),
             begin
                 %% This unpacking pattern will work on 64 bit machines only.
-                L1 = [from_decimal({I, E}) || <<I:64/signed-native, _C:32/unsigned-native, E:8/signed-native, _:24>>
+                L1 = [I || <<I:64/float-native, _C:32/unsigned-native, _:32>>
                                                   <= B],
                 L = realise(T),
                 ?WHENFAIL(io:format(user, "~p =/= ~p~n",
