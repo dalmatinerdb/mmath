@@ -3,7 +3,7 @@
 -include("../include/mmath.hrl").
 
 -import(mmath_helper,
-        [number_array/0, pos_int/0, almost_equal/3, confidence/1, pad_to_n/2]).
+        [number_array/0, pos_int/0, within_epsilon/3, confidence/1, pad_to_n/2]).
 
 -import(mmath_aggr_eqc,
         [avg/2]).
@@ -29,9 +29,9 @@ prop_avg_conf() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [CAvgL, ConfR]),
-                   %% we adjust almost_equal since the confidence function
+                   %% we adjust within_epsilon since the confidence function
                    %% only returns 3 digets after the decimal point
-                   almost_equal(CAvgL, ConfR, {absolute, 0.000001}))
+                   within_epsilon(CAvgL, ConfR, 0.000001))
             end).
 
 prop_sum_conf() ->
@@ -46,9 +46,9 @@ prop_sum_conf() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [CAvgL, ConfR]),
-                   %% we adjust almost_equal since the confidence function
+                   %% we adjust within_epsilon since the confidence function
                    %% only returns 3 digets after the decimal point
-                   almost_equal(CAvgL, ConfR, {absolute, 0.000001}))
+                   within_epsilon(CAvgL, ConfR, 0.000001))
             end).
 prop_max_conf() ->
     ?FORALL({{L, _, B}, N}, array_and_int(),
@@ -62,9 +62,9 @@ prop_max_conf() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [CAvgL, ConfR]),
-                   %% we adjust almost_equal since the confidence function
+                   %% we adjust within_epsilon since the confidence function
                    %% only returns 3 digets after the decimal point
-                   almost_equal(CAvgL, ConfR, {absolute, 0.000001}))
+                   within_epsilon(CAvgL, ConfR, 0.000001))
             end).
 
 prop_min_conf() ->
@@ -79,9 +79,9 @@ prop_min_conf() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [CAvgL, ConfR]),
-                   %% we adjust almost_equal since the confidence function
+                   %% we adjust within_epsilon since the confidence function
                    %% only returns 3 digets after the decimal point
-                   almost_equal(CAvgL, ConfR, {absolute, 0.000001}))
+                   within_epsilon(CAvgL, ConfR, 0.000001))
             end).
 
 prop_comb_sum2_conf() ->
@@ -100,9 +100,9 @@ prop_comb_sum2_conf() ->
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p (~p)~n",
                              [CAvgL, ConfR, {B1, B2}]),
-                   %% we adjust almost_equal since the confidence function
+                   %% we adjust within_epsilon since the confidence function
                    %% only returns 3 digits after the decimal point
-                   almost_equal(CAvgL, ConfR, {absolute, 0.000001}))
+                   within_epsilon(CAvgL, ConfR, 0.000001))
             end).
 
 prop_confidence() ->
