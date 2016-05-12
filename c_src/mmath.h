@@ -13,11 +13,11 @@
 #  include <sys/byteorder.h>
 #endif
 
-#define CERTAIN 100000
+#define CERTAIN 1.0
 
 typedef struct {
   double value;
-  uint32_t confidence;
+  double confidence;
 } ffloat;
 
 #define DDB_ZERO htonll(0x0100000000000000LL)

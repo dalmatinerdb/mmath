@@ -23,9 +23,9 @@ min(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ffloat* vs;
   ffloat* target;
   ErlNifSInt64 chunk;         // size to be compressed
-  ErlNifSInt64 target_i = 0; // target position
+  uint64_t target_i = 0; // target position
   ffloat aggr;         // target position
-  uint64_t confidence;
+  double confidence;
   uint32_t pos;
   uint32_t count;
   uint32_t target_size;
@@ -86,7 +86,7 @@ max(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifSInt64 chunk;         // size to be compressed
   ErlNifSInt64 target_i = 0; // target position
   ffloat aggr;         // target position
-  uint64_t confidence = 0;
+  double confidence = 0;
   uint32_t pos;
   uint32_t count;
   uint32_t target_size;
@@ -146,7 +146,7 @@ sum(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ffloat* vs;
   ffloat* target;
   ffloat aggr;          // Aggregator
-  uint64_t confidence;
+  double confidence;
 
   uint32_t target_i = 0;      // target position
   uint32_t count;
@@ -201,7 +201,7 @@ avg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ffloat* target;
   ErlNifSInt64 chunk;         // size to be compressed
   ffloat aggr;               // Aggregator
-  uint64_t confidence;
+  double confidence;
   uint32_t target_i = 0;      // target position
   uint32_t count;
   uint32_t pos = 0;

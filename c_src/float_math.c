@@ -21,7 +21,7 @@ float_div(ffloat v, double m) {
 
 inline ffloat
 float_add(ffloat a, ffloat b) {
-  uint32_t confidence = (a.confidence + b.confidence) / 2;
+  double confidence = (a.confidence + b.confidence) / 2;
   return (ffloat) {
     .value = a.value + b.value,
       .confidence = confidence
@@ -29,7 +29,7 @@ float_add(ffloat a, ffloat b) {
 }
 inline ffloat
 float_add3(ffloat a, ffloat b, ffloat c) {
-  uint32_t confidence = (a.confidence + b.confidence + a.confidence) / 3;
+  double confidence = (a.confidence + b.confidence + a.confidence) / 3;
   return (ffloat) {
     .value = a.value + b.value + c.value,
       .confidence = confidence
@@ -38,7 +38,7 @@ float_add3(ffloat a, ffloat b, ffloat c) {
 
 inline ffloat /* a - b */
 float_sub(ffloat a, ffloat b) {
-  uint32_t confidence = (a.confidence + b.confidence) / 2;
+  double confidence = (a.confidence + b.confidence) / 2;
   return (ffloat) {
     .value = a.value - b.value,
       .confidence = confidence

@@ -116,7 +116,7 @@ confidence(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     return enif_make_badarg(env); // TODO return propper error
   for (int i = 0; i < count; i++) {
     target[i] = (ffloat){
-      .value = vs[i].confidence / CERTAIN,
+      .value = vs[i].confidence,
       .confidence = CERTAIN
     };
   }
