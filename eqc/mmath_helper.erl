@@ -117,6 +117,8 @@ almost_equal(A, B) ->
 
 almost_equal(A, B, _) when A == 0 , B == 0 ->
     true;
+almost_equal(A, B, {absolute, E}) when is_number(A), is_number(B) ->
+    abs(A - B) < E;
 almost_equal(A, B, E) when A == 0 , is_number(B) ->
     (abs(A - B) / abs(B)) < E;
 almost_equal(A, B, E) when is_number(A), is_number(B) ->
