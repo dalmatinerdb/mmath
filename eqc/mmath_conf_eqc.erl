@@ -31,7 +31,7 @@ prop_avg_conf() ->
                              [CAvgL, ConfR]),
                    %% we adjust almost_equal since the confidence function
                    %% only returns 3 digets after the decimal point
-                   almost_equal(CAvgL, ConfR, 0.001))
+                   almost_equal(CAvgL, ConfR, {absolute, 0.000001}))
             end).
 
 prop_sum_conf() ->
@@ -48,7 +48,7 @@ prop_sum_conf() ->
                              [CAvgL, ConfR]),
                    %% we adjust almost_equal since the confidence function
                    %% only returns 3 digets after the decimal point
-                   almost_equal(CAvgL, ConfR, 0.001))
+                   almost_equal(CAvgL, ConfR, {absolute, 0.000001}))
             end).
 prop_max_conf() ->
     ?FORALL({{L, _, B}, N}, array_and_int(),
@@ -64,7 +64,7 @@ prop_max_conf() ->
                              [CAvgL, ConfR]),
                    %% we adjust almost_equal since the confidence function
                    %% only returns 3 digets after the decimal point
-                   almost_equal(CAvgL, ConfR, 0.001))
+                   almost_equal(CAvgL, ConfR, {absolute, 0.000001}))
             end).
 
 prop_min_conf() ->
@@ -81,7 +81,7 @@ prop_min_conf() ->
                              [CAvgL, ConfR]),
                    %% we adjust almost_equal since the confidence function
                    %% only returns 3 digets after the decimal point
-                   almost_equal(CAvgL, ConfR, 0.001))
+                   almost_equal(CAvgL, ConfR, {absolute, 0.000001}))
             end).
 
 prop_comb_sum2_conf() ->
@@ -102,7 +102,7 @@ prop_comb_sum2_conf() ->
                              [CAvgL, ConfR, {B1, B2}]),
                    %% we adjust almost_equal since the confidence function
                    %% only returns 3 digits after the decimal point
-                   almost_equal(CAvgL, ConfR, 0.001))
+                   almost_equal(CAvgL, ConfR, {absolute, 0.000001}))
             end).
 
 prop_confidence() ->
