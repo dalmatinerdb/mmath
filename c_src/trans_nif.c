@@ -89,11 +89,13 @@ derivate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (count < 1) // can't be empty
     return enif_make_badarg(env);
 
-  if (! (target = (decimal*) enif_make_new_binary(env, (count - 1) * sizeof(decimal), &r)))
+  if (! (target = (decimal*) enif_make_new_binary(env, count * sizeof(decimal), &r)))
     return enif_make_badarg(env); // TODO return propper error
 
+  if (count > 0)
+    target[0] = (decimal) {.coefficient = 0, .exponent = 0, .confidence = 0};
   for (int i = 1; i < count; i++) {
-    target[i - 1] = dec_sub(vs[i], vs[i-1]);
+    target[i] = dec_sub(vs[i], vs[i-1]);
   }
   return r;
 }
