@@ -21,7 +21,8 @@ mul(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifBinary bin;
   ERL_NIF_TERM r;
   ffloat* vs;
-  ErlNifSInt64 m;
+  ErlNifSInt64 int_v;
+  double m;
   ffloat* target;
   int count;
 
@@ -30,8 +31,11 @@ mul(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   GET_BIN(0, bin, count, vs);
 
-  if (!enif_get_int64(env, argv[1], &m))
+  if (enif_get_int64(env, argv[1], &int_v)) {
+    m = (double) int_v;
+  } else if (!enif_get_double(env, argv[1], &m)) {
     return enif_make_badarg(env);
+  }
 
   if (! (target = (ffloat*) enif_make_new_binary(env, count * sizeof(ffloat), &r)))
     return enif_make_badarg(env); // TODO return propper error
@@ -48,7 +52,8 @@ divide(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifBinary bin;
   ERL_NIF_TERM r;
   ffloat* vs;
-  ErlNifSInt64 m;
+  ErlNifSInt64 int_v;
+  double m;
   ffloat* target;
   int count;
 
@@ -57,13 +62,16 @@ divide(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   GET_BIN(0, bin, count, vs);
 
-  if (!enif_get_int64(env, argv[1], &m))
+  if (enif_get_int64(env, argv[1], &int_v)) {
+    m = (double) int_v;
+  } else if (!enif_get_double(env, argv[1], &m)) {
     return enif_make_badarg(env);
+  }
 
   if (!m)
     return enif_make_badarg(env);
 
-  if (! (target = (float*) enif_make_new_binary(env, count * sizeof(float), &r)))
+  if (! (target = (ffloat*) enif_make_new_binary(env, count * sizeof(ffloat), &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   for (int i = 0; i < count; i++) {
