@@ -52,7 +52,6 @@ from_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ERL_NIF_TERM cell;
   ErlNifSInt64 int_v;
   double float_v;
-  ErlNifBinary bin_v;
   ErlNifSInt64* target;
   ERL_NIF_TERM r;
   unsigned count;

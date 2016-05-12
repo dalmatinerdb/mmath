@@ -38,9 +38,12 @@ prop_l2b() ->
     ?FORALL({_, L, B}, fully_defined_number_array(),
             begin
                 B1 = mmath_bin:realize(?L2B(L)),
+                L1 = ?B2L(mmath_bin:derealize(B)),
+                L2 = ?B2L(mmath_bin:derealize(B1)),
+                
                 ?WHENFAIL(io:format(user, "~p =/= ~p~n",
-                                    [B, B1]),
-                          B == B1)
+                                    [L1, L2]),
+                          almost_equal(L1, L2))
             end).
 
 prop_realize_derealize() ->
