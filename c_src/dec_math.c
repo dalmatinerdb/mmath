@@ -75,9 +75,11 @@ dec_inflate(decimal *v) {
 
 int
 dec_is_int(decimal d) {
-  return (d.exponent >= 0) &&
-    ((d.coefficient == 0) ||
-     (qlog10(abs(d.coefficient)) + d.exponent <= INT_DIGITS));
+  if (d.exponent < 0)
+    return 0;
+  if (d.coefficient == 0)
+    return 1;
+  return (qlog10(llabs(d.coefficient)) + d.exponent <= INT_DIGITS);
 }
 
 decimal
@@ -135,7 +137,7 @@ dec_add_not_aligned(decimal big, decimal small, uint32_t confidence) {
   e = small.exponent;
   de = big.exponent - e;
   b_coef = small.coefficient;
-  over_digits = qlog10(labs(big.coefficient)) + de - MAX_DIGITS - 1;
+  over_digits = qlog10(llabs(big.coefficient)) + de - MAX_DIGITS - 1;
 
   if (over_digits > 0) {
     e += over_digits;
