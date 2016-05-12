@@ -21,11 +21,11 @@ sum2(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifBinary a;
   ErlNifBinary b;
   ERL_NIF_TERM r;
-  decimal* vs_a;
-  decimal* vs_b;
-  decimal* target;
-  decimal last_a = {0, 0, 0};
-  decimal last_b = {0, 0, 0};
+  ffloat* vs_a;
+  ffloat* vs_b;
+  ffloat* target;
+  ffloat last_a = {0, 0};
+  ffloat last_b = {0, 0};
 
   int count_a;
   int count_b;
@@ -39,13 +39,13 @@ sum2(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   GET_BIN(1, b, count_b, vs_b);
   count = count_a > count_b ? count_a : count_b;
 
-  target_size = count * sizeof(decimal);
-  if (! (target = (decimal*) enif_make_new_binary(env, target_size, &r)))
+  target_size = count * sizeof(ffloat);
+  if (! (target = (ffloat*) enif_make_new_binary(env, target_size, &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   if (count_a == count_b) {
     for (int i = 0; i < count; i++) {
-      target[i] = dec_add(vs_a[i], vs_b[i]);
+      target[i] = float_add(vs_a[i], vs_b[i]);
     }
   } else {
     for (int i = 0; i < count; i++) {
@@ -64,7 +64,7 @@ sum2(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
       }
 
       // if neither A nor B are set here we keep a blank
-      target[i] = dec_add(last_a, last_b);
+      target[i] = float_add(last_a, last_b);
     }
   }
   return r;
@@ -77,13 +77,13 @@ sum3(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifBinary b;
   ErlNifBinary c;
   ERL_NIF_TERM r;
-  decimal* vs_a;
-  decimal* vs_b;
-  decimal* vs_c;
-  decimal* target;
-  decimal last_a = {0, 0, 0};
-  decimal last_b = {0, 0, 0};
-  decimal last_c = {0, 0, 0};
+  ffloat* vs_a;
+  ffloat* vs_b;
+  ffloat* vs_c;
+  ffloat* target;
+  ffloat last_a = {0, 0};
+  ffloat last_b = {0, 0};
+  ffloat last_c = {0, 0};
 
   int count_a;
   int count_b;
@@ -101,13 +101,13 @@ sum3(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   count = count_a > count_b ? count_a : count_b;
   count = count > count_c ? count : count_c;
 
-  target_size = count * sizeof(decimal);
-  if (! (target = (decimal*) enif_make_new_binary(env, target_size, &r)))
+  target_size = count * sizeof(ffloat);
+  if (! (target = (ffloat*) enif_make_new_binary(env, target_size, &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   if (count_a == count_b && count_b == count_c) {
     for (int i = 0; i < count; i++) {
-      target[i] = dec_add3(vs_a[i], vs_b[i], vs_c[i]);
+      target[i] = float_add3(vs_a[i], vs_b[i], vs_c[i]);
     }
   } else {
     for (int i = 0; i < count; i++) {
@@ -126,7 +126,7 @@ sum3(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
       } else {
         last_c.confidence = 0;
       }
-      target[i] = dec_add3(last_a, last_b, last_c);
+      target[i] = float_add3(last_a, last_b, last_c);
     }
   }
   return r;

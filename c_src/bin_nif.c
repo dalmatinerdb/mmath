@@ -22,7 +22,7 @@ to_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ERL_NIF_TERM *acc;
   ERL_NIF_TERM r;
   ErlNifSInt64* vs;
-  decimal last = {.coefficient = 0, .exponent = 0};
+  ffloat last = {.confidence = 0};
   unsigned count;
 
   if (argc != 1)
@@ -35,13 +35,10 @@ to_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   for (unsigned i = 0 ; i < count; i++) {
     if (IS_SET(vs[i]))
-      last = dec_deserialize(vs[i]);
-    if (dec_is_int(last))
-      acc[i] = enif_make_int64(env, dec_to_int64(last));
-    else
-      // Maybe we should use bitstring representation for floats,
-      // because it don't loose precision
-      acc[i] = enif_make_double(env, dec_to_double(last));
+      last = float_deserialize(vs[i]);
+    // Maybe we should use bitstring representation for floats,
+    // because it don't loose precision
+    acc[i] = enif_make_double(env, last.value);
   }
   r = enif_make_list_from_array(env, acc, count);
   free(acc);
@@ -59,7 +56,7 @@ from_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifSInt64* target;
   ERL_NIF_TERM r;
   unsigned count;
-  decimal d;
+  ffloat d;
 
   if (argc != 1)
     return enif_make_badarg(env);
@@ -75,16 +72,13 @@ from_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   for (int i = 0; i < count; i++) {
     if (! enif_get_list_cell(env, list, &cell, &list))
       return enif_make_badarg(env); // TODO return propper error
-    if (enif_get_int64(env, cell, &int_v))
-      d = dec_from_int64(int_v);
-    else if (enif_get_double(env, cell, &float_v))
-      d = dec_from_double(float_v);
-    else if (enif_inspect_binary(env, cell, &bin_v) ||
-             enif_inspect_iolist_as_binary(env, cell, &bin_v))
-      d = dec_from_binary(bin_v.size, bin_v.data);
+    if (enif_get_int64(env, cell, &int_v)) {
+      d = float_from_int64(int_v);
+    } else if (enif_get_double(env, cell, &float_v))
+      d = float_from_double(float_v);
     else
       return enif_make_badarg(env);
-    target[i] = dec_serialize(d);
+    target[i] = float_serialize(d);
   }
   return r;
 }
@@ -99,7 +93,7 @@ rdatasize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (argc != 0)
     return enif_make_badarg(env);
 
-  return enif_make_int(env, sizeof(decimal));
+  return enif_make_int(env, sizeof(ffloat));
 }
 
 static ERL_NIF_TERM
@@ -108,8 +102,8 @@ realize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifBinary a;
   ERL_NIF_TERM r;
   ErlNifSInt64* vs;
-  decimal* target;
-  decimal last = {.coefficient = 0, .exponent = 0, .confidence = 0};
+  ffloat* target;
+  ffloat last = {.value = 0, .confidence = 0};
   int has_last = 0;
   int count;
 
@@ -118,7 +112,7 @@ realize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   GET_BIN(0, a, count, vs);
 
-  if (! (target = (decimal*) enif_make_new_binary(env, count * sizeof(decimal), &r)))
+  if (! (target = (ffloat*) enif_make_new_binary(env, count * sizeof(ffloat), &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   for (int i = 0; i < count; i++) {
@@ -143,7 +137,7 @@ derealize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary a;
   ERL_NIF_TERM r;
-  decimal* vs;
+  ffloat* vs;
   ErlNifSInt64* target;
   int count;
 

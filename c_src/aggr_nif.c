@@ -20,11 +20,11 @@ min(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary bin;
   ERL_NIF_TERM r;
-  decimal* vs;
-  decimal* target;
+  ffloat* vs;
+  ffloat* target;
   ErlNifSInt64 chunk;         // size to be compressed
   ErlNifSInt64 target_i = 0; // target position
-  decimal aggr;         // target position
+  ffloat aggr;         // target position
   uint64_t confidence;
   uint32_t pos;
   uint32_t count;
@@ -36,8 +36,8 @@ min(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   GET_CHUNK(chunk);
   GET_BIN(0, bin, count, vs);
 
-  target_size = ceil((double) count / chunk) * sizeof(decimal);
-  if (! (target = (decimal*) enif_make_new_binary(env, target_size, &r)))
+  target_size = ceil((double) count / chunk) * sizeof(ffloat);
+  if (! (target = (ffloat*) enif_make_new_binary(env, target_size, &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   // If we don't have any input data we can return right away.
@@ -60,7 +60,7 @@ min(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
       pos = 0;
     } else {
       confidence += vs[i].confidence;
-      if (dec_cmp(vs[i], aggr) < 0) {
+      if (vs[i].value < aggr.value) {
         aggr = vs[i];
       };
     }
@@ -81,11 +81,11 @@ max(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary bin;
   ERL_NIF_TERM r;
-  decimal* vs;
-  decimal* target;
+  ffloat* vs;
+  ffloat* target;
   ErlNifSInt64 chunk;         // size to be compressed
   ErlNifSInt64 target_i = 0; // target position
-  decimal aggr;         // target position
+  ffloat aggr;         // target position
   uint64_t confidence = 0;
   uint32_t pos;
   uint32_t count;
@@ -97,8 +97,8 @@ max(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   GET_CHUNK(chunk);
   GET_BIN(0, bin, count, vs);
 
-  target_size = ceil((double) count / chunk) * sizeof(decimal);
-  if (! (target = (decimal*) enif_make_new_binary(env, target_size, &r)))
+  target_size = ceil((double) count / chunk) * sizeof(ffloat);
+  if (! (target = (ffloat*) enif_make_new_binary(env, target_size, &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   // If we don't have any input data we can return right away.
@@ -121,7 +121,7 @@ max(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
       pos = 0;
     } else {
       confidence += vs[i].confidence;
-      if (dec_cmp(vs[i], aggr) > 0) {
+      if (vs[i].value >  aggr.value) {
         aggr = vs[i];
       };
     }
@@ -143,9 +143,9 @@ sum(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifSInt64 chunk;         // size to be compressed
 
   ERL_NIF_TERM r;
-  decimal* vs;
-  decimal* target;
-  decimal aggr;          // Aggregator
+  ffloat* vs;
+  ffloat* target;
+  ffloat aggr;          // Aggregator
   uint64_t confidence;
 
   uint32_t target_i = 0;      // target position
@@ -159,8 +159,8 @@ sum(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   GET_CHUNK(chunk);
   GET_BIN(0, bin, count, vs);
 
-  target_size = ceil((double) count / chunk) * sizeof(decimal);
-  if (! (target = (decimal*) enif_make_new_binary(env, target_size, &r)))
+  target_size = ceil((double) count / chunk) * sizeof(ffloat);
+  if (! (target = (ffloat*) enif_make_new_binary(env, target_size, &r)))
     return enif_make_badarg(env); // TODO return propper error
   if (count > 0) {
     aggr = vs[0];
@@ -180,11 +180,11 @@ sum(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         pos = 0;
       } else {
         confidence += vs[i].confidence;
-        aggr = dec_add(aggr, vs[i]);
+        aggr.value += vs[i].value;
       }
     }
     if (count % chunk) {
-      aggr = dec_add(aggr, dec_mul(vs[count - 1], (chunk - (count % chunk))));
+      aggr = float_add(aggr, float_mul(vs[count - 1], (chunk - (count % chunk))));
     }
     aggr.confidence = confidence / chunk;
     target[target_i] = aggr;
@@ -197,10 +197,10 @@ avg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary bin;
   ERL_NIF_TERM r;
-  decimal* vs;
-  decimal* target;
+  ffloat* vs;
+  ffloat* target;
   ErlNifSInt64 chunk;         // size to be compressed
-  decimal aggr;               // Aggregator
+  ffloat aggr;               // Aggregator
   uint64_t confidence;
   uint32_t target_i = 0;      // target position
   uint32_t count;
@@ -214,8 +214,8 @@ avg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   GET_CHUNK(chunk);
   GET_BIN(0, bin, count, vs);
 
-  target_size = ceil((double) count / chunk) * sizeof(decimal);
-  if (! (target = (decimal*) enif_make_new_binary(env, target_size, &r)))
+  target_size = ceil((double) count / chunk) * sizeof(ffloat);
+  if (! (target = (ffloat*) enif_make_new_binary(env, target_size, &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   if (count == 0)
@@ -228,21 +228,21 @@ avg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   for (uint32_t i = 1; i < count; i++, pos++) {
     if (pos == chunk) {
       aggr.confidence = confidence / chunk;
-      target[target_i] =  dec_div(aggr, chunk);
+      target[target_i] =  float_div(aggr, chunk);
       target_i++;
       aggr = vs[i];
       confidence = aggr.confidence;
       pos = 0;
     } else {
       confidence += vs[i].confidence;
-      aggr = dec_add(aggr, vs[i]);
+      aggr = float_add(aggr, vs[i]);
     }
   }
   if (count % chunk) {
-    aggr = dec_add(aggr, dec_mul(vs[count - 1], (chunk - (count % chunk))));
+    aggr = float_add(aggr, float_mul(vs[count - 1], (chunk - (count % chunk))));
   }
   aggr.confidence = confidence / chunk;
-  target[target_i] = dec_div(aggr, chunk);
+  target[target_i] = float_div(aggr, chunk);
 
   return r;
 }

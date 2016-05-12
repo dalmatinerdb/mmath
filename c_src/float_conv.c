@@ -53,106 +53,80 @@ qpow10(int8_t v) {
 }
 
 ErlNifSInt64
-dec_serialize(decimal v) {
-  return htonll((! v.exponent) ?
-                ((v.coefficient & VALUE_MASK) | 0x0100000000000000LL) :
-                (v.coefficient & 0x0000FFFFFFFFFFFFLL) |
-                ((int64_t)(v.exponent & 0xFF) << COEFFICIENT_BITS) |
-                DECIMAL_TAG
-                );
-}
+float_serialize(ffloat f) {
+  int64_t coefficient = 0;
+  int8_t exponent = 0;
+  double v = f.value;
 
-decimal
-dec_deserialize(ErlNifSInt64 ev) {
-  decimal d;
-  int64_t v = ntohll(ev);
-  char type = (uint8_t)((v & TYPE_MASK) >> 56);
-
-  d.confidence = CERTAIN;
-  
-  if (type == INTEGER_TYPE) {
-    d.exponent = 0;
-    d.coefficient = v & VALUE_MASK;
-    if (v & VALUE_SIGN_MASK) {
-      d.coefficient |= ((int64_t) -1) & ~ VALUE_MASK;
-    }
-  } else if (type == DECIMAL_TYPE) {
-    d.exponent = (int8_t)((v & EXPONENT_MASK) >> COEFFICIENT_BITS);
-    d.coefficient = v & COEFFICIENT_MASK;
-    if (v & COEFFICIENT_SIGN_MASK) {
-      d.coefficient |= ((int64_t) -1) & ~ COEFFICIENT_MASK;
-    }
-  }
-  return d;
-}
-
-decimal
-dec_from_int64(int64_t v) {
-  decimal d = {.exponent = 0, .coefficient = v, .confidence = CERTAIN};
-  return d;
-}
-
-// Very inefficient conversion which is loosing precision.
-// It is almost always preferable to read value from decimal strings
-decimal
-dec_from_double(double v) {
-  decimal d = {.confidence = CERTAIN};
   int sign = 1;
-
   if (v < 0) {
     sign = -1;
     v = fabs(v);
   }
   if (v == 0) {
-    d.exponent = 0;
-    d.coefficient = 0;
+    exponent = 0;
+    coefficient = 0;
   } else {
-    d.exponent = (int8_t)ceil(log10(v)) - COEFFICIENT_DIGITS;
-    d.coefficient = (int64_t)(v / qpow10(d.exponent)) * sign;
+    exponent = (int8_t)ceil(log10(v)) - COEFFICIENT_DIGITS;
+    coefficient = (int64_t)(v / qpow10(exponent)) * sign;
   }
-  return d;
-}
+  return htonll((! exponent) ?
+                ((coefficient & VALUE_MASK) | 0x0100000000000000LL) :
+                (coefficient & 0x0000FFFFFFFFFFFFLL) |
+                ((int64_t)(exponent & 0xFF) << COEFFICIENT_BITS) |
+                DECIMAL_TAG
+                );
+};
 
-decimal
-dec_from_binary(int len, char* v) {
-  decimal d = {.exponent = 0, .coefficient = 0, .confidence = CERTAIN};
-  char seen_point = 0;
-  char digits = 0;
-  char c, x;
+ffloat
+float_deserialize(ErlNifSInt64 ev) {
+  ffloat f;
+  int64_t coefficient = 0;
+  int8_t exponent = 0;
+  int64_t v = ntohll(ev);
+  char type = (uint8_t)((v & TYPE_MASK) >> 56);
 
-  for (int i = 0; i < len; i++) {
-    c = v[i];
-    if ((i == 0) && (c == '-' || c == '+'))
-      continue;
-    else if (c >= '0' && c <= '9') {
-      x = c - '0';
-      digits += 1;
+  f.confidence = CERTAIN;
+
+  if (type == INTEGER_TYPE) {
+    coefficient = v & VALUE_MASK;
+    if (v & VALUE_SIGN_MASK) {
+      coefficient |= ((int64_t) -1) & ~ VALUE_MASK;
     }
-    else if (!seen_point && (c == '.'))
-      seen_point = 1;
-    // TODO: add scientific notataion support
-    // TODO: report error on invalid character
+    f.value = coefficient;
+  } else if (type == DECIMAL_TYPE) {
 
-    // TODO: keep extra precision if integer oveflows coefficient,
-    //       but still falls into integer boundries
-    if (digits <= COEFFICIENT_DIGITS) {
-      d.coefficient = d.coefficient * 10 + x;
-      if (seen_point)
-        d.exponent -= 1;
+    exponent = (int8_t)((v & EXPONENT_MASK) >> COEFFICIENT_BITS);
+    coefficient = v & COEFFICIENT_MASK;
+    if (v & COEFFICIENT_SIGN_MASK) {
+      coefficient |= ((int64_t) -1) & ~ COEFFICIENT_MASK;
     }
-    else if (!seen_point)
-      d.exponent += 1;
+    f.value = coefficient * qpow10(exponent);
   }
-  return d;
+  return f;
 }
 
-int64_t dec_to_int64(decimal v) {
-  return v.coefficient * qpow10(v.exponent);
+
+ffloat
+float_from_int64(int64_t v) {
+  ffloat f;
+  f.value = (double) v;
+  f.confidence = CERTAIN;
+  return f;
 }
 
-// Not advised conversion, that will loose precision
-double dec_to_double(decimal v) {
-  return (double)v.coefficient * qpow10(v.exponent);
+// Very inefficient conversion which is loosing precision.
+// It is almost always preferable to read value from decimal strings
+ffloat
+float_from_double(double v) {
+  return (ffloat){.confidence = CERTAIN, .value = v};
 }
 
-// TODO: add to and from string reading
+int
+float_is_int(ffloat v) {
+  return round(v.value) == v.value;
+}
+
+int64_t float_to_int64(ffloat v) {
+  return (int64_t) v.value;
+}
