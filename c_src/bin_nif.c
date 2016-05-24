@@ -79,9 +79,6 @@ from_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
       d = dec_from_int64(int_v);
     else if (enif_get_double(env, cell, &float_v))
       d = dec_from_double(float_v);
-    else if (enif_inspect_binary(env, cell, &bin_v) ||
-             enif_inspect_iolist_as_binary(env, cell, &bin_v))
-      d = dec_from_binary(bin_v.size, bin_v.data);
     else
       return enif_make_badarg(env);
     target[i] = dec_serialize(d);
