@@ -40,7 +40,6 @@ prop_l2b() ->
                 B1 = mmath_bin:realize(?L2B(L)),
                 L1 = ?B2L(mmath_bin:derealize(B)),
                 L2 = ?B2L(mmath_bin:derealize(B1)),
-                
                 ?WHENFAIL(io:format(user, "~p =/= ~p~n",
                                     [L1, L2]),
                           almost_equal(L1, L2))
