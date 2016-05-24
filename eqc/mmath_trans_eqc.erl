@@ -24,7 +24,7 @@ prop_der() ->
 
 prop_der_len_undefined() ->
     ?FORALL(L, non_neg_int(),
-            erlang:max(0, L - 1) == len_r(mmath_trans:derivate(empty_r(L)))).
+            erlang:max(0, L) == len_r(mmath_trans:derivate(empty_r(L)))).
 
 prop_mul() ->
     ?FORALL({{L0, _, B}, S}, {defined_number_array(), int()},
@@ -242,8 +242,10 @@ derivate(H, [{true, H1} | T], Acc) ->
 derivate(H, [{false, _} | T], Acc) ->
     derivate(H, T, [0 | Acc]);
 derivate(_, [], Acc) ->
-    lists:reverse(Acc).
-
+    case lists:reverse(Acc) of
+        [] -> [0];
+        L -> [hd(L) | L]
+    end.
 
 find_first([]) ->
     0;
