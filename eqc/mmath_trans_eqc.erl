@@ -242,9 +242,10 @@ derivate(H, [{true, H1} | T], Acc) ->
 derivate(H, [{false, _} | T], Acc) ->
     derivate(H, T, [0 | Acc]);
 derivate(_, [], Acc) ->
-    L = lists:reverse(Acc),
-    [0 | L].
-
+    case lists:reverse(Acc) of
+        [] -> [0];
+        L -> [hd(L) | L]
+    end.
 
 find_first([]) ->
     0;
