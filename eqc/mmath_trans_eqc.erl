@@ -24,7 +24,7 @@ prop_der() ->
 
 prop_der_len_undefined() ->
     ?FORALL(L, non_neg_int(),
-            erlang:max(0, L) == len_r(mmath_trans:derivate(empty_r(L)))).
+            L == len_r(mmath_trans:derivate(empty_r(L)))).
 
 prop_mul() ->
     ?FORALL({{L0, _, B}, S}, {defined_number_array(), int()},
@@ -237,15 +237,21 @@ derivate([{true, H} | T]) ->
 derivate([{false, _} | T]) ->
     derivate(find_first(T), T, []).
 
+
 derivate(H, [{true, H1} | T], Acc) ->
     derivate(H1, T, [H1 - H | Acc]);
 derivate(H, [{false, _} | T], Acc) ->
     derivate(H, T, [0 | Acc]);
+%% Handle the case where we got a 1 element list,
+%% we default to zero.
+derivate(_, [], []) ->
+    [0];
 derivate(_, [], Acc) ->
-    case lists:reverse(Acc) of
-        [] -> [0];
-        L -> [hd(L) | L]
-    end.
+    [ H | T] = lists:reverse(Acc),
+    %% We need to ensure that derivate(X) has the
+    %% same lenght as X, we do this by including
+    %% the first element once
+    [H, H | T].
 
 find_first([]) ->
     0;
