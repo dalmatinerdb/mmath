@@ -41,7 +41,7 @@ load_nif() ->
 %%--------------------------------------------------------------------
 -spec avg(binary(), pos_integer()) -> binary().
 avg(_Data, _Count) when _Count > 0 ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -51,7 +51,7 @@ avg(_Data, _Count) when _Count > 0 ->
 %%--------------------------------------------------------------------
 -spec sum(binary(), pos_integer()) -> binary().
 sum(_Data, _Count) when _Count > 0 ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -61,7 +61,7 @@ sum(_Data, _Count) when _Count > 0 ->
 %%--------------------------------------------------------------------
 -spec min(binary(), pos_integer()) -> binary().
 min(_Data, _Count) when _Count > 0 ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -71,4 +71,4 @@ min(_Data, _Count) when _Count > 0 ->
 %%--------------------------------------------------------------------
 -spec max(binary(), pos_integer()) -> binary().
 max(_Data, _Count) when _Count > 0  ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).

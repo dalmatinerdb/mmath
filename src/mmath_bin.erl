@@ -40,7 +40,7 @@ load_nif() ->
 %% @end
 %%--------------------------------------------------------------------
 from_list(_) ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -48,7 +48,7 @@ from_list(_) ->
 %% @end
 %%--------------------------------------------------------------------
 to_list(_) ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 
 %%--------------------------------------------------------------------
@@ -83,7 +83,7 @@ empty(Length) ->
 %% @end
 %%--------------------------------------------------------------------
 realize(_Data) ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -91,7 +91,7 @@ realize(_Data) ->
 %% @end
 %%--------------------------------------------------------------------
 derealize(_Data) ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -100,7 +100,7 @@ derealize(_Data) ->
 %% @end
 %%--------------------------------------------------------------------
 rdatasize() ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 
 -ifdef(TEST).
