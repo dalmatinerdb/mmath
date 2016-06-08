@@ -74,10 +74,10 @@ avg(Es) ->
 %%-------------------------------------------------------------------
 
 sum(_A, _B) ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 sum(_A, _B, _C) ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc

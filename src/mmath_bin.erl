@@ -39,16 +39,18 @@ load_nif() ->
 %% Converts a list of values to it's binary representation.
 %% @end
 %%--------------------------------------------------------------------
+-spec from_list([number()]) -> binary().
 from_list(_) ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc
 %% Converts a the binary repesentation back to a list of values.
 %% @end
 %%--------------------------------------------------------------------
+-spec to_list([number()]) -> binary().
 to_list(_) ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 
 %%--------------------------------------------------------------------
@@ -83,7 +85,7 @@ empty(Length) ->
 %% @end
 %%--------------------------------------------------------------------
 realize(_Data) ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -91,7 +93,7 @@ realize(_Data) ->
 %% @end
 %%--------------------------------------------------------------------
 derealize(_Data) ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -100,7 +102,7 @@ derealize(_Data) ->
 %% @end
 %%--------------------------------------------------------------------
 rdatasize() ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc

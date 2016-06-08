@@ -40,7 +40,7 @@ load_nif() ->
 %%--------------------------------------------------------------------
 -spec mul(binary(), pos_integer()) -> binary().
 mul(_M, _D) ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -49,7 +49,7 @@ mul(_M, _D) ->
 %%--------------------------------------------------------------------
 -spec divide(binary(), pos_integer()) -> binary().
 divide(_M, _D) ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -62,7 +62,7 @@ divide(_M, _D) ->
 %%--------------------------------------------------------------------
 -spec derivate(binary()) -> binary().
 derivate(_) ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -74,4 +74,4 @@ derivate(_) ->
 %%--------------------------------------------------------------------
 -spec confidence(binary()) -> binary().
 confidence(_) ->
-    exit(nif_library_not_loaded).
+    erlang:nif_error(nif_library_not_loaded).
