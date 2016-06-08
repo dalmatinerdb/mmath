@@ -4,8 +4,9 @@
 
 -import(mmath_helper, [number_array/0, pos_int/0, non_neg_int/0,
                        supported_number/0, defined_number_array/0,
-                       fully_defined_number_array/0, from_decimal/1,
-                       realise/1, confidence/1, almost_equal/2]).
+                       raw_number_array/0, fully_defined_number_array/0,
+                       from_decimal/1, realise/1, confidence/1,
+                       almost_equal/2]).
 
 -include_lib("eqc/include/eqc.hrl").
 
@@ -64,3 +65,34 @@ prop_realize() ->
                                     [L, L1]),
                           almost_equal(L, L1))
             end).
+
+prop_merge() ->
+    ?FORALL({{La, _, Ba}, {Lb, _, Bb}}, {raw_number_array(), raw_number_array()},
+            begin
+                R1 = merge(La, Lb),
+                R2 = mmath_bin:to_list(mmath_bin:merge(Ba, Bb)),
+                ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R2]),
+                          almost_equal(R1, R2))
+            end).
+
+merge(A, B) ->
+    merge(A, B, []).
+
+merge([{false, _} | R1], [{true, V} | R2], Acc) ->
+    merge(R1, R2, [V | Acc]);
+merge([{true, V} | R1], [_ | R2], Acc) ->
+    merge(R1, R2, [V | Acc]);
+merge([_ | R1], [_ | R2], [Last | _] = Acc) ->
+    merge(R1, R2, [Last | Acc]);
+merge([_ | R1], [_ | R2], []) ->
+    merge(R1, R2, [0]);
+merge([], [], Acc) ->
+    lists:reverse(Acc);
+merge([], [{true, V} | R], Acc ) ->
+    merge([], R, [V | Acc]);
+merge([], [{false, _} | R], []) ->
+    merge([], R, [0]);
+merge([], [{false, _} | R], [Last | _] = Acc) ->
+    merge([], R, [Last | Acc]);
+merge(A, [], Acc) ->
+    merge([], A, Acc).

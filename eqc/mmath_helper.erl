@@ -5,9 +5,10 @@
 -include("../include/mmath.hrl").
 
 -export([number_array/0, pos_int/0, non_neg_int/0, supported_number/0,
-         defined_number_array/0, non_empty_number_list/0, pad_to_n/2,
-         fully_defined_number_array/0, from_decimal/1, realise/1, realise/3,
-         almost_equal/3, almost_equal/2, confidence/1, within_epsilon/3]).
+         defined_number_array/0, non_empty_number_list/0, raw_number_array/0,
+         pad_to_n/2, fully_defined_number_array/0, from_decimal/1, realise/1,
+         realise/3, almost_equal/3, almost_equal/2, confidence/1,
+         within_epsilon/3]).
 
 %%-define(EPSILON, math:pow(10, 3 - ?DEC_PRECISION)).
 -define(EPSILON, 0.999999999).
@@ -17,6 +18,10 @@ defined_number_array() ->
 
 fully_defined_number_array() ->
     ?SUCHTHAT({R, _, _}, number_array(), [ok || {false, _} <- R] =:= []).
+
+raw_number_array() ->
+    ?LET(L, list({frequency([{2, false}, {8, true}]), supported_number()}),
+         {L, to_list(L, 0, []), to_bin(L, <<>>)}).
 
 number_array() ->
     ?LET(L, list({frequency([{2, false}, {8, true}]), supported_number()}),
