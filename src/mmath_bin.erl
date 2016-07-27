@@ -15,7 +15,7 @@
 -include("mmath.hrl").
 
 -export([from_list/1, to_list/1, empty/1, length/1, length_r/1,
-         realize/1, derealize/1, rdatasize/0]).
+         realize/1, derealize/1, rdatasize/0, merge/2]).
 
 -define(APPNAME, mmath).
 -define(LIBNAME, bin_nif).
@@ -39,6 +39,7 @@ load_nif() ->
 %% Converts a list of values to it's binary representation.
 %% @end
 %%--------------------------------------------------------------------
+-spec from_list([number()]) -> binary().
 from_list(_) ->
     erlang:nif_error(nif_library_not_loaded).
 
@@ -47,6 +48,7 @@ from_list(_) ->
 %% Converts a the binary repesentation back to a list of values.
 %% @end
 %%--------------------------------------------------------------------
+-spec to_list([number()]) -> binary().
 to_list(_) ->
     erlang:nif_error(nif_library_not_loaded).
 
@@ -102,6 +104,30 @@ derealize(_Data) ->
 rdatasize() ->
     erlang:nif_error(nif_library_not_loaded).
 
+%%--------------------------------------------------------------------
+%% @doc
+%% Merges two metric lists, filling holes in one with the data of the
+%% other.
+%% @end
+%%--------------------------------------------------------------------
+merge(A, B) ->
+    merge(A, B, <<>>).
+
+merge(<<?NONE:?TYPE_SIZE, _:?BITS/?INT_TYPE, R1/binary>>,
+      <<D:?DATA_SIZE/binary, R2/binary>>,
+      Acc) ->
+    merge(R1, R2, <<Acc/binary, D/binary>>);
+merge(<<D:?DATA_SIZE/binary, R1/binary>>,
+      <<_:?DATA_SIZE/binary, R2/binary>>,
+      Acc) ->
+    merge(R1, R2, <<Acc/binary, D/binary>>);
+merge(<<>>, <<>>, Acc) ->
+    Acc;
+
+merge(<<>>, D, Acc) ->
+    <<Acc/binary, D/binary>>;
+merge(D, <<>>, Acc) ->
+    <<Acc/binary, D/binary>>.
 
 -ifdef(TEST).
 

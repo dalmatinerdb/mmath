@@ -4,9 +4,9 @@
 
 -import(mmath_helper, [number_array/0, pos_int/0, non_neg_int/0,
                        supported_number/0, defined_number_array/0,
-                       fully_defined_number_array/0, from_decimal/1,
+                       raw_number_array/0, fully_defined_number_array/0, from_decimal/1,
                        realise/1, confidence/1, almost_equal/2,
-                       within_epsilon/3]).
+                       within_epsilon/3, almost_equal/2]).
 
 -include_lib("eqc/include/eqc.hrl").
 
