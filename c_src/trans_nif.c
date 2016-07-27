@@ -20,9 +20,10 @@ mul(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary bin;
   ERL_NIF_TERM r;
-  decimal* vs;
-  ErlNifSInt64 m;
-  decimal* target;
+  ffloat* vs;
+  ErlNifSInt64 int_v;
+  double m;
+  ffloat* target;
   int count;
 
   if (argc != 2)
@@ -30,14 +31,17 @@ mul(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   GET_BIN(0, bin, count, vs);
 
-  if (!enif_get_int64(env, argv[1], &m))
+  if (enif_get_int64(env, argv[1], &int_v)) {
+    m = (double) int_v;
+  } else if (!enif_get_double(env, argv[1], &m)) {
     return enif_make_badarg(env);
+  }
 
-  if (! (target = (decimal*) enif_make_new_binary(env, count * sizeof(decimal), &r)))
+  if (! (target = (ffloat*) enif_make_new_binary(env, count * sizeof(ffloat), &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   for (int i = 0; i < count; i++) {
-    target[i] = dec_mul(vs[i], m);
+    target[i] = float_mul(vs[i], m);
   }
   return r;
 }
@@ -47,9 +51,10 @@ divide(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary bin;
   ERL_NIF_TERM r;
-  decimal* vs;
-  ErlNifSInt64 m;
-  decimal* target;
+  ffloat* vs;
+  ErlNifSInt64 int_v;
+  double m;
+  ffloat* target;
   int count;
 
   if (argc != 2)
@@ -57,17 +62,20 @@ divide(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   GET_BIN(0, bin, count, vs);
 
-  if (!enif_get_int64(env, argv[1], &m))
+  if (enif_get_int64(env, argv[1], &int_v)) {
+    m = (double) int_v;
+  } else if (!enif_get_double(env, argv[1], &m)) {
     return enif_make_badarg(env);
+  }
 
   if (!m)
     return enif_make_badarg(env);
 
-  if (! (target = (decimal*) enif_make_new_binary(env, count * sizeof(decimal), &r)))
+  if (! (target = (ffloat*) enif_make_new_binary(env, count * sizeof(ffloat), &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   for (int i = 0; i < count; i++) {
-    target[i] = dec_div(vs[i], m);
+    target[i] = float_div(vs[i], m);
   }
   return r;
 }
@@ -77,8 +85,8 @@ derivate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary bin;
   ERL_NIF_TERM r;
-  decimal* target;
-  decimal* vs;
+  ffloat* target;
+  ffloat* vs;
   int count;
 
   if (argc != 1)
@@ -86,17 +94,17 @@ derivate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   GET_BIN(0, bin, count, vs);
 
-  if (! (target = (decimal*) enif_make_new_binary(env, count * sizeof(decimal), &r)))
+  if (! (target = (ffloat*) enif_make_new_binary(env, count * sizeof(ffloat), &r)))
     return enif_make_badarg(env); // TODO return propper error
 
   if (count == 0)
     return r;
   if (count == 1) {
-    target[0] = (decimal) {.coefficient = 0, .exponent = 0, .confidence = 0};
+    target[0] = (ffloat) {.value = 0, .confidence = 0};
     return r;
   }
   for (int i = 1; i < count; i++) {
-    target[i] = dec_sub(vs[i], vs[i-1]);
+    target[i] = float_sub(vs[i], vs[i-1]);
   }
   target[0] = target[1];
   target[0].confidence = 0;
@@ -108,8 +116,8 @@ confidence(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   ErlNifBinary a;
   ERL_NIF_TERM r;
-  decimal* vs;
-  decimal* target;
+  ffloat* vs;
+  ffloat* target;
   int count;
 
   if (argc != 1)
@@ -117,21 +125,13 @@ confidence(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   GET_BIN(0, a, count, vs);
 
-  if (! (target = (decimal*) enif_make_new_binary(env, count * sizeof(decimal), &r)))
+  if (! (target = (ffloat*) enif_make_new_binary(env, count * sizeof(ffloat), &r)))
     return enif_make_badarg(env); // TODO return propper error
   for (int i = 0; i < count; i++) {
-    if (vs[i].confidence != 0)
-      target[i] = (decimal){
-        .coefficient = vs[i].confidence,
-        .exponent = -6,
-        .confidence = CERTAIN
-      };
-    else
-      target[i] = (decimal){
-        .coefficient = 0,
-        .exponent = 0,
-        .confidence = CERTAIN
-      };
+    target[i] = (ffloat){
+      .value = vs[i].confidence,
+      .confidence = CERTAIN
+    };
   }
   return r;
 }

@@ -4,9 +4,9 @@
 
 -import(mmath_helper, [number_array/0, pos_int/0, non_neg_int/0,
                        supported_number/0, defined_number_array/0,
-                       raw_number_array/0, fully_defined_number_array/0,
-                       from_decimal/1, realise/1, confidence/1,
-                       almost_equal/2]).
+                       raw_number_array/0, fully_defined_number_array/0, from_decimal/1,
+                       realise/1, confidence/1, almost_equal/2,
+                       within_epsilon/3, almost_equal/2]).
 
 -include_lib("eqc/include/eqc.hrl").
 
@@ -39,9 +39,11 @@ prop_l2b() ->
     ?FORALL({_, L, B}, fully_defined_number_array(),
             begin
                 B1 = mmath_bin:realize(?L2B(L)),
+                L1 = ?B2L(mmath_bin:derealize(B)),
+                L2 = ?B2L(mmath_bin:derealize(B1)),
                 ?WHENFAIL(io:format(user, "~p =/= ~p~n",
-                                    [B, B1]),
-                          B == B1)
+                                    [L1, L2]),
+                          almost_equal(L1, L2))
             end).
 
 prop_realize_derealize() ->
@@ -58,7 +60,7 @@ prop_realize() ->
     ?FORALL({T, _, B}, defined_number_array(),
             begin
                 %% This unpacking pattern will work on 64 bit machines only.
-                L1 = [from_decimal({I, E}) || <<I:64/signed-native, _C:32/unsigned-native, E:8/signed-native, _:24>>
+                L1 = [I || <<I:64/float-native, _C:32/unsigned-native, _:32>>
                                                   <= B],
                 L = realise(T),
                 ?WHENFAIL(io:format(user, "~p =/= ~p~n",
@@ -66,33 +68,36 @@ prop_realize() ->
                           almost_equal(L, L1))
             end).
 
-prop_merge() ->
-    ?FORALL({{La, _, Ba}, {Lb, _, Bb}}, {raw_number_array(), raw_number_array()},
+%% Make sure it reads intagers
+prop_deserialize_v01() ->
+    ?FORALL(I, int(),
             begin
-                R1 = merge(La, Lb),
-                R2 = mmath_bin:to_list(mmath_bin:merge(Ba, Bb)),
-                ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R2]),
-                          almost_equal(R1, R2))
+                L1 = [I],
+                L = mmath_bin:to_list(<<1:8, I:56>>),
+                ?WHENFAIL(io:format(user, "~p =/= ~p~n",
+                                    [L, L1]),
+                          L == L1)
             end).
 
-merge(A, B) ->
-    merge(A, B, []).
+%% Make sure it reads decimal values breiefly intorduced in v0.2alpha
+prop_deserialize_v02alpha() ->
+    ?FORALL({Coef, Exp}, {choose(round(-1.0e14), round(1.0e14)), choose(-128, 127)},
+            begin
+                L1 = [Coef * math:pow(10, Exp)],
+                L = mmath_bin:to_list(<<2:8, Exp:8, Coef:48>>),
+                ?WHENFAIL(io:format(user, "~p =/= ~p~n",
+                                    [L, L1]),
+                          L == L1)
+            end).
 
-merge([{false, _} | R1], [{true, V} | R2], Acc) ->
-    merge(R1, R2, [V | Acc]);
-merge([{true, V} | R1], [_ | R2], Acc) ->
-    merge(R1, R2, [V | Acc]);
-merge([_ | R1], [_ | R2], [Last | _] = Acc) ->
-    merge(R1, R2, [Last | Acc]);
-merge([_ | R1], [_ | R2], []) ->
-    merge(R1, R2, [0]);
-merge([], [], Acc) ->
-    lists:reverse(Acc);
-merge([], [{true, V} | R], Acc ) ->
-    merge([], R, [V | Acc]);
-merge([], [{false, _} | R], []) ->
-    merge([], R, [0]);
-merge([], [{false, _} | R], [Last | _] = Acc) ->
-    merge([], R, [Last | Acc]);
-merge(A, [], Acc) ->
-    merge([], A, Acc).
+%% Make sure it reads suqashed floats introduced in v0.2 proper
+prop_deserialize_v02() ->
+    ?FORALL(V, real(),
+            begin
+                L1 = [V],
+                <<VH:63, _:1>> = <<V:64/float>>,
+                L = mmath_bin:to_list(<<1:1, VH:63>>),
+                ?WHENFAIL(io:format(user, "~p =/= ~p~n",
+                                    [L, L1]),
+                          within_epsilon(L, L1, math:pow(2, -52)))
+            end).

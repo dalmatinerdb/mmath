@@ -12,7 +12,8 @@
 #define EXPONENT_MASK    0x00FF000000000000LL
 #define COEFFICIENT_MASK 0x0000FFFFFFFFFFFFLL
 #define COEFFICIENT_SIGN_MASK 0x0000800000000000LL
-#define DECIMAL_TAG      0x0200000000000000LL
+#define INT_TYPE_MASK    0x0100000000000000LL
+#define FLOAT_TYPE_MASK  0x8000000000000000LL
 
 #define EMPTY_TYPE   0
 #define INTEGER_TYPE 0x01
@@ -52,74 +53,67 @@ qpow10(int8_t v) {
   return t[(uint8_t)v];
 }
 
-ErlNifSInt64
-dec_serialize(decimal v) {
-  return htonll((! v.exponent) ?
-                ((v.coefficient & VALUE_MASK) | 0x0100000000000000LL) :
-                (v.coefficient & 0x0000FFFFFFFFFFFFLL) |
-                ((int64_t)(v.exponent & 0xFF) << COEFFICIENT_BITS) |
-                DECIMAL_TAG
-                );
+int inline
+float_is_int(ffloat v) {
+  return round(v.value) == v.value;
 }
 
-decimal
-dec_deserialize(ErlNifSInt64 ev) {
-  decimal d;
+ErlNifSInt64
+float_serialize(ffloat f) {
+  int64_t coefficient = 0;
+  int8_t exponent = 0;
+  double v = f.value;
+  int64_t r;
+
+  if (float_is_int(f)) {
+    r = (((long) f.value) & VALUE_MASK) | INT_TYPE_MASK;
+  } else {
+    *((double*) &r) = f.value;
+    r = (r >> 1) | FLOAT_TYPE_MASK;
+  }
+
+  return htonll(r);
+};
+
+ffloat
+float_deserialize(ErlNifSInt64 ev) {
   int64_t v = ntohll(ev);
+  int64_t v_overlay;
+  int8_t exponent;
   char type = (uint8_t)((v & TYPE_MASK) >> 56);
 
-  d.confidence = CERTAIN;
-  
   if (type == INTEGER_TYPE) {
-    d.exponent = 0;
-    d.coefficient = v & VALUE_MASK;
+    v_overlay = v & VALUE_MASK;
     if (v & VALUE_SIGN_MASK) {
-      d.coefficient |= ((int64_t) -1) & ~ VALUE_MASK;
+      v_overlay |= ((int64_t) -1) & ~ VALUE_MASK;
     }
-  } else if (type == DECIMAL_TYPE) {
-    d.exponent = (int8_t)((v & EXPONENT_MASK) >> COEFFICIENT_BITS);
-    d.coefficient = v & COEFFICIENT_MASK;
+    return float_from_int64(v_overlay);
+  }
+
+  if (type == DECIMAL_TYPE) {
+    exponent = (int8_t)((v & EXPONENT_MASK) >> COEFFICIENT_BITS);
+    v_overlay = v & COEFFICIENT_MASK;
     if (v & COEFFICIENT_SIGN_MASK) {
-      d.coefficient |= ((int64_t) -1) & ~ COEFFICIENT_MASK;
+      v_overlay |= ((int64_t) -1) & ~ COEFFICIENT_MASK;
     }
+    return float_from_double(v_overlay * qpow10(exponent));
   }
-  return d;
-}
 
-decimal
-dec_from_int64(int64_t v) {
-  decimal d = {.exponent = 0, .coefficient = v, .confidence = CERTAIN};
-  return d;
-}
-
-// Very inefficient conversion which is loosing precision.
-// It is almost always preferable to read value from decimal strings
-decimal
-dec_from_double(double v) {
-  decimal d = {.confidence = CERTAIN};
-  int sign = 1;
-
-  if (v < 0) {
-    sign = -1;
-    v = fabs(v);
+  if (v & FLOAT_TYPE_MASK) {
+    v_overlay = (v << 1);
+    return float_from_double(*((double*) &v_overlay));
   }
-  if (v == 0) {
-    d.exponent = 0;
-    d.coefficient = 0;
-  } else {
-    d.exponent = (int8_t)ceil(log10(v)) - COEFFICIENT_DIGITS;
-    d.coefficient = (int64_t)(v / qpow10(d.exponent)) * sign;
-  }
-  return d;
+
+  return (ffloat){.confidence = 0.0, .value = 0.0};;
 }
 
-int64_t dec_to_int64(decimal v) {
-  return v.coefficient * qpow10(v.exponent);
+
+ffloat
+float_from_int64(int64_t v) {
+  return (ffloat){.confidence = CERTAIN, .value = (double) v};
 }
 
-// Not advised conversion, that will loose precision
-double dec_to_double(decimal v) {
-  return (double)v.coefficient * qpow10(v.exponent);
+ffloat
+float_from_double(double v) {
+  return (ffloat){.confidence = CERTAIN, .value = v};
 }
-
-// TODO: add to and from string reading

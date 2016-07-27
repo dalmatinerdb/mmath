@@ -47,18 +47,15 @@ load_nif() ->
 %% elements of the passed datasets.
 %% @end
 %%--------------------------------------------------------------------
+-spec sum([binary()]) -> binary().
 sum([A, B]) ->
     sum(A, B);
 
 sum([A, B, C]) ->
     sum(A, B, C);
 
-sum(Es) ->
-    rcomb(fun sum/2, fun sum/3, Es, []).
-
-
-
-
+sum(Es) when is_list(Es) ->
+    rcomb(fun sum/2, fun sum/3, Es).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -66,7 +63,8 @@ sum(Es) ->
 %% of the elements of the passed datasets.
 %% @end
 %%--------------------------------------------------------------------
-avg(Es) ->
+-spec avg([binary()]) -> binary().
+avg(Es) when is_list(Es), length(Es) > 0 ->
     mmath_trans:divide(sum(Es), length(Es)).
 
 %%-------------------------------------------------------------------
@@ -85,21 +83,15 @@ sum(_A, _B, _C) ->
 %% this requires the combinator to be associative!
 %%--------------------------------------------------------------------
 
-rcomb(F2, _F3, [A], [B]) ->
-    F2(A, B);
-rcomb(F2, F3, [], Acc) ->
-    rcomb(F2, F3, Acc, []);
-rcomb(_, _, [A], []) ->
-    A;
+-type comb_fun2() :: fun((binary(), binary()) -> binary()).
+-type comb_fun3() :: fun((binary(), binary(), binary()) -> binary()).
 
-rcomb(F2, F3, [A, B, C, D | R], Acc) ->
-    rcomb(F2, F3, R, [F2(F2(A, B), F2(C, D)) | Acc]);
+-spec rcomb(comb_fun2(), comb_fun3(), L :: [binary()]) ->
+                   binary().
+rcomb(F2, F3, [A, B, C | R]) when is_function(F3) ->
+    rcomb(F2, F3, [F3(A, B, C) | R]);
 
-rcomb(F2, F3, [A, B, C | R], Acc) when is_function(F3) ->
-    rcomb(F2, F3, R, [F3(A, B, C) | Acc]);
-
-rcomb(F2, F3, [A, B | R], Acc) ->
-    rcomb(F2, F3, R, [F2(A, B) | Acc]);
-
-rcomb(F2, F3, [A], Acc) ->
-    rcomb(F2, F3, [A | Acc], []).
+rcomb(F2, F3, [A, B | R]) ->
+    rcomb(F2, F3, [F2(A, B) | R]);
+rcomb(_, _, [E]) ->
+    E.

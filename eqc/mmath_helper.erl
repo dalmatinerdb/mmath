@@ -7,11 +7,10 @@
 -export([number_array/0, pos_int/0, non_neg_int/0, supported_number/0,
          defined_number_array/0, non_empty_number_list/0, raw_number_array/0,
          pad_to_n/2, fully_defined_number_array/0, from_decimal/1, realise/1,
-         realise/3, almost_equal/3, almost_equal/2, confidence/1,
-         within_epsilon/3]).
+         realise/3, almost_equal/4, almost_equal/2, confidence/1, within_epsilon/3]).  
 
-%%-define(EPSILON, math:pow(10, 3 - ?DEC_PRECISION)).
--define(EPSILON, 0.999999999).
+-define(EPSILON, math:pow(10, 3 - ?DEC_PRECISION)).
+-define(DELTA, 0.99999999).
 
 defined_number_array() ->
     ?SUCHTHAT({R, _, _}, number_array(), [ok || {true, _} <- R] =/= []).
@@ -119,18 +118,19 @@ realise([{false, _} | R], L, Acc) ->
     realise(R, L, [L | Acc]).
 
 almost_equal(A, B) ->
-    almost_equal(A, B, ?EPSILON).
+    almost_equal(A, B, ?DELTA, ?EPSILON).
 
-almost_equal([A | Ra], [B | Rb], E) ->
-    almost_equal(A, B, E) andalso almost_equal(Ra, Rb, E);
-almost_equal([], [], _) ->
+almost_equal([A | Ra], [B | Rb], D, E) ->
+    almost_equal(A, B, D, E) andalso almost_equal(Ra, Rb, D, E);
+almost_equal([], [], _, _) ->
     true;
-almost_equal(A, B, E) when A == 0 ; B == 0 ->
-    almost_equal(A + 1, B + 1, E);
-almost_equal(A, B, E) ->
+almost_equal(A, B, D, E) when A == 0 ; B == 0 ->
+    almost_equal(A + 1, B + 1, D, E);
+almost_equal(A, B, D, E) ->
     AAbs = abs(A),
     BAbs = abs(B),
-    min(AAbs, BAbs)/ max(AAbs, BAbs) > E.
+    (min(AAbs, BAbs)/ max(AAbs, BAbs) > D)
+        orelse (abs(AAbs - BAbs) < E).
 
 within_epsilon([A | Ra], [B | Rb], E) ->
     within_epsilon(A, B, E) andalso within_epsilon(Ra, Rb, E);

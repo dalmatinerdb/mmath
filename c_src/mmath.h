@@ -13,19 +13,18 @@
 #  include <sys/byteorder.h>
 #endif
 
-#define CERTAIN 1000000
+#define CERTAIN 1.0
 
 typedef struct {
-  int64_t coefficient;
-  uint32_t confidence;
-  int8_t  exponent;
-} decimal;
+  double value;
+  double confidence;
+} ffloat;
 
 #define DDB_ZERO htonll(0x0100000000000000LL)
 #define DDB_UNSET htonll(0x0000000000000000LL)
 #define IS_SET(v) ((ntohll(v) & 0xFF00000000000000LL) != 0LL)
-#define FROM_DDB(v) dec_deserialize(v)
-#define TO_DDB(v) dec_serialize(v)
+#define FROM_DDB(v) float_deserialize(v)
+#define TO_DDB(v) float_serialize(v)
 
 #define GET_CHUNK(chunk)                                                \
   if (!enif_get_int64(env, argv[1], &chunk))                            \
@@ -42,24 +41,15 @@ typedef struct {
   vs = (__typeof__(vs)) bin.data;
 
 
-ErlNifSInt64 dec_serialize(decimal v);
-decimal dec_deserialize(ErlNifSInt64 v);
+ErlNifSInt64 float_serialize(ffloat f);
+ffloat float_deserialize(ErlNifSInt64 v);
 
-decimal dec_from_int64(int64_t v);
-decimal dec_from_double(double v);
-decimal dec_from_binary(int len, char* str);
+ffloat float_from_int64(int64_t v);
+ffloat float_from_double(double v);
+ffloat float_from_binary(int len, char* str);
 
-int64_t dec_to_int64(decimal v);
-double dec_to_double(decimal v);
-
-int dec_is_int(decimal v);
-
-decimal dec_mul(decimal v, int64_t m);
-decimal dec_div(decimal v, int64_t m);
-decimal dec_add(decimal a, decimal b);
-decimal dec_add3(decimal a, decimal b, decimal c);
-decimal dec_sub(decimal a, decimal b);
-
-decimal dec_neg(decimal a);
-
-int dec_cmp(decimal a, decimal b);
+ffloat float_mul(ffloat v, double m);
+ffloat float_div(ffloat v, double m);
+ffloat float_add(ffloat a, ffloat b);
+ffloat float_add3(ffloat a, ffloat b, ffloat c);
+ffloat float_sub(ffloat a, ffloat b);
