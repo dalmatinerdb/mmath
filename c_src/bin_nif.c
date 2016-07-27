@@ -32,12 +32,9 @@ to_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   acc = malloc(count * sizeof(ERL_NIF_TERM));
 
-
   for (unsigned i = 0 ; i < count; i++) {
     if (IS_SET(vs[i]))
       last = float_deserialize(vs[i]);
-    // Maybe we should use bitstring representation for floats,
-    // because it don't loose precision
     acc[i] = enif_make_double(env, last.value);
   }
   r = enif_make_list_from_array(env, acc, count);

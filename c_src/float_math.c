@@ -18,7 +18,6 @@ float_div(ffloat v, double m) {
       };
 }
 
-
 inline ffloat
 float_add(ffloat a, ffloat b) {
   double confidence = (a.confidence + b.confidence) / 2;

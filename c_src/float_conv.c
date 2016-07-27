@@ -115,8 +115,6 @@ float_from_int64(int64_t v) {
   return f;
 }
 
-// Very inefficient conversion which is loosing precision.
-// It is almost always preferable to read value from decimal strings
 ffloat
 float_from_double(double v) {
   return (ffloat){.confidence = CERTAIN, .value = v};
