@@ -12,7 +12,8 @@
 #define EXPONENT_MASK    0x00FF000000000000LL
 #define COEFFICIENT_MASK 0x0000FFFFFFFFFFFFLL
 #define COEFFICIENT_SIGN_MASK 0x0000800000000000LL
-#define DECIMAL_TAG      0x0200000000000000LL
+#define INT_TYPE_MASK    0x0100000000000000LL
+#define FLOAT_TYPE_MASK  0x8000000000000000LL
 
 #define EMPTY_TYPE   0
 #define INTEGER_TYPE 0x01
@@ -52,79 +53,67 @@ qpow10(int8_t v) {
   return t[(uint8_t)v];
 }
 
+int inline
+float_is_int(ffloat v) {
+  return round(v.value) == v.value;
+}
+
 ErlNifSInt64
 float_serialize(ffloat f) {
   int64_t coefficient = 0;
   int8_t exponent = 0;
   double v = f.value;
+  int64_t r;
 
-  int sign = 1;
-  if (v < 0) {
-    sign = -1;
-    v = fabs(v);
-  }
-  if (v == 0) {
-    exponent = 0;
-    coefficient = 0;
+  if (float_is_int(f)) {
+    r = (((long) f.value) & VALUE_MASK) | INT_TYPE_MASK;
   } else {
-    exponent = (int8_t)ceil(log10(v)) - COEFFICIENT_DIGITS;
-    coefficient = (int64_t)(v / qpow10(exponent)) * sign;
+    *((double*) &r) = f.value;
+    r = (r >> 1) | FLOAT_TYPE_MASK;
   }
-  return htonll((! exponent) ?
-                ((coefficient & VALUE_MASK) | 0x0100000000000000LL) :
-                (coefficient & 0x0000FFFFFFFFFFFFLL) |
-                ((int64_t)(exponent & 0xFF) << COEFFICIENT_BITS) |
-                DECIMAL_TAG
-                );
+
+  return htonll(r);
 };
 
 ffloat
 float_deserialize(ErlNifSInt64 ev) {
-  ffloat f;
-  int64_t coefficient = 0;
-  int8_t exponent = 0;
   int64_t v = ntohll(ev);
+  int64_t v_overlay;
+  int8_t exponent;
   char type = (uint8_t)((v & TYPE_MASK) >> 56);
 
-  f.confidence = CERTAIN;
-
   if (type == INTEGER_TYPE) {
-    coefficient = v & VALUE_MASK;
+    v_overlay = v & VALUE_MASK;
     if (v & VALUE_SIGN_MASK) {
-      coefficient |= ((int64_t) -1) & ~ VALUE_MASK;
+      v_overlay |= ((int64_t) -1) & ~ VALUE_MASK;
     }
-    f.value = coefficient;
-  } else if (type == DECIMAL_TYPE) {
-
-    exponent = (int8_t)((v & EXPONENT_MASK) >> COEFFICIENT_BITS);
-    coefficient = v & COEFFICIENT_MASK;
-    if (v & COEFFICIENT_SIGN_MASK) {
-      coefficient |= ((int64_t) -1) & ~ COEFFICIENT_MASK;
-    }
-    f.value = coefficient * qpow10(exponent);
+    return float_from_int64(v_overlay);
   }
-  return f;
+
+  if (type == DECIMAL_TYPE) {
+    exponent = (int8_t)((v & EXPONENT_MASK) >> COEFFICIENT_BITS);
+    v_overlay = v & COEFFICIENT_MASK;
+    if (v & COEFFICIENT_SIGN_MASK) {
+      v_overlay |= ((int64_t) -1) & ~ COEFFICIENT_MASK;
+    }
+    return float_from_double(v_overlay * qpow10(exponent));
+  }
+
+  if (v & FLOAT_TYPE_MASK) {
+    v_overlay = (v << 1);
+    return float_from_double(*((double*) &v_overlay));
+  }
+
+  return (ffloat){.confidence = 0.0, .value = 0.0};;
 }
 
 
 ffloat
 float_from_int64(int64_t v) {
-  ffloat f;
-  f.value = (double) v;
-  f.confidence = CERTAIN;
-  return f;
+  return (ffloat){.confidence = CERTAIN, .value = (double) v};
 }
 
 ffloat
 float_from_double(double v) {
   return (ffloat){.confidence = CERTAIN, .value = v};
-}
-
-int
-float_is_int(ffloat v) {
-  return round(v.value) == v.value;
-}
-
-int64_t float_to_int64(ffloat v) {
-  return (int64_t) v.value;
 }
