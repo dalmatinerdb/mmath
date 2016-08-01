@@ -133,4 +133,7 @@ merge(D, <<>>, Acc) ->
 
 size_test() ->
     ?assertEqual(?RDATA_SIZE, rdatasize()).
+
+one_test() ->
+    ?assertEqual([1], to_list(from_list([1]))).
 -endif.
