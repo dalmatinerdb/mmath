@@ -20,9 +20,16 @@ typedef struct {
   double confidence;
 } ffloat;
 
-#define DDB_ZERO htonll(0x0100000000000000LL)
-#define DDB_UNSET htonll(0x0000000000000000LL)
-#define IS_SET(v) ((ntohll(v) & 0xFF00000000000000LL) != 0LL)
+#define DDB_ZERO   htonll(0x0100000000000000LL)
+#define DDB_UNSET  htonll(0x0000000000000000LL)
+#define TYPE_MASK         0xFF00000000000000LL
+#define VALUE_MASK        0x00FFFFFFFFFFFFFFLL
+#define VALUE_SIGN_MASK   0x0080000000000000LL
+#define EMPTY_TYPE   0
+#define INTEGER_TYPE 0x01
+#define DECIMAL_TYPE 0x02
+#define TYPE(v) (uint8_t)((ntohll(v) & TYPE_MASK) >> 56)
+#define IS_SET(v) (TYPE(v) != EMPTY_TYPE)
 #define FROM_DDB(v) float_deserialize(v)
 #define TO_DDB(v) float_serialize(v)
 

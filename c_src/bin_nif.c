@@ -21,10 +21,13 @@ to_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifBinary a;
   ERL_NIF_TERM *acc;
   ERL_NIF_TERM r;
+  ERL_NIF_TERM last_t;
   ErlNifSInt64* vs;
-  ffloat last = {.confidence = 0};
+  ERL_NIF_TERM last = enif_make_int(env, 0);
+  ffloat f;
   unsigned count;
-
+  int64_t v;
+  int64_t v_overlay;
   if (argc != 1)
     return enif_make_badarg(env);
 
@@ -33,9 +36,23 @@ to_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   acc = malloc(count * sizeof(ERL_NIF_TERM));
 
   for (unsigned i = 0 ; i < count; i++) {
-    if (IS_SET(vs[i]))
-      last = float_deserialize(vs[i]);
-    acc[i] = enif_make_double(env, last.value);
+    switch (TYPE(vs[i])) {
+    case EMPTY_TYPE:
+      // do nothing
+      break;
+    case INTEGER_TYPE:
+      v = ntohll(vs[i]);
+      v_overlay = v & VALUE_MASK;
+      if (v & VALUE_SIGN_MASK) {
+        v_overlay |= ((int64_t) -1) & ~ VALUE_MASK;
+      }
+      last = enif_make_int64(env, v_overlay);
+      break;
+    default:
+      f = float_deserialize(vs[i]);
+      last = enif_make_double(env, f.value);
+    }
+    acc[i] = last;
   }
   r = enif_make_list_from_array(env, acc, count);
   free(acc);
@@ -82,10 +99,6 @@ from_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 static ERL_NIF_TERM
 rdatasize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-  ERL_NIF_TERM list;
-  ErlNifBinary bin;
-  int count;
-
   if (argc != 0)
     return enif_make_badarg(env);
 
@@ -148,6 +161,11 @@ derealize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     target[i] = TO_DDB(vs[i]);
   }
   return r;
+}
+
+char get_type(ErlNifSInt64 ev) {
+  int64_t v = ntohll(ev);
+  return (uint8_t)((v & TYPE_MASK) >> 56);
 }
 
 static ErlNifFunc nif_funcs[] = {
