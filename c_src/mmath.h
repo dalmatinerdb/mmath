@@ -32,6 +32,8 @@ typedef struct {
 #define IS_SET(v) (TYPE(v) != EMPTY_TYPE)
 #define FROM_DDB(v) float_deserialize(v)
 #define TO_DDB(v) float_serialize(v)
+#define TO_DDB_INT(v) ((ntohll(v) & 0xFFFFFFFFFFFFFF00LL) | 0x0000000000000001LL)
+
 
 #define GET_CHUNK(chunk)                                                \
   if (!enif_get_int64(env, argv[1], &chunk))                            \

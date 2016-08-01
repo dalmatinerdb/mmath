@@ -135,5 +135,7 @@ size_test() ->
     ?assertEqual(?RDATA_SIZE, rdatasize()).
 
 one_test() ->
-    ?assertEqual([1], to_list(from_list([1]))).
+    ?assertEqual([1], to_list(from_list([1]))),
+    ?assertEqual([1.0], to_list(from_list([1.0]))),
+    ?assertEqual([1, 1.0, 1], to_list(from_list([1, 1.0, 1]))).
 -endif.

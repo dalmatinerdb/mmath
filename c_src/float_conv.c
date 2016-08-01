@@ -45,11 +45,6 @@ qpow10(int8_t v) {
   return t[(uint8_t)v];
 }
 
-int inline
-float_is_int(ffloat v) {
-  return round(v.value) == v.value;
-}
-
 ErlNifSInt64
 float_serialize(ffloat f) {
   int64_t coefficient = 0;
@@ -57,12 +52,8 @@ float_serialize(ffloat f) {
   double v = f.value;
   int64_t r;
 
-  if (float_is_int(f)) {
-    r = (((long) f.value) & VALUE_MASK) | INT_TYPE_MASK;
-  } else {
-    *((double*) &r) = f.value;
-    r = (r >> 1) | FLOAT_TYPE_MASK;
-  }
+  *((double*) &r) = f.value;
+  r = (r >> 1) | FLOAT_TYPE_MASK;
 
   return htonll(r);
 };

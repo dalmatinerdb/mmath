@@ -86,12 +86,12 @@ from_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     if (! enif_get_list_cell(env, list, &cell, &list))
       return enif_make_badarg(env); // TODO return propper error
     if (enif_get_int64(env, cell, &int_v)) {
-      d = float_from_int64(int_v);
-    } else if (enif_get_double(env, cell, &float_v))
+      target[i] = TO_DDB_INT(int_v);
+    } else if (enif_get_double(env, cell, &float_v)){
       d = float_from_double(float_v);
-    else
-      return enif_make_badarg(env);
-    target[i] = float_serialize(d);
+      target[i] = float_serialize(d);
+    } else {
+      return enif_make_badarg(env);}
   }
   return r;
 }
