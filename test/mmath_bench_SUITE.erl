@@ -116,24 +116,16 @@ all() ->
 %% @end
 %%--------------------------------------------------------------------
 bin_cases() ->
-    [from_list_case, to_list_case, realize_case].
+    [from_list_case, to_list_case, realize_case, derealize_case].
 
 aggr_cases() ->
-    [
-     sum_case,
-     avg_case,
-     min_case,
+    [min_case,
      max_case,
-     empty_case,
-     scale_up_case,
-     scale_down_case,
-     derivate_case,
-     mul_case,
-     div_case
-    ].
+     sum_case,
+     avg_case].
 
 comb_cases() ->
-    [comb_sum4_case, comb_sum3_case, comb_sum2_case].
+    [comb_sum2_case, comb_sum3_case, comb_sum4_case].
 
 %%--------------------------------------------------------------------
 %% @spec TestCase(Config0) ->
@@ -169,65 +161,26 @@ derealize_case(_Config) ->
     ct:print(default, "[bin] derealize: ~p", [T]),
     {comment, integer_to_list(T)}.
 
+%%--------------------------------------------------------------------
+
+aggr_case_(_Config, Aggr) ->
+    Bin = random_bin(?SIZE),
+    BinR = mmath_bin:realize(Bin),
+    {T, _} = timer:tc(mmath_aggr, Aggr, [BinR, ?SIZE div 10]),
+    ct:print(default, "[aggr] ~s: ~p", [Aggr, T]),
+    {comment, integer_to_list(T)}.
+
 sum_case(Config) ->
-    aggr_case(Config, sum).
+    aggr_case_(Config, sum).
 
 avg_case(Config) ->
-    aggr_case(Config, avg).
+    aggr_case_(Config, avg).
 
 min_case(Config) ->
-    aggr_case(Config, min).
+    aggr_case_(Config, min).
 
 max_case(Config) ->
-    aggr_case(Config, max).
-
-empty_case(Config) ->
-    aggr_case(Config, empty).
-
-aggr_case(_Config, Aggr) ->
-    Bin = random_bin(?SIZE),
-    BinR = mmath_bin:realize(Bin),
-    AggrR = list_to_atom(atom_to_list(Aggr) ++ "_r"),
-    {TR, _} = timer:tc(mmath_aggr, AggrR, [BinR, ?SIZE div 10]),
-    {T, _} = timer:tc(mmath_aggr, Aggr, [Bin, ?SIZE div 10]),
-    ct:print(default, "[aggr] ~s: ~p/~p", [Aggr, T, TR]),
-    {comment, integer_to_list(T) ++ "/" ++ integer_to_list(TR)}.
-
-scale_up_case(_Config) ->
-    Bin = random_bin(?SIZE),
-    {T, _} = timer:tc(mmath_aggr, scale, [Bin, 5]),
-    ct:print(default, "[aggr] scale_up: ~p", [T]),
-    {comment, integer_to_list(T)}.
-
-scale_down_case(_Config) ->
-    Bin = random_bin(?SIZE),
-    {T, _} = timer:tc(mmath_aggr, scale, [Bin, 0.5]),
-    ct:print(default, "[aggr] scale_down: ~p", [T]),
-    {comment, integer_to_list(T)}.
-
-mul_case(_Config) ->
-    Bin = random_bin(?SIZE),
-    BinR = mmath_bin:realize(Bin),
-    {T, _} = timer:tc(mmath_aggr, mul, [Bin, 5]),
-    {TR, _} = timer:tc(mmath_aggr, mul_r, [BinR, 5]),
-    ct:print(default, "[aggr] mul: ~p / ~p", [T, TR]),
-    {comment, integer_to_list(T) ++ "/" ++ integer_to_list(TR)}.
-
-div_case(_Config) ->
-    Bin = random_bin(?SIZE),
-    BinR = mmath_bin:realize(Bin),
-    {T, _} = timer:tc(mmath_aggr, divide, [Bin, 2]),
-    {TR, _} = timer:tc(mmath_aggr, divide_r, [BinR, 2]),
-    ct:print(default, "[aggr] div: ~p / ~p", [T, TR]),
-    {comment, integer_to_list(T) ++ "/" ++ integer_to_list(TR)}.
-
-derivate_case(_Config) ->
-    Bin = random_bin(?SIZE),
-    BinR = mmath_bin:realize(Bin),
-    {T, _} = timer:tc(mmath_aggr, derivate, [Bin]),
-    {TR, _} = timer:tc(mmath_aggr, derivate_r, [BinR]),
-    ct:print(default, "[aggr] derivate: ~p / ~p", [T, TR]),
-    {comment, integer_to_list(T) ++ "/" ++ integer_to_list(TR)}.
+    aggr_case_(Config, max).
 
 %%--------------------------------------------------------------------
 
@@ -236,10 +189,9 @@ comb_sum2_case(_Config) ->
     B2 = random_bin(?SIZE),
     R1 = mmath_bin:realize(B1),
     R2 = mmath_bin:realize(B2),
-    {T, _} = timer:tc(mmath_comb, sum, [[B1, B2]]),
-    {TR, _} = timer:tc(mmath_comb, sum_r, [[R1, R2]]),
-    ct:print(default, "[comb] sum2: ~p/~p", [T, TR]),
-    {comment, integer_to_list(T) ++ "/" ++ integer_to_list(TR)}.
+    {T, _} = timer:tc(mmath_comb, sum, [[R1, R2]]),
+    ct:print(default, "[comb] sum2: ~p", [T]),
+    {comment, integer_to_list(T)}.
 
 comb_sum3_case(_Config) ->
     B1 = random_bin(?SIZE),
@@ -248,10 +200,9 @@ comb_sum3_case(_Config) ->
     R1 = mmath_bin:realize(B1),
     R2 = mmath_bin:realize(B2),
     R3 = mmath_bin:realize(B3),
-    {T, _} = timer:tc(mmath_comb, sum, [[B1, B2, B3]]),
-    {TR, _} = timer:tc(mmath_comb, sum_r, [[R1, R2, R3]]),
-    ct:print(default, "[comb] sum3: ~p/~p", [T, TR]),
-    {comment, integer_to_list(T) ++ "/" ++ integer_to_list(TR)}.
+    {T, _} = timer:tc(mmath_comb, sum, [[R1, R2, R3]]),
+    ct:print(default, "[comb] sum3: ~p", [T]),
+    {comment, integer_to_list(T)}.
 
 comb_sum4_case(_Config) ->
     B1 = random_bin(?SIZE),
@@ -262,15 +213,14 @@ comb_sum4_case(_Config) ->
     R2 = mmath_bin:realize(B2),
     R3 = mmath_bin:realize(B3),
     R4 = mmath_bin:realize(B4),
-    {T, _} = timer:tc(mmath_comb, sum, [[B1, B2, B3, B4]]),
-    {TR, _} = timer:tc(mmath_comb, sum_r, [[R1, R2, R3, R4]]),
-    ct:print(default, "[comb] sum4: ~p/~p", [T, TR]),
-    {comment, integer_to_list(T) ++ "/" ++ integer_to_list(TR)}.
+    {T, _} = timer:tc(mmath_comb, sum, [[R1, R2, R3, R4]]),
+    ct:print(default, "[comb] sum4: ~p", [T]),
+    {comment, integer_to_list(T)}.
 
 %%--------------------------------------------------------------------
 
 random_list(Size) ->
-    [random:uniform(1000000) || _ <- lists:seq(0, Size)].
+    [random:uniform() * 1000000 || _ <- lists:seq(0, Size)].
 
 random_bin(Size) ->
     mmath_bin:from_list(random_list(Size)).

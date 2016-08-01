@@ -2,22 +2,22 @@
 %%% @author Heinz Nikolaus Gies <heinz@licenser.net>
 %%% @copyright (C) 2014, Heinz Nikolaus Gies
 %%% @doc
-%%% Functions that aggregate metrics by grouping together chunks of values
+%%% Functions that transform metric.
 %%% @end
 %%% Created :  8 Jun 2014 by Heinz Nikolaus Gies <heinz@licenser.net>
 %%%-------------------------------------------------------------------
--module(mmath_aggr).
+-module(mmath_trans).
 
--export([load_nif/0]).
--export([sum/2,
-         avg/2,
-         min/2,
-         max/2]).
+-export([
+         derivate/1,
+         confidence/1,
+         mul/2,
+         divide/2]).
 
 -include("mmath.hrl").
 
 -define(APPNAME, mmath).
--define(LIBNAME, aggr_nif).
+-define(LIBNAME, trans_nif).
 -on_load(load_nif/0).
 load_nif() ->
     SoName = case code:priv_dir(?APPNAME) of
@@ -35,40 +35,43 @@ load_nif() ->
 
 %%--------------------------------------------------------------------
 %% @doc
-%% Aggregates a binary by combining the chunks into the average (mean)
-%% of their values.
+%% Multiplies each value in the binary with the provided integer.
 %% @end
 %%--------------------------------------------------------------------
--spec avg(binary(), pos_integer()) -> binary().
-avg(_Data, _Count) when _Count > 0 ->
+-spec mul(binary(), pos_integer()) -> binary().
+mul(_M, _D) ->
     erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc
-%% Aggregates a binary by combining the chunks into the sum of their
-%% values.
+%% Divides each value in the binary with the provided integer.
 %% @end
 %%--------------------------------------------------------------------
--spec sum(binary(), pos_integer()) -> binary().
-sum(_Data, _Count) when _Count > 0 ->
+-spec divide(binary(), pos_integer()) -> binary().
+divide(_M, _D) ->
     erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc
-%% Aggregates a binary by combining the chunks into the minimum value
-%% in the chunk.
+%% Calculates the derivate of the values, this means the first value
+%% is dropped (or taken as the initial value) with each following
+%% value being calculated by derivate(n) = value(n) - value(n-1).
+%%
+%% The resulting binary will be one ellement shorter!
 %% @end
 %%--------------------------------------------------------------------
--spec min(binary(), pos_integer()) -> binary().
-min(_Data, _Count) when _Count > 0 ->
+-spec derivate(binary()) -> binary().
+derivate(_) ->
     erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc
-%% Aggregates a binary by combining the chunks into the maximum value
-%% in the chunk.
+%% Transforms the series into the confidence score for each value.
+%% Unset values have a confidence of 0% while set values have a
+%% confidence of 100%. Aggregated values have the aggreated confidence
+%% score.
 %% @end
 %%--------------------------------------------------------------------
--spec max(binary(), pos_integer()) -> binary().
-max(_Data, _Count) when _Count > 0  ->
+-spec confidence(binary()) -> binary().
+confidence(_) ->
     erlang:nif_error(nif_library_not_loaded).

@@ -8,3 +8,7 @@ deps
 .eqc-info
 *.beam
 *.eqc
+.rebar3
+TEST*
+.rebar
+rebar3.crashdump
