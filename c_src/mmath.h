@@ -62,3 +62,7 @@ ffloat float_div(ffloat v, double m);
 ffloat float_add(ffloat a, ffloat b);
 ffloat float_add3(ffloat a, ffloat b, ffloat c);
 ffloat float_sub(ffloat a, ffloat b);
+ffloat float_min(ffloat a, ffloat b);
+ffloat float_min3(ffloat a, ffloat b, ffloat c);
+ffloat float_max(ffloat a, ffloat b);
+ffloat float_max3(ffloat a, ffloat b, ffloat c);

@@ -51,3 +51,42 @@ float_neg(ffloat a) {
       .confidence = a.confidence
       };
 }
+
+ffloat float_min(ffloat a, ffloat b) {
+  /* if (b.confidence == 0) { */
+  /*   return a; */
+  /* } */
+  /* if (a.confidence == 0) { */
+  /*   return b; */
+  /* } */
+  if (b.value < a.value) {
+    return b;
+  } else {
+    return a;
+  }
+}
+
+
+ffloat float_min3(ffloat a, ffloat b, ffloat c) {
+  return float_min(a, float_min(b, c));
+}
+
+
+ffloat float_max(ffloat a, ffloat b) {
+  /* if (b.confidence == 0) { */
+  /*   return a; */
+  /* } */
+  /* if (a.confidence == 0) { */
+  /*   return b; */
+  /* } */
+  if (b.value > a.value) {
+    return b;
+  } else {
+    return a;
+  }
+}
+
+
+ffloat float_max3(ffloat a, ffloat b, ffloat c) {
+  return float_max(a, float_max(b, c));
+}

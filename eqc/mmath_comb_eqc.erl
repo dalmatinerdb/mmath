@@ -93,6 +93,39 @@ prop_min3() ->
                              almost_equal(R1, R3))
                end)).
 
+prop_max() ->
+    ?FORALL(
+       N, array_size(),
+       ?FORALL({{La, _, Ba}, {Lb, _, Bb}},
+               {number_array(N), number_array(N)},
+               begin
+                   Ra = realise(La),
+                   Rb = realise(Lb),
+                   R1 = max_(Ra, Rb),
+                   R2 = mmath_comb:max([Ba, Bb]),
+                   R3 = mmath_bin:to_list(mmath_bin:derealize(R2)),
+                   ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R3]),
+                             almost_equal(R1, R3))
+               end)).
+
+prop_max3() ->
+    ?FORALL(
+       N, array_size(),
+       ?FORALL({{La, _, Ba}, {Lb, _, Bb}, {Lc, _, Bc}},
+               {number_array(N), number_array(N), number_array(N)},
+               begin
+                   Ra = realise(La),
+                   Rb = realise(Lb),
+                   Rc = realise(Lc),
+                   R1 = max_(Rc, max_(Ra, Rb)),
+                   R2 = mmath_comb:max([Ba, Bb, Bc]),
+                   R3 = mmath_bin:to_list(mmath_bin:derealize(R2)),
+                   ?WHENFAIL(io:format(user,
+                                       "Expected: ~p~n"
+                                       "Result:   ~p~n", [R1, R3]),
+                             almost_equal(R1, R3))
+               end)).
+
 
 
 %% prop_mul() ->
@@ -130,6 +163,13 @@ min_(A, B) ->
 min_([A | R1], [B | R2], Acc) ->
     min_(R1, R2, [min(A, B) | Acc]);
 min_([], [], Acc) ->
+    lists:reverse(Acc).
+
+max_(A, B) ->
+    max_(A, B, []).
+max_([A | R1], [B | R2], Acc) ->
+    max_(R1, R2, [max(A, B) | Acc]);
+max_([], [], Acc) ->
     lists:reverse(Acc).
 
 
