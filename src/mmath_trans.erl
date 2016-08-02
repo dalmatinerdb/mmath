@@ -12,7 +12,9 @@
          derivate/1,
          confidence/1,
          mul/2,
-         divide/2]).
+         divide/2,
+         add/2,
+         sub/2]).
 
 -include("mmath.hrl").
 
@@ -38,7 +40,7 @@ load_nif() ->
 %% Multiplies each value in the binary with the provided integer.
 %% @end
 %%--------------------------------------------------------------------
--spec mul(binary(), pos_integer()) -> binary().
+-spec mul(binary(), number()) -> binary().
 mul(_M, _D) ->
     erlang:nif_error(nif_library_not_loaded).
 
@@ -47,8 +49,26 @@ mul(_M, _D) ->
 %% Divides each value in the binary with the provided integer.
 %% @end
 %%--------------------------------------------------------------------
--spec divide(binary(), pos_integer()) -> binary().
+-spec divide(binary(), number()) -> binary().
 divide(_M, _D) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Adds each value in the binary with the provided integer.
+%% @end
+%%--------------------------------------------------------------------
+-spec add(binary(), number()) -> binary().
+add(_M, _D) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Substract the given number from each element.
+%% @end
+%%--------------------------------------------------------------------
+-spec sub(binary(), number()) -> binary().
+sub(_M, _D) ->
     erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------

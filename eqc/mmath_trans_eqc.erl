@@ -26,6 +26,30 @@ prop_der_len_undefined() ->
     ?FORALL(L, non_neg_int(),
             L == len_r(mmath_trans:derivate(empty_r(L)))).
 
+prop_add() ->
+    ?FORALL({{L0, _, B}, S}, {defined_number_array(), int()},
+            begin
+                L = realise(L0),
+                LRes = add_n(L, S),
+                BRes = to_list_d(mmath_trans:add(B,S)),
+            ?WHENFAIL(
+               io:format(user, "~p =/= ~p~n",
+                         [LRes, BRes]),
+               almost_equal(LRes, BRes))
+            end).
+
+prop_sub() ->
+    ?FORALL({{L0, _, B}, S}, {defined_number_array(), int()},
+            begin
+                L = realise(L0),
+                LRes = sub_n(L, S),
+                BRes = to_list_d(mmath_trans:sub(B,S)),
+            ?WHENFAIL(
+               io:format(user, "~p =/= ~p~n",
+                         [LRes, BRes]),
+               almost_equal(LRes, BRes))
+            end).
+
 prop_mul() ->
     ?FORALL({{L0, _, B}, S}, {defined_number_array(), int()},
             begin
@@ -163,6 +187,12 @@ empty_r(L) ->
 len_r(X) ->
     mmath_bin:length(mmath_bin:derealize(X)).
 
+
+add_n(L, S) ->
+    [N + S || N <- L].
+
+sub_n(L, S) ->
+    [N - S || N <- L].
 
 mul_n(L, S) ->
     [N * S || N <- L].

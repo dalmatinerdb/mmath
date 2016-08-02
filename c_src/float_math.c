@@ -27,7 +27,7 @@ float_addc(ffloat v, double m) {
 }
 
 inline ffloat
-float_sbuc(ffloat v, double m) {
+float_subc(ffloat v, double m) {
   return (ffloat){
     .value = v.value - m,
       .confidence = v.confidence
