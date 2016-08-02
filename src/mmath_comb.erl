@@ -15,10 +15,10 @@
 -compile(export_all).
 -endif.
 
--export([avg/1
-        ,sum/1
-        ,min/1
-        ,max/1
+-export([avg/1,
+         sum/1,
+         min/1,
+         max/1
 
         %%,
          %%mul/1,
