@@ -133,6 +133,15 @@ upgrade(ErlNifEnv* env, void** priv, void** old_priv, ERL_NIF_TERM load_info)
 // SUM
 COMB(sum, float_add)
 
+// SUM
+COMB(sub, float_sub)
+
+// SUM
+COMB(mul, float_mul)
+
+// SUM
+COMB(div, float_div)
+
 // MIN
 COMB(min, float_min)
 
@@ -140,8 +149,18 @@ COMB(min, float_min)
 COMB(max, float_max)
 
 static ErlNifFunc nif_funcs[] = {
-  {"sum",      2, sum2},
-  {"sum",      3, sum3},
+  {"sum_",      2, sum2},
+  {"sum_",      3, sum3},
+
+  {"sub_",      2, sub2},
+  {"sub_",      3, sub3},
+
+  {"mul_",      2, mul2},
+  {"mul_",      3, mul3},
+
+  {"div_",      2, div2},
+  {"div_",      3, div3},
+
   {"min_",      2, min2},
   {"min_",      3, min3},
   {"max_",      2, max2},

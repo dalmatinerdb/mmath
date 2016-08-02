@@ -184,7 +184,7 @@ sum(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
       }
     }
     if (count % chunk) {
-      aggr = float_add(aggr, float_mul(vs[count - 1], (chunk - (count % chunk))));
+      aggr = float_add(aggr, float_mulc(vs[count - 1], (chunk - (count % chunk))));
     }
     aggr.confidence = confidence / chunk;
     target[target_i] = aggr;
@@ -228,7 +228,7 @@ avg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   for (uint32_t i = 1; i < count; i++, pos++) {
     if (pos == chunk) {
       aggr.confidence = confidence / chunk;
-      target[target_i] =  float_div(aggr, chunk);
+      target[target_i] =  float_divc(aggr, chunk);
       target_i++;
       aggr = vs[i];
       confidence = aggr.confidence;
@@ -239,10 +239,10 @@ avg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     }
   }
   if (count % chunk) {
-    aggr = float_add(aggr, float_mul(vs[count - 1], (chunk - (count % chunk))));
+    aggr = float_add(aggr, float_mulc(vs[count - 1], (chunk - (count % chunk))));
   }
   aggr.confidence = confidence / chunk;
-  target[target_i] = float_div(aggr, chunk);
+  target[target_i] = float_divc(aggr, chunk);
 
   return r;
 }

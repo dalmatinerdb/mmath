@@ -41,7 +41,7 @@ mul(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     return enif_make_badarg(env); // TODO return propper error
 
   for (int i = 0; i < count; i++) {
-    target[i] = float_mul(vs[i], m);
+    target[i] = float_mulc(vs[i], m);
   }
   return r;
 }
@@ -75,7 +75,7 @@ divide(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     return enif_make_badarg(env); // TODO return propper error
 
   for (int i = 0; i < count; i++) {
-    target[i] = float_div(vs[i], m);
+    target[i] = float_divc(vs[i], m);
   }
   return r;
 }

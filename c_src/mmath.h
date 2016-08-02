@@ -57,11 +57,22 @@ ffloat float_from_int64(int64_t v);
 ffloat float_from_double(double v);
 ffloat float_from_binary(int len, char* str);
 
-ffloat float_mul(ffloat v, double m);
-ffloat float_div(ffloat v, double m);
+ffloat float_mul(ffloat a, ffloat b);
+ffloat float_mul3(ffloat a, ffloat b, ffloat c);
+ffloat float_mulc(ffloat v, double c);
+
+ffloat float_div(ffloat a, ffloat b);
+ffloat float_div3(ffloat a, ffloat b, ffloat c);
+ffloat float_divc(ffloat v, double c);
+
+ffloat float_sub(ffloat a, ffloat b);
+ffloat float_sub3(ffloat a, ffloat b, ffloat c);
+ffloat float_subc(ffloat a, double c);
+
 ffloat float_add(ffloat a, ffloat b);
 ffloat float_add3(ffloat a, ffloat b, ffloat c);
-ffloat float_sub(ffloat a, ffloat b);
+ffloat float_addc(ffloat a, double c);
+
 ffloat float_min(ffloat a, ffloat b);
 ffloat float_min3(ffloat a, ffloat b, ffloat c);
 ffloat float_max(ffloat a, ffloat b);

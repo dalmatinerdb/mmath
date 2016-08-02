@@ -17,6 +17,10 @@
 
 -export([avg/1,
          sum/1,
+         diff/1,
+         product/1,
+         quotient/1,
+
          min/1,
          max/1
 
@@ -52,13 +56,66 @@ load_nif() ->
 %%--------------------------------------------------------------------
 -spec sum([binary()]) -> binary().
 sum([A, B]) ->
-    sum(A, B);
+    sum_(A, B);
 
 sum([A, B, C]) ->
-    sum(A, B, C);
+    sum_(A, B, C);
 
 sum(Es) when is_list(Es) ->
-    rcomb(fun sum/2, fun sum/3, Es).
+    rcomb(fun sum_/2, fun sum_/3, Es).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Creates a new dataset with each element being the dfifference of the
+%% elements of the passed datasets.
+%% @end
+%%--------------------------------------------------------------------
+-spec diff([binary()]) -> binary().
+diff([A, B]) ->
+    sub_(A, B);
+
+diff([A, B, C]) ->
+    sub_(A, B, C);
+
+diff(Es) when is_list(Es) ->
+    rcomb(fun sub_/2, fun sub_/3, Es).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Creates a new dataset with each element being the product of the
+%% elements of the passed datasets.
+%% @end
+%%--------------------------------------------------------------------
+-spec product([binary()]) -> binary().
+product([A, B]) ->
+    mul_(A, B);
+
+product([A, B, C]) ->
+    mul_(A, B, C);
+
+product(Es) when is_list(Es) ->
+    rcomb(fun mul_/2, fun mul_/3, Es).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Creates a new dataset with each element being the quotient of the
+%% elements of the passed datasets.
+%%
+%% It needs to be noted that as a convention a division by zero
+%% is treated as a division by one. The reason here is that in a
+%% metric stream we have no way of preventing zeros so some sensible
+%% handling needs to be performed.
+%% @end
+%%--------------------------------------------------------------------
+-spec quotient([binary()]) -> binary().
+quotient([A, B]) ->
+    div_(A, B);
+
+quotient([A, B, C]) ->
+    div_(A, B, C);
+
+quotient(Es) when is_list(Es) ->
+    rcomb(fun div_/2, fun div_/3, Es).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -106,10 +163,28 @@ avg(Es) when is_list(Es), length(Es) > 0 ->
 %% Utility functions
 %%-------------------------------------------------------------------
 
-sum(_A, _B) ->
+sum_(_A, _B) ->
     erlang:nif_error(nif_library_not_loaded).
 
-sum(_A, _B, _C) ->
+sum_(_A, _B, _C) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+sub_(_A, _B) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+sub_(_A, _B, _C) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+mul_(_A, _B) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+mul_(_A, _B, _C) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+div_(_A, _B) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+div_(_A, _B, _C) ->
     erlang:nif_error(nif_library_not_loaded).
 
 min_(_A, _B) ->
