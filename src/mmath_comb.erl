@@ -17,7 +17,9 @@
 
 -export([avg/1,
          sum/1,
-         min/1
+         min/1,
+         max/1
+
         %%,
          %%mul/1,
          %%merge/1,
@@ -76,6 +78,22 @@ min(Es) when is_list(Es) ->
 
 %%--------------------------------------------------------------------
 %% @doc
+%% Creates a new dataset with each element being the max of the
+%% elements of the passed datasets.
+%% @end
+%%--------------------------------------------------------------------
+-spec max([binary()]) -> binary().
+max([A, B]) ->
+    max_(A, B);
+
+max([A, B, C]) ->
+    max_(A, B, C);
+
+max(Es) when is_list(Es) ->
+    rcomb(fun max_/2, fun max_/3, Es).
+
+%%--------------------------------------------------------------------
+%% @doc
 %% Creates a new dataset with each element being the average (mean)
 %% of the elements of the passed datasets.
 %% @end
@@ -98,6 +116,12 @@ min_(_A, _B) ->
     erlang:nif_error(nif_library_not_loaded).
 
 min_(_A, _B, _C) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+max_(_A, _B) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+max_(_A, _B, _C) ->
     erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
