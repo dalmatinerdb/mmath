@@ -7,7 +7,8 @@
 -export([number_array/0, pos_int/0, non_neg_int/0, supported_number/0,
          defined_number_array/0, non_empty_number_list/0, raw_number_array/0,
          pad_to_n/2, fully_defined_number_array/0, from_decimal/1, realise/1,
-         realise/3, almost_equal/4, almost_equal/2, confidence/1, within_epsilon/3]).  
+         realise/3, almost_equal/4, almost_equal/2, confidence/1,
+         within_epsilon/3, number_array/1]).
 
 -define(EPSILON, math:pow(10, 3 - ?DEC_PRECISION)).
 -define(DELTA, 0.99999999).
@@ -19,12 +20,36 @@ fully_defined_number_array() ->
     ?SUCHTHAT({R, _, _}, number_array(), [ok || {false, _} <- R] =:= []).
 
 raw_number_array() ->
-    ?LET(L, list({frequency([{2, false}, {8, true}]), supported_number()}),
+    ?LET(L, number_array_(),
          {L, to_list(L, 0, []), to_bin(L, <<>>)}).
 
 number_array() ->
-    ?LET(L, list({frequency([{2, false}, {8, true}]), supported_number()}),
+    ?LET(L, number_array_(),
          {L, to_list(L, 0, []), to_bin(L)}).
+
+number_array(N) ->
+    ?LET(L,
+         number_array_(N),
+         {L, to_list(L, 0, []), to_bin(L)}).
+
+number_array_(N) ->
+    array_elements(N).
+
+number_array_() ->
+    list({frequency([{2, false}, {8, true}]), supported_number()}).
+
+array_elements(0) ->
+    [];
+
+array_elements(N) ->
+    [array_element() | array_elements(N -1)].
+    %% ?LAZY(
+    %%    ?LETSHRINK({A, L},
+    %%               {},
+    %%               [A | L])).
+
+array_element() ->
+    {frequency([{2, false}, {8, true}]), supported_number()}.
 
 pos_int() ->
     ?LET(I, int(), abs(I)+1).

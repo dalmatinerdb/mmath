@@ -16,7 +16,8 @@
 -endif.
 
 -export([avg/1,
-         sum/1
+         sum/1,
+         min/1
         %%,
          %%mul/1,
          %%merge/1,
@@ -59,6 +60,22 @@ sum(Es) when is_list(Es) ->
 
 %%--------------------------------------------------------------------
 %% @doc
+%% Creates a new dataset with each element being the min of the
+%% elements of the passed datasets.
+%% @end
+%%--------------------------------------------------------------------
+-spec min([binary()]) -> binary().
+min([A, B]) ->
+    min_(A, B);
+
+min([A, B, C]) ->
+    min_(A, B, C);
+
+min(Es) when is_list(Es) ->
+    rcomb(fun min_/2, fun min_/3, Es).
+
+%%--------------------------------------------------------------------
+%% @doc
 %% Creates a new dataset with each element being the average (mean)
 %% of the elements of the passed datasets.
 %% @end
@@ -75,6 +92,12 @@ sum(_A, _B) ->
     erlang:nif_error(nif_library_not_loaded).
 
 sum(_A, _B, _C) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+min_(_A, _B) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+min_(_A, _B, _C) ->
     erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------

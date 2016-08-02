@@ -2,33 +2,97 @@
 
 -include("../include/mmath.hrl").
 
--import(mmath_helper, [number_array/0, defined_number_array/0, almost_equal/2, realise/1]).
+-import(mmath_helper, [number_array/0, number_array/1, defined_number_array/0,
+                       almost_equal/2, realise/1, pos_int/0]).
 
 -include_lib("eqc/include/eqc.hrl").
 
 -compile(export_all).
 
+array_size() ->
+    choose(1, 50).
+
 prop_sum() ->
-    ?FORALL({La, _, Ba}, number_array(),
-            begin
-                Lr = realise(La),
-                R1 = sum(Lr, Lr),
-                R2 = mmath_comb:sum([Ba, Ba]),
-                R3 = mmath_bin:to_list(mmath_bin:derealize(R2)),
-                ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R3]),
-                          almost_equal(R1, R3))
-            end).
+    ?FORALL(
+       N, array_size(),
+       ?FORALL({{La, _, Ba}, {Lb, _, Bb}},
+               {number_array(N), number_array(N)},
+               begin
+                   Ra = realise(La),
+                   Rb = realise(Lb),
+                   R1 = sum(Ra, Rb),
+                   R2 = mmath_comb:sum([Ba, Bb]),
+                   R3 = mmath_bin:to_list(mmath_bin:derealize(R2)),
+                   ?WHENFAIL(io:format(user,
+                                       "Expected: ~p~n"
+                                       "Result:   ~p~n", [R1, R3]),
+                             almost_equal(R1, R3))
+               end)).
+
+prop_sum3() ->
+    ?FORALL(
+       N, array_size(),
+       ?FORALL({{La, _, Ba}, {Lb, _, Bb}, {Lc, _, Bc}},
+               {number_array(N), number_array(N), number_array(N)},
+               begin
+                   Ra = realise(La),
+                   Rb = realise(Lb),
+                   Rc = realise(Lc),
+                   R1 = sum(Ra, sum(Rb, Rc)),
+                   R2 = mmath_comb:sum([Ba, Bb, Bc]),
+                   R3 = mmath_bin:to_list(mmath_bin:derealize(R2)),
+                   ?WHENFAIL(io:format(user,
+                                       "Expected: ~p~n"
+                                       "Result:   ~p~n", [R1, R3]),
+                             almost_equal(R1, R3))
+               end)).
 
 prop_avg() ->
-    ?FORALL({La, _, Ba}, number_array(),
-            begin
-                Lr = realise(La),
-                R1 = avg(Lr, Lr),
-                R2 = mmath_comb:avg([Ba, Ba]),
-                R3 = mmath_bin:to_list(mmath_bin:derealize(R2)),
-                ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R3]),
-                          almost_equal(R1, R3))
-            end).
+    ?FORALL(
+       N, array_size(),
+       ?FORALL({La, _, Ba}, number_array(N),
+               begin
+                   Lr = realise(La),
+                   R1 = avg(Lr, Lr),
+                   R2 = mmath_comb:avg([Ba, Ba]),
+                   R3 = mmath_bin:to_list(mmath_bin:derealize(R2)),
+                   ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R3]),
+                             almost_equal(R1, R3))
+               end)).
+
+prop_min() ->
+    ?FORALL(
+       N, array_size(),
+       ?FORALL({{La, _, Ba}, {Lb, _, Bb}},
+               {number_array(N), number_array(N)},
+               begin
+                   Ra = realise(La),
+                   Rb = realise(Lb),
+                   R1 = min_(Ra, Rb),
+                   R2 = mmath_comb:min([Ba, Bb]),
+                   R3 = mmath_bin:to_list(mmath_bin:derealize(R2)),
+                   ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R3]),
+                             almost_equal(R1, R3))
+               end)).
+
+prop_min3() ->
+    ?FORALL(
+       N, array_size(),
+       ?FORALL({{La, _, Ba}, {Lb, _, Bb}, {Lc, _, Bc}},
+               {number_array(N), number_array(N), number_array(N)},
+               begin
+                   Ra = realise(La),
+                   Rb = realise(Lb),
+                   Rc = realise(Lc),
+                   R1 = min_(Rc, min_(Ra, Rb)),
+                   R2 = mmath_comb:min([Ba, Bb, Bc]),
+                   R3 = mmath_bin:to_list(mmath_bin:derealize(R2)),
+                   ?WHENFAIL(io:format(user,
+                                       "Expected: ~p~n"
+                                       "Result:   ~p~n", [R1, R3]),
+                             almost_equal(R1, R3))
+               end)).
+
 
 
 %% prop_mul() ->
@@ -43,7 +107,7 @@ prop_avg() ->
 %% prop_zip() ->
 %%     ?FORALL({La, _, Ba}, number_array(),
 %%             begin
-%% 				F = fun(A, B) -> A * B end,
+%%              F = fun(A, B) -> A * B end,
 %%                 R1 = mul(La, La),
 %%                 R2 = mmath_bin:to_list(mmath_comb:zip(F, [Ba, Ba])),
 %%                 ?WHENFAIL(io:format(user, "~p /= ~p~n", [R1, R2]),
@@ -59,6 +123,13 @@ sum(A, B) ->
 sum([A | R1], [B | R2], Acc) ->
     sum(R1, R2, [A + B | Acc]);
 sum([], [], Acc) ->
+    lists:reverse(Acc).
+
+min_(A, B) ->
+    min_(A, B, []).
+min_([A | R1], [B | R2], Acc) ->
+    min_(R1, R2, [min(A, B) | Acc]);
+min_([], [], Acc) ->
     lists:reverse(Acc).
 
 
