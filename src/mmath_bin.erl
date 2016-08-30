@@ -48,7 +48,7 @@ from_list(_) ->
 %% Converts a the binary repesentation back to a list of values.
 %% @end
 %%--------------------------------------------------------------------
--spec to_list([number()]) -> binary().
+-spec to_list(binary()) -> [number()].
 to_list(_) ->
     erlang:nif_error(nif_library_not_loaded).
 
