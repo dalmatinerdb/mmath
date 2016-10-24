@@ -3,6 +3,9 @@
 
 #include <math.h>
 
+typedef ffloat (*aggr_func) (ffloat, ffloat);
+typedef ffloat (*emit_func) (ffloat, double);
+
 static int
 load(ErlNifEnv* env, void** priv, ERL_NIF_TERM load_info)
 {
@@ -16,128 +19,7 @@ upgrade(ErlNifEnv* env, void** priv, void** old_priv, ERL_NIF_TERM load_info)
 }
 
 static ERL_NIF_TERM
-min(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
-{
-  ErlNifBinary bin;
-  ERL_NIF_TERM r;
-  ffloat* vs;
-  ffloat* target;
-  ErlNifSInt64 chunk;         // size to be compressed
-  uint64_t target_i = 0; // target position
-  ffloat aggr;         // target position
-  double confidence;
-  uint32_t pos;
-  uint32_t count;
-  uint32_t target_size;
-
-  if (argc != 2)
-    return enif_make_badarg(env);
-
-  GET_CHUNK(chunk);
-  GET_BIN(0, bin, count, vs);
-
-  target_size = ceil((double) count / chunk) * sizeof(ffloat);
-  if (! (target = (ffloat*) enif_make_new_binary(env, target_size, &r)))
-    return enif_make_badarg(env); // TODO return propper error
-
-  // If we don't have any input data we can return right away.
-  if (count == 0)
-    return r;
-
-  // We know we have at least one element in the list so our
-  // aggregator will start with this
-  aggr = vs[0];
-  confidence = aggr.confidence;
-  pos = 1;
-  // We itterate over the remining i .. count-1 elements
-  for (uint32_t i = 1; i < count; i++, pos++) {
-    if (pos == chunk) {
-      aggr.confidence = confidence / chunk;
-      target[target_i] = aggr;
-      target_i++;
-      aggr = vs[i];
-      confidence = aggr.confidence;
-      pos = 0;
-    } else {
-      confidence += vs[i].confidence;
-      if (vs[i].value < aggr.value) {
-        aggr = vs[i];
-      };
-    }
-  }
-  // Making sure the last aggregate is saved.
-  if (target_i < target_size) {
-    // We use chunk here to reflect the additional loss
-    // in certenty of not computing a whole chunk.
-    aggr.confidence = confidence / chunk;
-    target[target_i] = aggr;
-  }
-
-  return r;
-}
-
-static ERL_NIF_TERM
-max(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
-{
-  ErlNifBinary bin;
-  ERL_NIF_TERM r;
-  ffloat* vs;
-  ffloat* target;
-  ErlNifSInt64 chunk;         // size to be compressed
-  ErlNifSInt64 target_i = 0; // target position
-  ffloat aggr;         // target position
-  double confidence = 0;
-  uint32_t pos;
-  uint32_t count;
-  uint32_t target_size;
-
-  if (argc != 2)
-    return enif_make_badarg(env);
-
-  GET_CHUNK(chunk);
-  GET_BIN(0, bin, count, vs);
-
-  target_size = ceil((double) count / chunk) * sizeof(ffloat);
-  if (! (target = (ffloat*) enif_make_new_binary(env, target_size, &r)))
-    return enif_make_badarg(env); // TODO return propper error
-
-  // If we don't have any input data we can return right away.
-  if (count == 0)
-    return r;
-
-  // We know we have at least one element in the list so our
-  // aggregator will start with this
-  aggr = vs[0];
-  confidence = aggr.confidence;
-  pos = 1;
-  // We itterate over the remining i .. count-1 elements
-  for (uint32_t i = 1; i < count; i++, pos++) {
-    if (pos == chunk) {
-      aggr.confidence = confidence / chunk;
-      target[target_i] = aggr;
-      target_i++;
-      aggr = vs[i];
-      confidence = aggr.confidence;
-      pos = 0;
-    } else {
-      confidence += vs[i].confidence;
-      if (vs[i].value >  aggr.value) {
-        aggr = vs[i];
-      };
-    }
-  }
-  // Making sure the last aggregate is saved.
-  if (target_i < target_size) {
-    // We use chunk here to reflect the additional loss
-    // in certenty of not computing a whole chunk.
-    aggr.confidence = confidence / chunk;
-    target[target_i] = aggr;
-  }
-  return r;
-}
-
-static ERL_NIF_TERM
-sum(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+aggr2(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[], aggr_func f, emit_func g)
 {
   ErlNifBinary bin;
   ErlNifSInt64 chunk;         // size to be compressed
@@ -172,81 +54,59 @@ sum(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     for (uint32_t i = 1; i < count; i++, pos++) {
       if (pos == chunk) {
         aggr.confidence = confidence / chunk;
-        target[target_i] = aggr;
+        target[target_i] = g(aggr, chunk);
         target_i++;
         aggr = vs[i];
         confidence = aggr.confidence;
-
         pos = 0;
       } else {
         confidence += vs[i].confidence;
-        aggr.value += vs[i].value;
+        aggr = f(aggr, vs[i]);
       }
     }
+
     if (count % chunk) {
-      aggr = float_add(aggr, float_mulc(vs[count - 1], (chunk - (count % chunk))));
+      for (uint32_t i = 0; i < (chunk - (count % chunk)); i++) {
+          aggr = f(aggr, vs[count-1]);
+      }
     }
+
     aggr.confidence = confidence / chunk;
-    target[target_i] = aggr;
+    target[target_i] = g(aggr, chunk);
   }
+
   return r;
+}
+
+static ERL_NIF_TERM
+aggr(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[], aggr_func f)
+{
+    return aggr2(env, argc, argv, f, float_const);
+}
+
+static ERL_NIF_TERM
+min(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  return aggr(env, argc, argv, float_min);
+}
+
+static ERL_NIF_TERM
+max(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  return aggr(env, argc, argv, float_max);
+}
+
+static ERL_NIF_TERM
+sum(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  return aggr(env, argc, argv, float_add);
 }
 
 static ERL_NIF_TERM
 avg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-  ErlNifBinary bin;
-  ERL_NIF_TERM r;
-  ffloat* vs;
-  ffloat* target;
-  ErlNifSInt64 chunk;         // size to be compressed
-  ffloat aggr;               // Aggregator
-  double confidence;
-  uint32_t target_i = 0;      // target position
-  uint32_t count;
-  uint32_t pos = 0;
-  uint32_t target_size;
-
-
-  if (argc != 2)
-    return enif_make_badarg(env);
-
-  GET_CHUNK(chunk);
-  GET_BIN(0, bin, count, vs);
-
-  target_size = ceil((double) count / chunk) * sizeof(ffloat);
-  if (! (target = (ffloat*) enif_make_new_binary(env, target_size, &r)))
-    return enif_make_badarg(env); // TODO return propper error
-
-  if (count == 0)
-    return r;
-
-  aggr = vs[0];
-  confidence = aggr.confidence;
-  pos++;
-
-  for (uint32_t i = 1; i < count; i++, pos++) {
-    if (pos == chunk) {
-      aggr.confidence = confidence / chunk;
-      target[target_i] =  float_divc(aggr, chunk);
-      target_i++;
-      aggr = vs[i];
-      confidence = aggr.confidence;
-      pos = 0;
-    } else {
-      confidence += vs[i].confidence;
-      aggr = float_add(aggr, vs[i]);
-    }
-  }
-  if (count % chunk) {
-    aggr = float_add(aggr, float_mulc(vs[count - 1], (chunk - (count % chunk))));
-  }
-  aggr.confidence = confidence / chunk;
-  target[target_i] = float_divc(aggr, chunk);
-
-  return r;
+  return aggr2(env, argc, argv, float_add, float_divc);
 }
-
 
 static ErlNifFunc nif_funcs[] = {
   {"min",        2, min},

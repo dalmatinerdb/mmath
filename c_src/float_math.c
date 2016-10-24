@@ -122,6 +122,11 @@ float_neg(ffloat a) {
       };
 }
 
+inline ffloat
+float_const(ffloat a, double b) {
+   return a;
+}
+
 ffloat float_min(ffloat a, ffloat b) {
   /* if (b.confidence == 0) { */
   /*   return a; */
