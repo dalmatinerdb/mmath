@@ -14,7 +14,8 @@
          mul/2,
          divide/2,
          add/2,
-         sub/2]).
+         sub/2,
+         sqrt/1]).
 
 -include("mmath.hrl").
 
@@ -94,4 +95,13 @@ derivate(_) ->
 %%--------------------------------------------------------------------
 -spec confidence(binary()) -> binary().
 confidence(_) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Calculates the square root of each value in a series
+%% @end
+%%--------------------------------------------------------------------
+-spec sqrt(binary()) -> binary().
+sqrt(_) ->
     erlang:nif_error(nif_library_not_loaded).

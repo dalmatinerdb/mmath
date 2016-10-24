@@ -111,6 +111,17 @@ prop_max_len_undefined() ->
                    LRes == BRes)
             end).
 
+prop_std_dev() ->
+    ?FORALL({{L0, _, B}, N}, {fully_defined_number_array(), pos_int()},
+            begin
+                L = realise(L0),
+                LRes = sdev(L, N),
+                BRes = to_list_d(mmath_aggr:sdev(B, N)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
+            end).
 
 %% prop_combine_sum_r_comp() ->
 %%     ?FORALL({{_, _, B1}, {_, _, B2}}, {fully_defined_number_array(), fully_defined_number_array()},
@@ -223,6 +234,9 @@ avg(L, N) ->
 sum(L, N) ->
     apply_n(L, N, fun sum_/2).
 
+sdev(L, N) ->
+    apply_n(L, N, fun sdev_/2).
+
 min_list(L, N) ->
     apply_n(L, N, fun min_/2).
 
@@ -269,6 +283,15 @@ max_(L, _N) ->
         L1 ->
             lists:last(L1)
     end.
+
+sdev_(L, N) ->
+    Avg = avg_(L, N),
+    Deltas = lists:map(fun(E) ->
+                               Diff = E - Avg,
+                               Diff * Diff
+                       end, L),
+    Variance = avg_(Deltas, N),
+    math:sqrt(Variance).
 
 fix_list([undefined | T], Last, Acc) ->
     fix_list(T, Last, [Last | Acc]);

@@ -108,14 +108,39 @@ confidence(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   return r;
 }
 
+static ERL_NIF_TERM
+square_root(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  ErlNifBinary a;
+  ERL_NIF_TERM r;
+  ffloat* vs;
+  ffloat* target;
+  int count;
+
+  if (argc != 1)
+    return enif_make_badarg(env);
+
+  GET_BIN(0, a, count, vs);
+
+  if (! (target = (ffloat*) enif_make_new_binary(env, count * sizeof(ffloat), &r)))
+    return enif_make_badarg(env); // TODO return propper error
+  for (int i = 0; i < count; i++) {
+    target[i] = (ffloat){
+      .confidence = vs[i].confidence,
+      .value = sqrt(vs[i].value)
+    };
+  }
+  return r;
+}
+
 static ErlNifFunc nif_funcs[] = {
   {"add",        2, add},
   {"sub",        2, sub},
   {"mul",        2, mul},
   {"divide",     2, divide},
   {"derivate",   1, derivate},
-  {"confidence", 1, confidence}
-
+  {"confidence", 1, confidence},
+  {"sqrt",       1, square_root}
 };
 
 // Initialize this NIF library.

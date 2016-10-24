@@ -12,7 +12,9 @@
 -export([sum/2,
          avg/2,
          min/2,
-         max/2]).
+         max/2,
+         variance/2,
+         sdev/2]).
 
 -include("mmath.hrl").
 
@@ -72,3 +74,27 @@ min(_Data, _Count) when _Count > 0 ->
 -spec max(binary(), pos_integer()) -> binary().
 max(_Data, _Count) when _Count > 0  ->
     erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Aggregates a binary by calculating the standard deviation for the
+%% chunk.
+%% @end
+%%--------------------------------------------------------------------
+-spec sdev(binary(), pos_integer()) -> binary().
+sdev(Data, Count) ->
+    mmath_trans:sqrt(variance(Data, Count)).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Aggregates a binary by calculating the variance for the
+%% chunk.
+%% @end
+%%--------------------------------------------------------------------
+-spec variance(binary(), pos_integer()) -> binary().
+variance(Data, Count) ->
+    Mean = mmath_aggr:avg(Data, Count),
+    Mean0 = mmath_bin:replicate(Mean, Count),
+    Deltas = mmath_comb:diff([Data, Mean0]),
+    SqrDeltas = mmath_comb:product([Deltas, Deltas]),
+    mmath_aggr:avg(SqrDeltas, Count).

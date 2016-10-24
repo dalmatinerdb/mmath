@@ -21,7 +21,6 @@ to_list(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ErlNifBinary a;
   ERL_NIF_TERM *acc;
   ERL_NIF_TERM r;
-  ERL_NIF_TERM last_t;
   ErlNifSInt64* vs;
   ERL_NIF_TERM last = enif_make_int(env, 0);
   ffloat f;
@@ -163,6 +162,43 @@ derealize(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   return r;
 }
 
+static ERL_NIF_TERM
+replicate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  ErlNifBinary bin;
+  ERL_NIF_TERM r;
+  ffloat* vs;
+  ffloat* target;
+  ErlNifSInt64 rep_size;    // replication factor
+  uint32_t count;
+  uint32_t pos;
+  uint32_t target_size;
+
+  if (argc != 2)
+    return enif_make_badarg(env);
+
+  GET_CHUNK(rep_size);
+  GET_BIN(0, bin, count, vs);
+
+  target_size = ceil(count * rep_size * sizeof(ffloat));
+  if (! (target = (ffloat*) enif_make_new_binary(env, target_size, &r)))
+    return enif_make_badarg(env); // TODO return propper error
+
+  // If we don't have any input data we can return right away.
+  if (count == 0)
+    return r;
+
+  // We iterate over the input i..count elements, making rep_size copies of each
+  for (uint32_t i = 0; i < count; i++) {
+    for (uint32_t j = 0; j < rep_size; j++) {
+        pos = (i * rep_size) + j;
+        target[pos] = vs[i];
+    }
+  }
+  return r;
+}
+
+
 char get_type(ErlNifSInt64 ev) {
   int64_t v = ntohll(ev);
   return (uint8_t)((v & TYPE_MASK) >> 56);
@@ -173,7 +209,8 @@ static ErlNifFunc nif_funcs[] = {
   {"to_list",      1, to_list},
   {"rdatasize",    0, rdatasize},
   {"realize",      1, realize},
-  {"derealize",    1, derealize}
+  {"derealize",    1, derealize},
+  {"replicate",    2, replicate}
 };
 
 // Initialize this NIF library.

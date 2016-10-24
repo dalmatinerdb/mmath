@@ -15,7 +15,7 @@
 -include("mmath.hrl").
 
 -export([from_list/1, to_list/1, empty/1, length/1, length_r/1,
-         realize/1, derealize/1, rdatasize/0, merge/2]).
+         realize/1, derealize/1, rdatasize/0, merge/2, replicate/2]).
 
 -define(APPNAME, mmath).
 -define(LIBNAME, bin_nif).
@@ -94,6 +94,16 @@ realize(_Data) ->
 %%--------------------------------------------------------------------
 derealize(_Data) ->
     erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Utility function that replicates each element in `Data' by `Count'
+%% times.  For example, replicate([1,2], 3) results in [1,1,1,2,2,2].
+%% @end
+%%--------------------------------------------------------------------
+replicate(_Data, _Count) ->
+    erlang:nif_error(nif_library_not_loaded).
+
 
 %%--------------------------------------------------------------------
 %% @doc
