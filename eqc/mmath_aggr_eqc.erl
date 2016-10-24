@@ -115,8 +115,8 @@ prop_std_dev() ->
     ?FORALL({{L0, _, B}, N}, {fully_defined_number_array(), pos_int()},
             begin
                 L = realise(L0),
-                LRes = sdev(L, N),
-                BRes = to_list_d(mmath_aggr:sdev(B, N)),
+                LRes = stddev(L, N),
+                BRes = to_list_d(mmath_aggr:stddev(B, N)),
                 ?WHENFAIL(
                    io:format(user, "~p =/= ~p~n",
                              [LRes, BRes]),
@@ -234,8 +234,8 @@ avg(L, N) ->
 sum(L, N) ->
     apply_n(L, N, fun sum_/2).
 
-sdev(L, N) ->
-    apply_n(L, N, fun sdev_/2).
+stddev(L, N) ->
+    apply_n(L, N, fun stddev_/2).
 
 min_list(L, N) ->
     apply_n(L, N, fun min_/2).
@@ -284,7 +284,7 @@ max_(L, _N) ->
             lists:last(L1)
     end.
 
-sdev_(L, N) ->
+stddev_(L, N) ->
     Avg = avg_(L, N),
     Deltas = lists:map(fun(E) ->
                                Diff = E - Avg,

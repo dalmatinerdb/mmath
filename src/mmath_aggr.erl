@@ -14,7 +14,7 @@
          min/2,
          max/2,
          variance/2,
-         sdev/2]).
+         stddev/2]).
 
 -include("mmath.hrl").
 
@@ -81,8 +81,8 @@ max(_Data, _Count) when _Count > 0  ->
 %% chunk.
 %% @end
 %%--------------------------------------------------------------------
--spec sdev(binary(), pos_integer()) -> binary().
-sdev(Data, Count) ->
+-spec stddev(binary(), pos_integer()) -> binary().
+stddev(Data, Count) ->
     mmath_trans:sqrt(variance(Data, Count)).
 
 %%--------------------------------------------------------------------
