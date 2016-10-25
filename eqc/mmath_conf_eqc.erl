@@ -34,6 +34,23 @@ prop_avg_conf() ->
                    within_epsilon(CAvgL, ConfR, 0.000001))
             end).
 
+prop_nth_conf() ->
+    ?FORALL({{L, _, B}, N}, array_and_int(),
+            begin
+                ConfL = confidence(L),
+                ConfLPad = pad_to_n(ConfL, N),
+                CAvgL = avg(ConfLPad, N),
+                A = mmath_aggr:nth(B, 0, N),
+                C = mmath_trans:confidence(A),
+                ConfR = ?B2L(mmath_bin:derealize(C)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [CAvgL, ConfR]),
+                   %% we adjust within_epsilon since the confidence function
+                   %% only returns 3 digets after the decimal point
+                   within_epsilon(CAvgL, ConfR, 0.000001))
+            end).
+
 prop_sum_conf() ->
     ?FORALL({{L, _, B}, N}, array_and_int(),
             begin

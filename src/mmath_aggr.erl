@@ -14,6 +14,7 @@
          min/2,
          max/2,
          variance/2,
+         nth/3,
          stddev/2]).
 
 -include("mmath.hrl").
@@ -98,3 +99,14 @@ variance(Data, Count) ->
     Deltas = mmath_comb:diff([Data, Mean0]),
     SqrDeltas = mmath_comb:product([Deltas, Deltas]),
     mmath_aggr:avg(SqrDeltas, Count).
+
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Aggregates a chunk by taking the nth value, where the first
+%% element of the chunk is 0 and the last Count - 1.
+%% @end
+%%--------------------------------------------------------------------
+-spec nth(binary(), non_neg_integer(), pos_integer()) -> binary().
+nth(_Data, _N, _Count) ->
+    erlang:nif_error(nif_library_not_loaded).

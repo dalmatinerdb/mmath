@@ -15,6 +15,23 @@ prop_n_length_chunks() ->
     ?FORALL({L, N}, {list(int()), pos_int()},
             ceiling(length(L) / N) =:= length(n_length_chunks(L, N))).
 
+prop_nth_all() ->
+    ?FORALL({L, N}, {non_empty_number_list(), pos_int()},
+            begin
+                BRes = to_list_d(mmath_aggr:nth(mmath_bin:realize(?L2B(L)), N,
+                                                length(L))),
+                LRes = [nth(N, L)],
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [BRes, LRes]),
+                   almost_equal(BRes, LRes))
+            end).
+
+nth(N, L) when N >= length(L) ->
+    lists:last(L);
+nth(N, L) ->
+    lists:nth(N + 1, L).
+
 prop_avg_all() ->
     ?FORALL(L, non_empty_number_list(),
             begin
