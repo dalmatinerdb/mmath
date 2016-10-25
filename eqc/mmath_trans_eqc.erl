@@ -38,6 +38,29 @@ prop_add() ->
                almost_equal(LRes, BRes))
             end).
 
+
+prop_minc() ->
+    ?FORALL({{_L0, _, B}, S}, {defined_number_array(), int()},
+            begin
+                BRes = to_list_d(mmath_trans:min(B, S)),
+                Bres1 = [min(S, E) || E <- BRes],
+            ?WHENFAIL(
+               io:format(user, "~p =/= ~p~n",
+                         [BRes, Bres1]),
+               almost_equal(BRes, Bres1))
+            end).
+
+prop_maxc() ->
+    ?FORALL({{_L0, _, B}, S}, {defined_number_array(), int()},
+            begin
+                BRes = to_list_d(mmath_trans:max(B, S)),
+                Bres1 = [max(S, E) || E <- BRes],
+            ?WHENFAIL(
+               io:format(user, "~p =/= ~p~n",
+                         [BRes, Bres1]),
+               almost_equal(BRes, Bres1))
+            end).
+
 prop_sub() ->
     ?FORALL({{L0, _, B}, S}, {defined_number_array(), int()},
             begin

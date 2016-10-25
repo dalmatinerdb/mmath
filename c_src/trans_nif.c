@@ -46,10 +46,15 @@ upgrade(ErlNifEnv* env, void** priv, void** old_priv, ERL_NIF_TERM load_info)
     }                                                                   \
     return r;                                                           \
   }
+
 MATHF(add, float_addc)
 MATHF(sub, float_subc)
 MATHF(mul, float_mulc)
 MATHF(divide, float_divc)
+
+MATHF(min, float_minc)
+MATHF(max, float_maxc)
+
 
 
 static ERL_NIF_TERM
@@ -137,6 +142,8 @@ static ErlNifFunc nif_funcs[] = {
   {"add",        2, add},
   {"sub",        2, sub},
   {"mul",        2, mul},
+  {"min",        2, min},
+  {"max",        2, max},
   {"divide",     2, divide},
   {"derivate",   1, derivate},
   {"confidence", 1, confidence},

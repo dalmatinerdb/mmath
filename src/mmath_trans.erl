@@ -15,6 +15,8 @@
          divide/2,
          add/2,
          sub/2,
+         min/2,
+         max/2,
          sqrt/1]).
 
 -include("mmath.hrl").
@@ -104,4 +106,22 @@ confidence(_) ->
 %%--------------------------------------------------------------------
 -spec sqrt(binary()) -> binary().
 sqrt(_) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Sets the minimum to each element of the array.
+%% @end
+%%--------------------------------------------------------------------
+-spec min(binary(), number()) -> binary().
+min(_M, _D) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Sets the maximum to each element of the array.
+%% @end
+%%--------------------------------------------------------------------
+-spec max(binary(), number()) -> binary().
+max(_M, _D) ->
     erlang:nif_error(nif_library_not_loaded).

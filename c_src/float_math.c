@@ -146,6 +146,13 @@ ffloat float_min3(ffloat a, ffloat b, ffloat c) {
   return float_min(a, float_min(b, c));
 }
 
+inline ffloat
+float_minc(ffloat v, double m) {
+  return (ffloat){
+    .value = m < v.value ? m : v.value,
+      .confidence = v.confidence
+      };
+}
 
 ffloat float_max(ffloat a, ffloat b) {
   /* if (b.confidence == 0) { */
@@ -164,4 +171,12 @@ ffloat float_max(ffloat a, ffloat b) {
 
 ffloat float_max3(ffloat a, ffloat b, ffloat c) {
   return float_max(a, float_max(b, c));
+}
+
+inline ffloat
+float_maxc(ffloat v, double m) {
+  return (ffloat){
+    .value = m > v.value ? m : v.value,
+      .confidence = v.confidence
+      };
 }

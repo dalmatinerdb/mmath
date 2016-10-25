@@ -75,7 +75,11 @@ ffloat float_addc(ffloat a, double c);
 
 ffloat float_min(ffloat a, ffloat b);
 ffloat float_min3(ffloat a, ffloat b, ffloat c);
+ffloat float_maxc(ffloat v, double c);
+
 ffloat float_max(ffloat a, ffloat b);
 ffloat float_max3(ffloat a, ffloat b, ffloat c);
+ffloat float_minc(ffloat v, double c);
 
 ffloat float_const(ffloat a, double b);
+
