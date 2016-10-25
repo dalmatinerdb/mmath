@@ -34,13 +34,13 @@ prop_avg_conf() ->
                    within_epsilon(CAvgL, ConfR, 0.000001))
             end).
 
-prop_nth_conf() ->
+prop_perc_conf() ->
     ?FORALL({{L, _, B}, N}, array_and_int(),
             begin
                 ConfL = confidence(L),
                 ConfLPad = pad_to_n(ConfL, N),
                 CAvgL = avg(ConfLPad, N),
-                A = mmath_aggr:nth(B, 0, N),
+                A = mmath_aggr:percentile(B, 0.0, N),
                 C = mmath_trans:confidence(A),
                 ConfR = ?B2L(mmath_bin:derealize(C)),
                 ?WHENFAIL(

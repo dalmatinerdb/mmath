@@ -15,22 +15,25 @@ prop_n_length_chunks() ->
     ?FORALL({L, N}, {list(int()), pos_int()},
             ceiling(length(L) / N) =:= length(n_length_chunks(L, N))).
 
-prop_nth_all() ->
+prop_percentile_all() ->
     ?FORALL({L, N}, {non_empty_number_list(), pos_int()},
             begin
-                BRes = to_list_d(mmath_aggr:nth(mmath_bin:realize(?L2B(L)), N,
-                                                length(L))),
-                LRes = [nth(N, L)],
+                Len = length(L),
+                N1 = N rem Len,
+                P = N1 / Len,
+                BList = mmath_bin:realize(?L2B(L)),
+                BRes = to_list_d(mmath_aggr:percentile(BList, P, Len)),
+                LRes = [percentile(P, lists:sort(L))],
                 ?WHENFAIL(
-                   io:format(user, "~p =/= ~p~n",
-                             [BRes, LRes]),
+                   io:format(user, "~p/~p(~p)~n~p =/= ~p~n",
+                             [L, Len, P, BRes, LRes]),
                    almost_equal(BRes, LRes))
             end).
 
-nth(N, L) when N >= length(L) ->
-    lists:last(L);
-nth(N, L) ->
-    lists:nth(N + 1, L).
+percentile(Perc, List) ->
+    Size = length(List),
+    Element = max(1, round(Perc * Size)),
+    lists:nth(Element, List).
 
 prop_avg_all() ->
     ?FORALL(L, non_empty_number_list(),

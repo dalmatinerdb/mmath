@@ -14,8 +14,9 @@
          min/2,
          max/2,
          variance/2,
-         nth/3,
-         stddev/2]).
+         stddev/2,
+         mean/2,
+         percentile/3]).
 
 -include("mmath.hrl").
 
@@ -100,13 +101,21 @@ variance(Data, Count) ->
     SqrDeltas = mmath_comb:product([Deltas, Deltas]),
     mmath_aggr:avg(SqrDeltas, Count).
 
+%%--------------------------------------------------------------------
+%% @doc
+%% Calculates the percentile of the data in a given chunk segmet.
+%% percentiles are floates [0, 1]
+%% @end
+%%--------------------------------------------------------------------
+-spec percentile(binary(), float(), pos_integer()) -> binary().
+percentile(_Data, _N, _Count) ->
+    erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
 %% @doc
-%% Aggregates a chunk by taking the nth value, where the first
-%% element of the chunk is 0 and the last Count - 1.
+%% Calculates the mean of the data in a given chunk segmet.
 %% @end
 %%--------------------------------------------------------------------
--spec nth(binary(), non_neg_integer(), pos_integer()) -> binary().
-nth(_Data, _N, _Count) ->
-    erlang:nif_error(nif_library_not_loaded).
+-spec mean(binary(), pos_integer()) -> binary().
+mean(Data, Count) ->
+    percentile(Data, 0.5, Count).
