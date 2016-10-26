@@ -131,7 +131,8 @@ prop_max_len_undefined() ->
                    LRes == BRes)
             end).
 
-prop_std_dev() ->
+%% TODO: fix floating point arithmetic for large test samples
+prop_stddev() ->
     ?FORALL({{L0, _, B}, N}, {fully_defined_number_array(), pos_int()},
             begin
                 L = realise(L0),
@@ -142,6 +143,59 @@ prop_std_dev() ->
                              [LRes, BRes]),
                    almost_equal(LRes, BRes))
             end).
+
+prop_first_below() ->
+    ?FORALL({{L0, _, B}, N, T}, {defined_number_array(), pos_int(), pos_int()},
+            begin
+                Threshold = T + 0.0,
+                L = realise(L0),
+                LRes = first_below_(L, N, Threshold),
+                BRes = to_list_d(mmath_aggr:first_below(B, Threshold, N)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
+            end).
+
+prop_first_above() ->
+    ?FORALL({{L0, _, B}, N, T}, {defined_number_array(), pos_int(), pos_int()},
+            begin
+                Threshold = T + 0.0,
+                L = realise(L0),
+                LRes = first_above_(L, N, Threshold),
+                BRes = to_list_d(mmath_aggr:first_above(B, Threshold, N)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
+            end).
+
+prop_last_below() ->
+    ?FORALL({{L0, _, B}, N, T}, {defined_number_array(), pos_int(), pos_int()},
+            begin
+                Threshold = T + 0.0,
+                L = realise(L0),
+                LRes = last_below_(L, N, Threshold),
+                BRes = to_list_d(mmath_aggr:last_below(B, Threshold, N)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
+            end).
+
+prop_last_above() ->
+    ?FORALL({{L0, _, B}, N, T}, {defined_number_array(), pos_int(), pos_int()},
+            begin
+                Threshold = T + 0.0,
+                L = realise(L0),
+                LRes = last_above_(L, N, Threshold),
+                BRes = to_list_d(mmath_aggr:last_above(B, Threshold, N)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
+            end).
+
 
 %% prop_combine_sum_r_comp() ->
 %%     ?FORALL({{_, _, B1}, {_, _, B2}}, {fully_defined_number_array(), fully_defined_number_array()},
@@ -161,15 +215,15 @@ prop_std_dev() ->
 
 %% prop_map() ->
 %%     ?FORALL({{_, L, B}, S}, {defined_number_array(), real()},
-%% 			begin
-%% 				Scale = fun(V) -> V * S end,
+%%                      begin
+%%                              Scale = fun(V) -> V * S end,
 %%                 LRes = scale_n(L, S),
 %%                 BRes = mmath_bin:to_list(mmath_aggr:map(B, Scale)),
 %%             ?WHENFAIL(
 %%                io:format(user, "~p =/= ~p~n",
 %%                          [LRes, BRes]),
 %%                almost_equal(LRes, BRes))
-%% 			end).
+%%                      end).
 
 %% prop_scale() ->
 %%     ?FORALL({{_, L, B}, S}, {defined_number_array(), real()},
@@ -312,6 +366,50 @@ stddev_(L, N) ->
                        end, L),
     Variance = avg_(Deltas, N),
     math:sqrt(Variance).
+
+first_below_(L, N, T) ->
+    Fun = fun(InnerL, _N) ->
+        case lists:filter(fun(X) -> X < T end, InnerL) of
+            [] ->
+                0.0;
+            [H | _] ->
+                H
+        end
+    end,
+    apply_n(L, N, Fun).
+
+first_above_(L, N, T) ->
+    Fun = fun(InnerL, _N) ->
+        case lists:filter(fun(X) -> X > T end, InnerL) of
+            [] ->
+                0.0;
+            [H | _] ->
+                H
+        end
+    end,
+    apply_n(L, N, Fun).
+
+last_below_(L, N, T) ->
+    Fun = fun(InnerL, _N) ->
+        case lists:filter(fun(X) -> X < T end, lists:reverse(InnerL)) of
+            [] ->
+                0.0;
+            [H | _] ->
+                H
+        end
+    end,
+    apply_n(L, N, Fun).
+
+last_above_(L, N, T) ->
+    Fun = fun(InnerL, _N) ->
+        case lists:filter(fun(X) -> X > T end, lists:reverse(InnerL)) of
+            [] ->
+                0.0;
+            [H | _] ->
+                H
+        end
+    end,
+    apply_n(L, N, Fun).
 
 fix_list([undefined | T], Last, Acc) ->
     fix_list(T, Last, [Last | Acc]);

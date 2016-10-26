@@ -16,7 +16,11 @@
          variance/2,
          stddev/2,
          mean/2,
-         percentile/3]).
+         percentile/3,
+         first_below/3,
+         last_below/3,
+         first_above/3,
+         last_above/3]).
 
 -include("mmath.hrl").
 
@@ -109,6 +113,46 @@ variance(Data, Count) ->
 %%--------------------------------------------------------------------
 -spec percentile(binary(), float(), pos_integer()) -> binary().
 percentile(_Data, _N, _Count) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Return the first point in a given chunk that is below a given
+%% threshold.
+%% @end
+%%--------------------------------------------------------------------
+-spec first_below(binary(), float(), pos_integer()) -> binary().
+first_below(_Data, _T, _Count) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Return the last point in a given chunk that is below a given
+%% threshold.
+%% @end
+%%--------------------------------------------------------------------
+-spec last_below(binary(), float(), pos_integer()) -> binary().
+last_below(_Data, _T, _Count) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Return the first point in a given chunk that is above a given
+%% threshold.
+%% @end
+%%--------------------------------------------------------------------
+-spec first_above(binary(), float(), pos_integer()) -> binary().
+first_above(_Data, _T, _Count) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Return the last point in a given chunk that is above a given
+%% threshold.
+%% @end
+%%--------------------------------------------------------------------
+-spec last_above(binary(), float(), pos_integer()) -> binary().
+last_above(_Data, _T, _Count) ->
     erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------

@@ -1,11 +1,12 @@
 #include "erl_nif.h"
 #include "mmath.h"
 
+#include <stdio.h>
 #include <math.h>
 
 typedef ffloat (*aggr_func) (ffloat, ffloat);
 typedef ffloat (*emit_func) (ffloat, double);
-
+typedef ffloat (*threshold_func) (ffloat*, uint32_t, double);
 
 void print(ffloat* vs, uint32_t count) {
   for (uint32_t i = 0; i < count; i++) {
@@ -118,8 +119,8 @@ avg(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 int comp (const void * elem1, const void * elem2)
 {
-  double f = ((ffloat*)elem1)->value;
-  double s = ((ffloat*)elem2)-> value;
+  double f = ((ffloat*)elem1) ->value;
+  double s = ((ffloat*)elem2) ->value;
   if (f > s) return  1;
   if (f < s) return -1;
   return 0;
@@ -140,12 +141,8 @@ percentile(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   ERL_NIF_TERM r;
   ffloat* vs;
   ffloat* target;
-  ffloat aggr;          // Aggregator
-  double confidence;
 
-  uint32_t target_i = 0;      // target position
   uint32_t count;
-  uint32_t n;
   uint32_t pos = 0;
   uint32_t target_size;
 
@@ -192,12 +189,143 @@ percentile(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   return r;
 }
 
+static ERL_NIF_TERM
+threshold(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[], threshold_func f)
+{
+  ErlNifBinary bin;
+  ErlNifSInt64 chunk;         // size to be compressed
+  double level;
+
+  ERL_NIF_TERM r;
+  ffloat* vs;
+  ffloat* target;
+
+  uint32_t count;
+  uint32_t pos = 0;
+  uint32_t target_size;
+
+  if (argc != 3)
+    return enif_make_badarg(env);
+
+  if (!enif_get_double(env, argv[1], &level))
+    return enif_make_badarg(env);
+
+  if (!enif_get_int64(env, argv[2], &chunk) || chunk < 1)
+    return enif_make_badarg(env);
+
+  GET_BIN(0, bin, count, vs);
+
+  target_size = ceil((double) count / chunk) * sizeof(ffloat);
+  if (! (target = (ffloat*) enif_make_new_binary(env, target_size, &r)))
+    return enif_make_badarg(env); // TODO return propper error
+  uint32_t offset;
+  for (offset = 0; (offset + chunk) <= count; offset += chunk) {
+    target[pos] = f(&vs[offset], chunk, level);
+    pos++;
+  }
+
+  // if the last chunk is incomplete
+  uint32_t leftover = count % chunk;
+  if (leftover) {
+    target[pos] = f(&vs[offset], leftover, level);
+  }
+  return r;
+}
+
+ffloat first_below_(ffloat* vs, uint32_t count, double level) {
+  uint32_t i = 0;
+  double confidence = 0;
+  while(i < count) {
+    if (vs[i].value < level) {
+      return (ffloat) {
+        .value = vs[i].value,
+        .confidence = confidence / (i + 1)
+      };
+    }
+    confidence += vs[i].confidence;
+    i++;
+  }
+  return (ffloat) {.confidence = 0, .value = 0};
+}
+
+static ERL_NIF_TERM
+first_below(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
+  return threshold(env, argc, argv, first_below_);
+}
+
+ffloat first_above_(ffloat* vs, uint32_t count, double level) {
+  uint32_t i = 0;
+  double confidence = 0;
+  while(i < count) {
+    if (vs[i].value > level) {
+      return (ffloat) {
+        .value = vs[i].value,
+        .confidence = confidence / (i + 1)
+      };
+    }
+    confidence += vs[i].confidence;
+    i++;
+  }
+  return (ffloat) {.confidence = 0, .value = 0};
+}
+
+static ERL_NIF_TERM
+first_above(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
+  return threshold(env, argc, argv, first_above_);
+}
+
+ffloat last_below_(ffloat* vs, uint32_t count, double level) {
+  int32_t i = count - 1;
+  double confidence = 0;
+  while(i >= 0) {
+    if (vs[i].value < level) {
+      return (ffloat) {
+        .value = vs[i].value,
+        .confidence = confidence / (i + 1)
+      };
+    }
+    confidence += vs[i].confidence;
+    i--;
+  }
+  return (ffloat) {.confidence = 0, .value = 0};
+}
+
+static ERL_NIF_TERM
+last_below(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
+  return threshold(env, argc, argv, last_below_);
+}
+
+ffloat last_above_(ffloat* vs, uint32_t count, double level) {
+  int32_t i = count - 1;
+  double confidence = 0;
+  while(i >= 0) {
+    if (vs[i].value > level) {
+      return (ffloat) {
+        .value = vs[i].value,
+        .confidence = confidence / (i + 1)
+      };
+    }
+    confidence += vs[i].confidence;
+    i--;
+  }
+  return (ffloat) {.confidence = 0, .value = 0};
+}
+
+static ERL_NIF_TERM
+last_above(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
+  return threshold(env, argc, argv, last_above_);
+}
+
 static ErlNifFunc nif_funcs[] = {
-  {"min",        2, min},
-  {"max",        2, max},
-  {"sum",        2, sum},
-  {"avg",        2, avg},
-  {"percentile", 3, percentile}
+  {"min",         2, min},
+  {"max",         2, max},
+  {"sum",         2, sum},
+  {"avg",         2, avg},
+  {"percentile",  3, percentile},
+  {"first_below", 3, first_below},
+  {"first_above", 3, first_above},
+  {"last_below",  3, last_below},
+  {"last_above",  3, last_above}
 };
 
 // Initialize this NIF library.
