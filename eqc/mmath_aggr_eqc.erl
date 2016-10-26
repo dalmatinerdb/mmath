@@ -196,6 +196,31 @@ prop_last_above() ->
                    almost_equal(LRes, BRes))
             end).
 
+prop_count_above() ->
+    ?FORALL({{L0, _, B}, N, T}, {defined_number_array(), pos_int(), pos_int()},
+            begin
+                Threshold = T + 0.0,
+                L = realise(L0),
+                LRes = count_above_(L, N, Threshold),
+                BRes = to_list_d(mmath_aggr:count_above(B, Threshold, N)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
+            end).
+
+prop_count_below() ->
+    ?FORALL({{L0, _, B}, N, T}, {defined_number_array(), pos_int(), pos_int()},
+            begin
+                Threshold = T + 0.0,
+                L = realise(L0),
+                LRes = count_below_(L, N, Threshold),
+                BRes = to_list_d(mmath_aggr:count_below(B, Threshold, N)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
+            end).
 
 %% prop_combine_sum_r_comp() ->
 %%     ?FORALL({{_, _, B1}, {_, _, B2}}, {fully_defined_number_array(), fully_defined_number_array()},
@@ -408,6 +433,19 @@ last_above_(L, N, T) ->
             [H | _] ->
                 H
         end
+    end,
+    apply_n(L, N, Fun).
+
+count_above_(L, N, T) ->
+    Fun = fun(InnerL, _N) ->
+        length(lists:filter(fun(X) -> X > T end, InnerL))
+    end,
+    apply_n(L, N, Fun).
+
+
+count_below_(L, N, T) ->
+    Fun = fun(InnerL, _N) ->
+        length(lists:filter(fun(X) -> X < T end, InnerL))
     end,
     apply_n(L, N, Fun).
 

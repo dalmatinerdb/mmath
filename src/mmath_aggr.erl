@@ -20,7 +20,9 @@
          first_below/3,
          last_below/3,
          first_above/3,
-         last_above/3]).
+         last_above/3,
+         count_above/3,
+         count_below/3]).
 
 -include("mmath.hrl").
 
@@ -153,6 +155,26 @@ first_above(_Data, _T, _Count) ->
 %%--------------------------------------------------------------------
 -spec last_above(binary(), float(), pos_integer()) -> binary().
 last_above(_Data, _T, _Count) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Return the total number in a given chunk that are above a given
+%% threshold.
+%% @end
+%%--------------------------------------------------------------------
+-spec count_above(binary(), float(), pos_integer()) -> binary().
+count_above(_Data, _T, _Count) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Return the total number in a given chunk that are below a given
+%% threshold.
+%% @end
+%%--------------------------------------------------------------------
+-spec count_below(binary(), float(), pos_integer()) -> binary().
+count_below(_Data, _T, _Count) ->
     erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
