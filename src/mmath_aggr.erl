@@ -97,7 +97,10 @@ max(_Data, _Count) when _Count > 0  ->
 %%--------------------------------------------------------------------
 -spec stddev(binary(), pos_integer()) -> binary().
 stddev(Data, Count) ->
-    mmath_trans:sqrt(variance(Data, Count)).
+    %% We can use sqrt_scale here since we know that the result of
+    %% varriance is always positive -> the last step is
+    %% Deltas * Deltas.
+    mmath_trans:sqrt_scale(variance(Data, Count)).
 
 %%--------------------------------------------------------------------
 %% @doc
