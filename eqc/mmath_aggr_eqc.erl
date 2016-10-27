@@ -5,7 +5,8 @@
 -import(mmath_helper,
         [number_array/0, pos_int/0, non_neg_int/0, defined_number_array/0,
          non_empty_number_list/0, fully_defined_number_array/0, realise/1,
-         realise/3, confidence/1, almost_equal/2]).
+         realise/3, confidence/1, almost_equal/2, apply_n/3, to_list_d/1,
+         n_length_chunks/2]).
 
 -include_lib("eqc/include/eqc.hrl").
 
@@ -311,9 +312,6 @@ prop_count_below() ->
 %%             end).
 
 
-to_list_d(X) ->
-     mmath_bin:to_list(mmath_bin:derealize(X)).
-
 empty_r(L) ->
     mmath_bin:realize(mmath_bin:empty(L)).
 
@@ -344,9 +342,6 @@ max_list(L, N) ->
 
 empty(L, N) ->
     apply_n(L, N, fun empty_/2).
-
-apply_n(L, N, F) ->
-    fix_list([F(SL, N) || SL <- n_length_chunks(L, N)], 0, []).
 
 empty_(L, N) ->
     lists:sum([1 || {false, _} <- L]) + (N - length(L)).
@@ -449,13 +444,6 @@ count_below_(L, N, T) ->
     end,
     apply_n(L, N, Fun).
 
-fix_list([undefined | T], Last, Acc) ->
-    fix_list(T, Last, [Last | Acc]);
-fix_list([V | T], _, Acc) ->
-    fix_list(T, V, [V | Acc]);
-fix_list([],_,Acc) ->
-    lists:reverse(Acc).
-
 derivate([]) ->
     [];
 derivate([{true, H} | T]) ->
@@ -490,10 +478,3 @@ ceiling(X) ->
         Pos when Pos > 0 -> T + 1;
         _ -> T
     end.
-%% taken from http://stackoverflow.com/questions/12534898/splitting-a-list-in-equal-sized-chunks-in-erlang
-n_length_chunks([],_) -> [];
-n_length_chunks(List,Len) when Len > length(List) ->
-    [List];
-n_length_chunks(List,Len) ->
-    {Head,Tail} = lists:split(Len,List),
-    [Head | n_length_chunks(Tail,Len)].

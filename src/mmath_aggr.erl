@@ -22,7 +22,13 @@
          first_above/3,
          last_above/3,
          count_above/3,
-         count_below/3]).
+         count_below/3,
+         first_below_conf/3,
+         last_below_conf/3,
+         first_above_conf/3,
+         last_above_conf/3,
+         count_above_conf/3,
+         count_below_conf/3]).
 
 -include("mmath.hrl").
 
@@ -175,6 +181,66 @@ count_above(_Data, _T, _Count) ->
 %%--------------------------------------------------------------------
 -spec count_below(binary(), float(), pos_integer()) -> binary().
 count_below(_Data, _T, _Count) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Return the first point in a given chunk that has a confidence which
+%% is below a given threshold.
+%% @end
+%%--------------------------------------------------------------------
+-spec first_below_conf(binary(), float(), pos_integer()) -> binary().
+first_below_conf(_Data, _T, _Count) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Return the last point in a given chunk that has a confidence which
+%% is below a given threshold.
+%% @end
+%%--------------------------------------------------------------------
+-spec last_below_conf(binary(), float(), pos_integer()) -> binary().
+last_below_conf(_Data, _T, _Count) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Return the first point in a given chunk that has a confidence which
+%% is above a given threshold.
+%% @end
+%%--------------------------------------------------------------------
+-spec first_above_conf(binary(), float(), pos_integer()) -> binary().
+first_above_conf(_Data, _T, _Count) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Return the last point in a given chunk that has a confidence which
+%% is above a given threshold.
+%% @end
+%%--------------------------------------------------------------------
+-spec last_above_conf(binary(), float(), pos_integer()) -> binary().
+last_above_conf(_Data, _T, _Count) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Return the total number in a given chunk that are above a given
+%% confidence threshold.
+%% @end
+%%--------------------------------------------------------------------
+-spec count_above_conf(binary(), float(), pos_integer()) -> binary().
+count_above_conf(_Data, _T, _Count) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Return the total number in a given chunk that are below a given
+%% confidence threshold.
+%% @end
+%%--------------------------------------------------------------------
+-spec count_below_conf(binary(), float(), pos_integer()) -> binary().
+count_below_conf(_Data, _T, _Count) ->
     erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------

@@ -7,8 +7,8 @@
 -export([number_array/0, pos_int/0, non_neg_int/0, supported_number/0,
          defined_number_array/0, non_empty_number_list/0, raw_number_array/0,
          pad_to_n/2, fully_defined_number_array/0, from_decimal/1, realise/1,
-         realise/3, almost_equal/4, almost_equal/2, confidence/1,
-         within_epsilon/3, number_array/1]).
+         realise/3, almost_equal/4, almost_equal/2, confidence/1, to_list_d/1,
+         within_epsilon/3, number_array/1, apply_n/3, n_length_chunks/2]).
 
 -define(EPSILON, math:pow(10, 3 - ?DEC_PRECISION)).
 -define(DELTA, 0.99999999).
@@ -174,3 +174,28 @@ pad_to_n(L, N) when (length(L) rem N) == 0 ->
     L;
 pad_to_n(L, N) ->
     pad_to_n(L ++ [0], N).
+
+apply_n(L, N, F) ->
+    fix_list([F(SL, N) || SL <- n_length_chunks(L, N)], 0, []).
+
+%% taken from http://stackoverflow.com/questions/12534898/splitting-a-list-in-equal-sized-chunks-in-erlang
+n_length_chunks([], _) -> [];
+n_length_chunks(List, Len) when Len > length(List) ->
+    [List];
+n_length_chunks(List, Len) ->
+    {Head,Tail} = lists:split(Len,List),
+    [Head | n_length_chunks(Tail,Len)].
+
+to_list_d(X) ->
+     mmath_bin:to_list(mmath_bin:derealize(X)).
+
+%% ===========================================================================
+%% Internal functions
+%% ===========================================================================
+
+fix_list([undefined | T], Last, Acc) ->
+    fix_list(T, Last, [Last | Acc]);
+fix_list([V | T], _, Acc) ->
+    fix_list(T, V, [V | Acc]);
+fix_list([],_,Acc) ->
+    lists:reverse(Acc).

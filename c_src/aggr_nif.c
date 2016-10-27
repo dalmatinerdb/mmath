@@ -232,7 +232,7 @@ threshold(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[], threshold_func f)
   return r;
 }
 
-ffloat first_below_(ffloat* vs, uint32_t count, double level)
+ffloat first_below(ffloat* vs, uint32_t count, double level)
 {
   uint32_t i = 0;
   double confidence = 0;
@@ -250,12 +250,12 @@ ffloat first_below_(ffloat* vs, uint32_t count, double level)
 }
 
 static ERL_NIF_TERM
-first_below(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+nif_first_below(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-  return threshold(env, argc, argv, first_below_);
+  return threshold(env, argc, argv, first_below);
 }
 
-ffloat first_above_(ffloat* vs, uint32_t count, double level)
+ffloat first_above(ffloat* vs, uint32_t count, double level)
 {
   uint32_t i = 0;
   double confidence = 0;
@@ -273,12 +273,12 @@ ffloat first_above_(ffloat* vs, uint32_t count, double level)
 }
 
 static ERL_NIF_TERM
-first_above(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+nif_first_above(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-  return threshold(env, argc, argv, first_above_);
+  return threshold(env, argc, argv, first_above);
 }
 
-ffloat last_below_(ffloat* vs, uint32_t count, double level)
+ffloat last_below(ffloat* vs, uint32_t count, double level)
 {
   int32_t i = count - 1;
   double confidence = 0;
@@ -296,12 +296,12 @@ ffloat last_below_(ffloat* vs, uint32_t count, double level)
 }
 
 static ERL_NIF_TERM
-last_below(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+nif_last_below(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-  return threshold(env, argc, argv, last_below_);
+  return threshold(env, argc, argv, last_below);
 }
 
-ffloat last_above_(ffloat* vs, uint32_t count, double level)
+ffloat last_above(ffloat* vs, uint32_t count, double level)
 {
   int32_t i = count - 1;
   double confidence = 0;
@@ -319,12 +319,12 @@ ffloat last_above_(ffloat* vs, uint32_t count, double level)
 }
 
 static ERL_NIF_TERM
-last_above(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+nif_last_above(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-  return threshold(env, argc, argv, last_above_);
+  return threshold(env, argc, argv, last_above);
 }
 
-ffloat count_above_(ffloat* vs, uint32_t count, double level)
+ffloat count_above(ffloat* vs, uint32_t count, double level)
 {
   uint32_t counter = 0;
   double confidence = 0;
@@ -347,12 +347,12 @@ ffloat count_above_(ffloat* vs, uint32_t count, double level)
 }
 
 static ERL_NIF_TERM
-count_above(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+nif_count_above(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-  return threshold(env, argc, argv, count_above_);
+  return threshold(env, argc, argv, count_above);
 }
 
-ffloat count_below_(ffloat* vs, uint32_t count, double level)
+ffloat count_below(ffloat* vs, uint32_t count, double level)
 {
   uint32_t counter = 0;
   double confidence = 0;
@@ -375,23 +375,158 @@ ffloat count_below_(ffloat* vs, uint32_t count, double level)
 }
 
 static ERL_NIF_TERM
-count_below(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+nif_count_below(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-  return threshold(env, argc, argv, count_below_);
+  return threshold(env, argc, argv, count_below);
+}
+
+ffloat first_above_conf(ffloat* vs, uint32_t count, double level)
+{
+  uint32_t i = 0;
+  while(i < count) {
+    if (vs[i].confidence > level) {
+      return vs[i];
+    }
+    i++;
+  }
+  return (ffloat) {.confidence = 0, .value = 0};
+}
+
+static ERL_NIF_TERM
+nif_first_above_conf(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  return threshold(env, argc, argv, first_above_conf);
+}
+
+ffloat first_below_conf(ffloat* vs, uint32_t count, double level)
+{
+  uint32_t i = 0;
+  while(i < count) {
+    if (vs[i].confidence < level) {
+      return vs[i];
+    }
+    i++;
+  }
+  return (ffloat) {.confidence = 0, .value = 0};
+}
+
+static ERL_NIF_TERM
+nif_first_below_conf(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  return threshold(env, argc, argv, first_below_conf);
+}
+
+ffloat last_above_conf(ffloat* vs, uint32_t count, double level)
+{
+  int32_t i = count - 1;
+  while(i >= 0) {
+    if (vs[i].confidence > level) {
+      return vs[i];
+    }
+    i--;
+  }
+  return (ffloat) {.confidence = 0, .value = 0};
+}
+
+static ERL_NIF_TERM
+nif_last_above_conf(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  return threshold(env, argc, argv, last_above_conf);
+}
+
+ffloat last_below_conf(ffloat* vs, uint32_t count, double level)
+{
+  int32_t i = count - 1;
+  double confidence = 0;
+  while(i >= 0) {
+    if (vs[i].confidence < level) {
+      return vs[i];
+    }
+    i--;
+  }
+  return (ffloat) {.confidence = 0, .value = 0};
+}
+
+static ERL_NIF_TERM
+nif_last_below_conf(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  return threshold(env, argc, argv, last_below_conf);
+}
+
+ffloat count_above_conf(ffloat* vs, uint32_t count, double level)
+{
+  uint32_t counter = 0;
+  double confidence = 0;
+
+  for (uint32_t i = 0; i < count; i ++) {
+    if (vs[i].confidence > level) {
+      counter++;
+    }
+    confidence += vs[i].confidence;
+  }
+
+  if (counter) {
+    return (ffloat) {
+      .confidence = confidence / count,
+      .value = counter
+    };
+  } else {
+    return (ffloat) {.confidence = 0, .value = 0};
+  }
+}
+
+static ERL_NIF_TERM
+nif_count_above_conf(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  return threshold(env, argc, argv, count_above_conf);
+}
+
+ffloat count_below_conf(ffloat* vs, uint32_t count, double level)
+{
+  uint32_t counter = 0;
+  double confidence = 0;
+
+  for (uint32_t i = 0; i < count; i ++) {
+    if (vs[i].confidence < level) {
+      counter++;
+    }
+    confidence += vs[i].confidence;
+  }
+
+  if (counter) {
+    return (ffloat) {
+      .confidence = confidence / count,
+      .value = counter
+    };
+  } else {
+    return (ffloat) {.confidence = 0, .value = 0};
+  }
+}
+
+static ERL_NIF_TERM
+nif_count_below_conf(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  return threshold(env, argc, argv, count_below_conf);
 }
 
 static ErlNifFunc nif_funcs[] = {
-  {"min",         2, min},
-  {"max",         2, max},
-  {"sum",         2, sum},
-  {"avg",         2, avg},
-  {"percentile",  3, percentile},
-  {"first_below", 3, first_below},
-  {"first_above", 3, first_above},
-  {"last_below",  3, last_below},
-  {"last_above",  3, last_above},
-  {"count_below", 3, count_below},
-  {"count_above", 3, count_above}
+  {"min",              2, min},
+  {"max",              2, max},
+  {"sum",              2, sum},
+  {"avg",              2, avg},
+  {"percentile",       3, percentile},
+  {"first_below",      3, nif_first_below},
+  {"first_above",      3, nif_first_above},
+  {"last_below",       3, nif_last_below},
+  {"last_above",       3, nif_last_above},
+  {"count_below",      3, nif_count_below},
+  {"count_above",      3, nif_count_above},
+  {"first_below_conf", 3, nif_first_below_conf},
+  {"first_above_conf", 3, nif_first_above_conf},
+  {"last_below_conf",  3, nif_last_below_conf},
+  {"last_above_conf",  3, nif_last_above_conf},
+  {"count_below_conf", 3, nif_count_below_conf},
+  {"count_above_conf", 3, nif_count_above_conf}
 };
 
 // Initialize this NIF library.

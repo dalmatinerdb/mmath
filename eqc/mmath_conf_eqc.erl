@@ -3,7 +3,9 @@
 -include("../include/mmath.hrl").
 
 -import(mmath_helper,
-        [number_array/0, pos_int/0, within_epsilon/3, confidence/1, pad_to_n/2]).
+        [number_array/0, defined_number_array/0, pos_int/0, within_epsilon/3,
+         confidence/1, pad_to_n/2, realise/1, almost_equal/2, to_list_d/1,
+         apply_n/3]).
 
 -import(mmath_aggr_eqc,
         [avg/2]).
@@ -131,3 +133,149 @@ prop_confidence() ->
                                     [CExp, CCalc]),
                           CExp == CCalc)
             end).
+
+prop_first_above_conf() ->
+    ?FORALL({{L0, _, B}, N, T}, {defined_number_array(), pos_int(), pos_int()},
+            begin
+                Threshold = T + 0.0,
+                L = realise(L0),
+                C = confidence(L0),
+                LC = lists:zip(L, C),
+                LRes = first_above_conf_(LC, N, Threshold),
+                BRes = to_list_d(mmath_aggr:first_above_conf(B, Threshold, N)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
+            end).
+
+prop_first_below_conf() ->
+    ?FORALL({{L0, _, B}, N, T}, {defined_number_array(), pos_int(), pos_int()},
+            begin
+                Threshold = T + 0.0,
+                L = realise(L0),
+                C = confidence(L0),
+                LC = lists:zip(L, C),
+                LRes = first_below_conf_(LC, N, Threshold),
+                BRes = to_list_d(mmath_aggr:first_below_conf(B, Threshold, N)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
+            end).
+
+prop_last_above_conf() ->
+    ?FORALL({{L0, _, B}, N, T}, {defined_number_array(), pos_int(), pos_int()},
+            begin
+                Threshold = T + 0.0,
+                L = realise(L0),
+                C = confidence(L0),
+                LC = lists:zip(L, C),
+                LRes = last_above_conf_(LC, N, Threshold),
+                BRes = to_list_d(mmath_aggr:last_above_conf(B, Threshold, N)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
+            end).
+
+prop_last_below_conf() ->
+    ?FORALL({{L0, _, B}, N, T}, {defined_number_array(), pos_int(), pos_int()},
+            begin
+                Threshold = T + 0.0,
+                L = realise(L0),
+                C = confidence(L0),
+                LC = lists:zip(L, C),
+                LRes = last_below_conf_(LC, N, Threshold),
+                BRes = to_list_d(mmath_aggr:last_below_conf(B, Threshold, N)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
+            end).
+
+prop_count_above_conf() ->
+    ?FORALL({{L0, _, B}, N, T}, {defined_number_array(), pos_int(), pos_int()},
+            begin
+                Threshold = T + 0.0,
+                L = realise(L0),
+                C = confidence(L0),
+                LC = lists:zip(L, C),
+                LRes = count_above_conf_(LC, N, Threshold),
+                BRes = to_list_d(mmath_aggr:count_above_conf(B, Threshold, N)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
+            end).
+
+prop_count_below_conf() ->
+    ?FORALL({{L0, _, B}, N, T}, {defined_number_array(), pos_int(), pos_int()},
+            begin
+                Threshold = T + 0.0,
+                L = realise(L0),
+                C = confidence(L0),
+                LC = lists:zip(L, C),
+                LRes = count_below_conf_(LC, N, Threshold),
+                BRes = to_list_d(mmath_aggr:count_below_conf(B, Threshold, N)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
+            end).
+
+first_above_conf_(L, N, T) ->
+    Fun = fun(InnerL, _N) ->
+        case lists:filter(fun({_X, C}) -> C > T end, InnerL) of
+            [] ->
+                0.0;
+            [{H, _C} | _] ->
+                H
+        end
+    end,
+    apply_n(L, N, Fun).
+
+first_below_conf_(L, N, T) ->
+    Fun = fun(InnerL, _N) ->
+        case lists:filter(fun({_X, C}) -> C < T end, InnerL) of
+            [] ->
+                0.0;
+            [{H, _C} | _] ->
+                H
+        end
+    end,
+    apply_n(L, N, Fun).
+
+last_above_conf_(L, N, T) ->
+    Fun = fun(InnerL, _N) ->
+        case lists:filter(fun({_X, C}) -> C > T end, lists:reverse(InnerL)) of
+            [] ->
+                0.0;
+            [{H, _C} | _] ->
+                H
+        end
+    end,
+    apply_n(L, N, Fun).
+
+last_below_conf_(L, N, T) ->
+    Fun = fun(InnerL, _N) ->
+        case lists:filter(fun({_X, C}) -> C < T end, lists:reverse(InnerL)) of
+            [] ->
+                0.0;
+            [{H, _C} | _] ->
+                H
+        end
+    end,
+    apply_n(L, N, Fun).
+
+count_above_conf_(L, N, T) ->
+    Fun = fun(InnerL, _N) ->
+        length(lists:filter(fun({_X, C}) -> C > T end, InnerL))
+    end,
+    apply_n(L, N, Fun).
+
+count_below_conf_(L, N, T) ->
+    Fun = fun(InnerL, _N) ->
+        length(lists:filter(fun({_X, C}) -> C < T end, InnerL))
+    end,
+    apply_n(L, N, Fun).

@@ -82,4 +82,3 @@ ffloat float_max3(ffloat a, ffloat b, ffloat c);
 ffloat float_minc(ffloat v, double c);
 
 ffloat float_const(ffloat a, double b);
-
