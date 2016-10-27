@@ -130,24 +130,100 @@ square_root(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (! (target = (ffloat*) enif_make_new_binary(env, count * sizeof(ffloat), &r)))
     return enif_make_badarg(env); // TODO return propper error
   for (int i = 0; i < count; i++) {
-    target[i] = (ffloat){
-      .confidence = vs[i].confidence,
-      .value = sqrt(vs[i].value)
-    };
+    if (vs[i].value < 0) {
+      target[i] = (ffloat){
+        .confidence = vs[i].confidence,
+        .value = sqrt(vs[i].value * -1) * - 1
+      };
+    } else {
+      target[i] = (ffloat){
+        .confidence = vs[i].confidence,
+        .value = sqrt(vs[i].value)
+      };
+    }
   }
   return r;
 }
 
+static ERL_NIF_TERM
+c_log10(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  ErlNifBinary a;
+  ERL_NIF_TERM r;
+  ffloat* vs;
+  ffloat* target;
+  int count;
+
+  if (argc != 1)
+    return enif_make_badarg(env);
+
+  GET_BIN(0, a, count, vs);
+
+  if (! (target = (ffloat*) enif_make_new_binary(env, count * sizeof(ffloat), &r)))
+    return enif_make_badarg(env); // TODO return propper error
+  for (int i = 0; i < count; i++) {
+    if (vs[i].value < 0) {
+      target[i] = (ffloat){
+        .confidence = vs[i].confidence,
+        .value = log10(vs[i].value * -1) * - 1
+      };
+    } else if (vs[i].value == 0) {
+      target[i] = (ffloat){
+        .confidence = vs[i].confidence,
+        .value = 0
+      };
+    } else {
+      target[i] = (ffloat){
+        .confidence = vs[i].confidence,
+        .value = log10(vs[i].value)
+      };
+    }
+  }
+  return r;
+}
+
+static ERL_NIF_TERM
+c_abs(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  ErlNifBinary a;
+  ERL_NIF_TERM r;
+  ffloat* vs;
+  ffloat* target;
+  int count;
+
+  if (argc != 1)
+    return enif_make_badarg(env);
+
+  GET_BIN(0, a, count, vs);
+
+  if (! (target = (ffloat*) enif_make_new_binary(env, count * sizeof(ffloat), &r)))
+    return enif_make_badarg(env); // TODO return propper error
+  for (int i = 0; i < count; i++) {
+    if (vs[i].value >= 0) {
+      target[i] = vs[i];
+    } else {
+      target[i] = (ffloat){
+        .confidence = vs[i].confidence,
+        .value = vs[i].value * - 1.0
+      };
+    }
+  }
+  return r;
+}
+
+
 static ErlNifFunc nif_funcs[] = {
-  {"add",        2, add},
-  {"sub",        2, sub},
-  {"mul",        2, mul},
-  {"min",        2, min},
-  {"max",        2, max},
-  {"divide",     2, divide},
-  {"derivate",   1, derivate},
-  {"confidence", 1, confidence},
-  {"sqrt",       1, square_root}
+  {"add",         2, add},
+  {"sub",         2, sub},
+  {"mul",         2, mul},
+  {"min",         2, min},
+  {"max",         2, max},
+  {"divide",      2, divide},
+  {"derivate",    1, derivate},
+  {"confidence",  1, confidence},
+  {"sqrt_scale",  1, square_root},
+  {"log10_scale", 1, c_log10},
+  {"abs",         1, c_abs}
 };
 
 // Initialize this NIF library.

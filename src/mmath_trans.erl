@@ -17,7 +17,10 @@
          sub/2,
          min/2,
          max/2,
-         sqrt/1]).
+         abs/1,
+         sqrt_scale/1,
+         log10_scale/1
+        ]).
 
 -include("mmath.hrl").
 
@@ -101,11 +104,31 @@ confidence(_) ->
 
 %%--------------------------------------------------------------------
 %% @doc
-%% Calculates the square root of each value in a series
+%% Calculates the square root of each value in a series.
+%% Note for convinience: sqrt(-X) == - sqrt(X).
 %% @end
 %%--------------------------------------------------------------------
--spec sqrt(binary()) -> binary().
-sqrt(_) ->
+-spec sqrt_scale(binary()) -> binary().
+sqrt_scale(_) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Calculates the log10 of each value in a series.
+%% Note for convinience: log10(-X) == - log10(X).
+%% @end
+%%--------------------------------------------------------------------
+-spec log10_scale(binary()) -> binary().
+log10_scale(_) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Calculates abs for each value in a series
+%% @end
+%%--------------------------------------------------------------------
+-spec abs(binary()) -> binary().
+abs(_) ->
     erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------

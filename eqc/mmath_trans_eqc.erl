@@ -22,6 +22,39 @@ prop_der() ->
                    almost_equal(LRes, BRes))
             end).
 
+prop_sqrt_scale() ->
+    ?FORALL({L, _, B}, defined_number_array(),
+            begin
+                LRes = sqrt_scale(L),
+                BRes = to_list_d(mmath_trans:sqrt_scale(B)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
+            end).
+
+prop_abs() ->
+    ?FORALL({L, _, B}, defined_number_array(),
+            begin
+                LRes = abs_(L),
+                BRes = to_list_d(mmath_trans:abs(B)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
+            end).
+
+prop_log10_scale() ->
+    ?FORALL({L, _, B}, defined_number_array(),
+            begin
+                LRes = log10_scale(L),
+                BRes = to_list_d(mmath_trans:log10_scale(B)),
+                ?WHENFAIL(
+                   io:format(user, "~p =/= ~p~n",
+                             [LRes, BRes]),
+                   almost_equal(LRes, BRes))
+            end).
+
 prop_der_len_undefined() ->
     ?FORALL(L, non_neg_int(),
             L == len_r(mmath_trans:derivate(empty_r(L)))).
@@ -332,3 +365,48 @@ n_length_chunks(List,Len) when Len > length(List) ->
 n_length_chunks(List,Len) ->
     {Head,Tail} = lists:split(Len,List),
     [Head | n_length_chunks(Tail,Len)].
+
+sqrt_scale([{false, _}|L]) ->
+    sqrt_scale([{true, find_first(L)} | L], 0, []);
+sqrt_scale(L) ->
+    sqrt_scale(L, 0, []).
+
+sqrt_scale([], _, Acc) ->
+    lists:reverse(Acc);
+sqrt_scale([{true, X} | R], _, Acc) when X < 0->
+    sqrt_scale(R, X * -1, [math:sqrt(X * -1) * -1 | Acc]);
+sqrt_scale([{true, X} | R], _, Acc) ->
+    sqrt_scale(R, X, [math:sqrt(X) | Acc]);
+sqrt_scale([{false, _} | R], X, Acc) ->
+    sqrt_scale(R, X, [math:sqrt(X) | Acc]).
+
+log10_scale([{false, _}|L]) ->
+    log10_scale([{true, find_first(L)} | L], 0, []);
+log10_scale(L) ->
+    log10_scale(L, 0, []).
+
+log10_scale([], _, Acc) ->
+    lists:reverse(Acc);
+log10_scale([{true, X} | R], _, Acc) when X == 0->
+    log10_scale(R, 0, [0 | Acc]);
+log10_scale([{true, X} | R], _, Acc) when X < 0->
+    log10_scale(R, X * -1, [math:log10(X * -1) * -1 | Acc]);
+log10_scale([{true, X} | R], _, Acc) ->
+    log10_scale(R, X, [math:log10(X) | Acc]);
+log10_scale([{false, _} | R], 0, Acc) ->
+    log10_scale(R, 0, [0 | Acc]);
+log10_scale([{false, _} | R], X, Acc) ->
+    log10_scale(R, X, [math:log10(X) | Acc]).
+
+abs_([{false, _}|L]) ->
+    abs_([{true, find_first(L)} | L], 0, []);
+abs_(L) ->
+    abs_(L, 0, []).
+
+abs_([], _, Acc) ->
+    lists:reverse(Acc);
+abs_([{true, X} | R], _, Acc) ->
+    abs_(R, X, [abs(X) | Acc]);
+abs_([{false, _} | R], X, Acc) ->
+    abs_(R, X, [abs(X) | Acc]).
+
