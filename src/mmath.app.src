@@ -6,4 +6,5 @@
               {env,[]},
               {mainteriners,["Heinz N. Gies"]},
               {licenses,["MIT"]},
+              {exclude_files, ["c_src/*.o", "c_src/*.d", "priv/*.so", "priv/.gitignore"]},
               {links,[{"Github","https://github.com/dalmatinerdb/mmath"}]}]}.
