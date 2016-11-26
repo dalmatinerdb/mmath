@@ -2,9 +2,7 @@
 
 // FUCK LINUX!
 
-#  define __USE_BSD
 #  include <stdint.h>
-#  include <endian.h>
 
 #if __BYTE_ORDER == __BIG_ENDIAN
 
@@ -13,8 +11,9 @@
 
 #else
 
-#define htonll(x) ((((uint64_t)htonl(x)) << 32) + htonl(x >> 32));
-#define ntohll(x) ((((uint64_t)ntohl(x)) << 32) + ntohl(x >> 32));
+#  include <arpa/inet.h>
+#define htonll(x) ((((uint64_t)htonl(x)) << 32) + htonl(x >> 32))
+#define ntohll(x) ((((uint64_t)ntohl(x)) << 32) + ntohl(x >> 32))
 
 #endif // __BYTE_ORDER == __BIG_ENDIAN
 
