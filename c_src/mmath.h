@@ -1,9 +1,23 @@
 #if defined(__linux__)
+
+// FUCK LINUX!
+
 #  define __USE_BSD
 #  include <stdint.h>
 #  include <endian.h>
-#  define htonll(v) htobe64(v)
-#  define ntohll(v) be64toh(v)
+
+#if __BYTE_ORDER == __BIG_ENDIAN
+
+#define htonll(x) ((uint64_t) x)
+#define ntohll(x) ((uint64_t) x)
+
+#else
+
+#define htonll(x) ((((uint64_t)htonl(x)) << 32) + htonl(x >> 32));
+#define ntohll(x) ((((uint64_t)ntohl(x)) << 32) + ntohl(x >> 32));
+
+#endif // __BYTE_ORDER == __BIG_ENDIAN
+
 /* On modern Os X'es (>= 10.10) htonll is defined in machine/endian.h, but on older it is missing */
 #elif defined(__APPLE__) && !defined(htonll)
 #  include <libkern/OSByteOrder.h>
