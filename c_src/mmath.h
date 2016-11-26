@@ -2,8 +2,8 @@
 #  define __USE_BSD
 #  include <stdint.h>
 #  include <endian.h>
-#  define htonll(v) htobe64(v)
-#  define ntohll(v) be64toh(v)
+#  define htonll(v) celo_hton64(v)
+#  define ntohll(v) celo_ntoh64(v)
 /* On modern Os X'es (>= 10.10) htonll is defined in machine/endian.h, but on older it is missing */
 #elif defined(__APPLE__) && !defined(htonll)
 #  include <libkern/OSByteOrder.h>
