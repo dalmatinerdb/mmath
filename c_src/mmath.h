@@ -3,6 +3,7 @@
 // FUCK LINUX!
 
 #  include <stdint.h>
+#  include <sys/param.h>
 
 #if __BYTE_ORDER == __BIG_ENDIAN
 
