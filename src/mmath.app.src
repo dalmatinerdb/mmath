@@ -1,10 +1,11 @@
 {application,mmath,
              [{description,"math library for metric sequences and binary arrays."},
-              {vsn,"0.2.13"},
+              {vsn,"0.2.14"},
               {registered,[]},
               {applications,[kernel,stdlib]},
               {env,[]},
               {mainteriners,["Heinz N. Gies"]},
               {licenses,["MIT"]},
-              {exclude_files, ["c_src/*.o", "c_src/*.d", "priv/*.so", "priv/.gitignore"]},
+              {exclude_files,["c_src/*.o","c_src/*.d","priv/*.so",
+                              "priv/.gitignore"]},
               {links,[{"Github","https://github.com/dalmatinerdb/mmath"}]}]}.
