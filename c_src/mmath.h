@@ -5,7 +5,7 @@
 #  include <stdint.h>
 #  include <sys/param.h>
 
-#if __BYTE_ORDER == __BIG_ENDIAN
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 
 #define htonll(x) ((uint64_t) x)
 #define ntohll(x) ((uint64_t) x)
