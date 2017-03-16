@@ -1,3 +1,7 @@
+#if defined(__FreeBSD__)
+#include <sys/types.h>
+#endif
+
 #if defined(__linux__)
 
 // FUCK LINUX!
