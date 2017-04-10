@@ -1,5 +1,8 @@
 #if defined(__FreeBSD__)
 #include <sys/types.h>
+#include <sys/endian.h>
+#define htonll(x) bswap64(x)
+#define ntohll(x) bswap64(x)
 #endif
 
 #if defined(__linux__)
