@@ -7,7 +7,21 @@
 
 -include_lib("eqc/include/eqc.hrl").
 
--compile(export_all).
+-export([avg/2]).
+
+-export([prop_sum/0,
+         prop_sum3/0,
+         prop_diff/0,
+         prop_diff3/0,
+         prop_product/0,
+         prop_product3/0,
+         prop_quotient/0,
+         prop_quotient3/0,
+         prop_avg/0,
+         prop_min/0,
+         prop_min3/0,
+         prop_max/0,
+         prop_max3/0]).
 
 array_size() ->
     choose(1, 50).

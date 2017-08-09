@@ -10,7 +10,29 @@
 
 -include_lib("eqc/include/eqc.hrl").
 
--compile(export_all).
+-export([avg/2]).
+
+-export([prop_n_length_chunks/0,
+         prop_percentile_all/0,
+         prop_avg_all/0,
+         prop_avg_len/0,
+         prop_combine_avg_N/0,
+         prop_avg_impl/0,
+         prop_avg_len_undefined/0,
+         prop_sum/0,
+         prop_sum_len_undefined/0,
+         prop_min/0,
+         prop_min_len_undefined/0,
+         prop_max/0,
+         prop_max_len_undefined/0,
+         prop_stddev/0,
+         prop_first_below/0,
+         prop_first_above/0,
+         prop_last_below/0,
+         prop_last_above/0,
+         prop_count_above/0,
+         prop_count_below/0,
+         prop_ceiling/0]).
 
 prop_n_length_chunks() ->
     ?FORALL({L, N}, {list(int()), pos_int()},
@@ -319,11 +341,11 @@ len_r(X) ->
     mmath_bin:length(mmath_bin:derealize(X)).
 
 
-mul_n(L, S) ->
-    [N * S || N <- L].
+%% mul_n(L, S) ->
+%%     [N * S || N <- L].
 
-div_n(L, S) ->
-    [N / S || N <- L].
+%% div_n(L, S) ->
+%%     [N / S || N <- L].
 
 avg(L, N) ->
     apply_n(L, N, fun avg_/2).
@@ -340,11 +362,11 @@ min_list(L, N) ->
 max_list(L, N) ->
     apply_n(L, N, fun max_/2).
 
-empty(L, N) ->
-    apply_n(L, N, fun empty_/2).
+%% empty(L, N) ->
+%%     apply_n(L, N, fun empty_/2).
 
-empty_(L, N) ->
-    lists:sum([1 || {false, _} <- L]) + (N - length(L)).
+%% empty_(L, N) ->
+%%     lists:sum([1 || {false, _} <- L]) + (N - length(L)).
 
 avg_(L, N) ->
     case length(L) of
@@ -444,27 +466,27 @@ count_below_(L, N, T) ->
     end,
     apply_n(L, N, Fun).
 
-derivate([]) ->
-    [];
-derivate([{true, H} | T]) ->
-    derivate(H, T, []);
-derivate([{false, _} | T]) ->
-    derivate(find_first(T), T, []).
+%% derivate([]) ->
+%%     [];
+%% derivate([{true, H} | T]) ->
+%%     derivate(H, T, []);
+%% derivate([{false, _} | T]) ->
+%%     derivate(find_first(T), T, []).
 
-derivate(H, [{true, H1} | T], Acc) ->
-    derivate(H1, T, [H1 - H | Acc]);
-derivate(H, [{false, _} | T], Acc) ->
-    derivate(H, T, [0 | Acc]);
-derivate(_, [], Acc) ->
-    lists:reverse(Acc).
+%% derivate(H, [{true, H1} | T], Acc) ->
+%%     derivate(H1, T, [H1 - H | Acc]);
+%% derivate(H, [{false, _} | T], Acc) ->
+%%     derivate(H, T, [0 | Acc]);
+%% derivate(_, [], Acc) ->
+%%     lists:reverse(Acc).
 
 
-find_first([]) ->
-    0;
-find_first([{true, V} | _]) ->
-    V;
-find_first([{false, _}| R]) ->
-    find_first(R).
+%% find_first([]) ->
+%%     0;
+%% find_first([{true, V} | _]) ->
+%%     V;
+%% find_first([{false, _}| R]) ->
+%%     find_first(R).
 
 prop_ceiling() ->
     ?FORALL(F, real(),

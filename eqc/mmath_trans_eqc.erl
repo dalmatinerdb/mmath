@@ -9,7 +9,20 @@
 
 -include_lib("eqc/include/eqc.hrl").
 
--compile(export_all).
+-export([prop_der/0,
+         prop_sqrt_scale/0,
+         prop_abs/0,
+         prop_log10_scale/0,
+         prop_der_len_undefined/0,
+         prop_add/0,
+         prop_minc/0,
+         prop_maxc/0,
+         prop_sub/0,
+         prop_mul/0,
+         prop_div/0,
+         prop_combine_sum_identity/0,
+         prop_combine_sum_N/0,
+         prop_ceiling/0]).
 
 prop_der() ->
     ?FORALL({L, _, B}, defined_number_array(),
@@ -256,65 +269,6 @@ mul_n(L, S) ->
 div_n(L, S) ->
     [N / S || N <- L].
 
-avg(L, N) ->
-    apply_n(L, N, fun avg_/2).
-
-sum(L, N) ->
-    apply_n(L, N, fun sum_/2).
-
-min_list(L, N) ->
-    apply_n(L, N, fun min_/2).
-
-max_list(L, N) ->
-    apply_n(L, N, fun max_/2).
-
-empty(L, N) ->
-    apply_n(L, N, fun empty_/2).
-
-apply_n(L, N, F) ->
-    fix_list([F(SL, N) || SL <- n_length_chunks(L, N)], 0, []).
-
-empty_(L, N) ->
-    lists:sum([1 || {false, _} <- L]) + (N - length(L)).
-
-avg_(L, N) ->
-    case length(L) of
-        N ->
-            lists:sum(L);
-        Len ->
-            lists:sum(L) + (lists:last(L) * (N - Len))
-    end / N.
-
-sum_(L, N) ->
-    case length(L) of
-        N ->
-            lists:sum(L);
-        Len ->
-            lists:sum(L) + (lists:last(L) * (N - Len))
-    end.
-
-min_(L, _N) ->
-    case lists:sort(L) of
-        [] ->
-            undefined;
-        [S | _ ] ->
-            S
-    end.
-
-max_(L, _N) ->
-    case lists:sort(L) of
-        [] ->
-            undefined;
-        L1 ->
-            lists:last(L1)
-    end.
-
-fix_list([undefined | T], Last, Acc) ->
-    fix_list(T, Last, [Last | Acc]);
-fix_list([V | T], _, Acc) ->
-    fix_list(T, V, [V | Acc]);
-fix_list([],_,Acc) ->
-    lists:reverse(Acc).
 
 derivate([]) ->
     [];
@@ -358,13 +312,6 @@ ceiling(X) ->
         Pos when Pos > 0 -> T + 1;
         _ -> T
     end.
-%% taken from http://stackoverflow.com/questions/12534898/splitting-a-list-in-equal-sized-chunks-in-erlang
-n_length_chunks([],_) -> [];
-n_length_chunks(List,Len) when Len > length(List) ->
-    [List];
-n_length_chunks(List,Len) ->
-    {Head,Tail} = lists:split(Len,List),
-    [Head | n_length_chunks(Tail,Len)].
 
 sqrt_scale([{false, _}|L]) ->
     sqrt_scale([{true, find_first(L)} | L], 0, []);

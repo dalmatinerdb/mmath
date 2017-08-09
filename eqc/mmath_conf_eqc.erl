@@ -12,7 +12,19 @@
 
 -include_lib("eqc/include/eqc.hrl").
 
--compile(export_all).
+-export([prop_avg_conf/0,
+         prop_perc_conf/0,
+         prop_sum_conf/0,
+         prop_max_conf/0,
+         prop_min_conf/0,
+         prop_comb_sum2_conf/0,
+         prop_confidence/0,
+         prop_first_above_conf/0,
+         prop_first_below_conf/0,
+         prop_last_above_conf/0,
+         prop_last_below_conf/0,
+         prop_count_above_conf/0,
+         prop_count_below_conf/0]).
 
 array_and_int() ->
     ?SUCHTHAT({{L, _, _}, _I},
