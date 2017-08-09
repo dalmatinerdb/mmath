@@ -8,7 +8,23 @@
 %%%-------------------------------------------------------------------
 -module(mmath_bench_SUITE).
 
--compile(export_all).
+-export([suite/0, groups/0, all/0,
+         init_per_suite/1, end_per_suite/1,
+         init_per_group/2, end_per_group/2,
+         init_per_testcase/2, end_per_testcase/2,
+         from_list_case/1,
+         to_list_case/1,
+         realize_case/1,
+         derealize_case/1,
+         aggr_case_/2,
+         sum_case/1,
+         avg_case/1,
+         min_case/1,
+         max_case/1,
+         comb_sum2_case/1,
+         comb_sum3_case/1,
+         comb_sum4_case/1
+        ]).
 
 -include_lib("common_test/include/ct.hrl").
 
@@ -220,10 +236,10 @@ comb_sum4_case(_Config) ->
 %%--------------------------------------------------------------------
 
 random_list(Size) ->
-    [random:uniform() * 1000000 || _ <- lists:seq(0, Size)].
+    [rand:uniform() * 1000000 || _ <- lists:seq(0, Size)].
 
 random_bin(Size) ->
     mmath_bin:from_list(random_list(Size)).
 
-random_bin_r(Size) ->
-    mmath_bin:realize(random_bin(Size)).
+%% random_bin_r(Size) ->
+%%     mmath_bin:realize(random_bin(Size)).

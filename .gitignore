@@ -12,3 +12,4 @@ deps
 TEST*
 .rebar
 rebar3.crashdump
+libs

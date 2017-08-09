@@ -12,7 +12,7 @@
 -include("mmath.hrl").
 
 -ifdef(TEST).
--compile(export_all).
+-export([]).
 -endif.
 
 -export([avg/1,
