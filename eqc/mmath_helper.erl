@@ -43,10 +43,6 @@ array_elements(0) ->
 
 array_elements(N) ->
     [array_element() | array_elements(N -1)].
-    %% ?LAZY(
-    %%    ?LETSHRINK({A, L},
-    %%               {},
-    %%               [A | L])).
 
 array_element() ->
     {frequency([{2, false}, {8, true}]), supported_number()}.
@@ -66,9 +62,9 @@ supported_int() ->
 non_empty_number_list() ->
     ?SUCHTHAT(L, list(supported_number()), L =/= []).
 
-ceil(X) when X < 0 ->
+ceil_(X) when X < 0 ->
     trunc(X);
-ceil(X) ->
+ceil_(X) ->
     T = trunc(X),
     case X - T == 0 of
         true -> T;
@@ -80,7 +76,7 @@ to_decimal(V) when V == 0.0 ->
 to_decimal(V) when is_integer(V) ->
     {V, 0};
 to_decimal(V) when is_float(V) ->
-    E = ceil(math:log10(abs(V))) - ?DEC_PRECISION,
+    E = ceil_(math:log10(abs(V))) - ?DEC_PRECISION,
     C = trunc(V / math:pow(10, E)),
     {C, E}.
 
