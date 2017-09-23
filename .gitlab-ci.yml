@@ -2,7 +2,8 @@ image: erlang:latest
 
 eqc:
   script:
-  - apt install unzip
+  - apt-get update
+  - apt-get install -y --no-install-recommends unzip
   - ./ci.sh
   
 dialyzer:
