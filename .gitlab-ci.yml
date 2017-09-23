@@ -2,6 +2,7 @@ image: erlang:latest
 
 eqc:
   script:
+  - apt install unzip
   - ./ci.sh
   
 dialyzer:
