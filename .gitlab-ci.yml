@@ -1,15 +1,5 @@
 image: erlang:latest
 
-
-before_script:
-  - ./rebar3 compile
-  - mix local.hex --force
-  - mix deps.get
-
-mix:
-  script:
-  - mix test
-
 eqc:
   script:
   - ./ci.sh
