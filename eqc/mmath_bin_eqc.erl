@@ -97,7 +97,7 @@ prop_deserialize_v02alpha() ->
                 L = mmath_bin:to_list(<<2:8, Exp:8, Coef:48>>),
                 ?WHENFAIL(io:format(user, "~p =/= ~p~n",
                                     [L, L1]),
-                          L == L1)
+                          almost_equal(L,L1))
             end).
 
 %% Make sure it reads suqashed floats introduced in v0.2 proper
