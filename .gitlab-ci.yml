@@ -1,10 +1,20 @@
 image: erlang:latest
 
-eqc:
+eqc-bsd:
   script:
   - apt-get update
   - apt-get install -y --no-install-recommends unzip
   - ./ci.sh
+  tags:
+  - bsd
+
+eqc-linux:
+  script:
+  - apt-get update
+  - apt-get install -y --no-install-recommends unzip
+  - ./ci.sh
+  tags:
+  - linux
   
 dialyzer:
     script:
