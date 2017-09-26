@@ -1,4 +1,3 @@
-image: erlang:latest
 
 eqc-bsd:
   script:
@@ -9,6 +8,7 @@ eqc-bsd:
   - bsd
 
 eqc-linux:
+  image: erlang:latest
   script:
   - apt-get update
   - apt-get install -y --no-install-recommends unzip
@@ -17,5 +17,6 @@ eqc-linux:
   - linux
   
 dialyzer:
-    script:
-    - ./rebar3 dialyzer
+  image: erlang:latest
+  script:
+  - ./rebar3 dialyzer
