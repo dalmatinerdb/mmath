@@ -1,8 +1,6 @@
 
 eqc-bsd:
   script:
-  - apt-get update
-  - apt-get install -y --no-install-recommends unzip
   - ./ci.sh
   tags:
   - bsd
