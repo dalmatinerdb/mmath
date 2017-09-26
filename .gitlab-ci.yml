@@ -1,4 +1,10 @@
 
+eqc-smartos:
+  script:
+  - ./ci.sh
+  tags:
+  - smartos
+
 eqc-bsd:
   script:
   - ./ci.sh
