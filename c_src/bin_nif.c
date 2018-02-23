@@ -199,6 +199,34 @@ replicate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 }
 
 
+static ERL_NIF_TERM
+clean(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  ErlNifBinary a;
+  ERL_NIF_TERM r;
+  ErlNifSInt64* vs;
+  ErlNifSInt64* target;
+  unsigned count;
+  unsigned j = 0;
+
+  if (argc != 1)
+    return enif_make_badarg(env);
+
+  GET_BIN(0, a, count, vs);
+
+  if (count % 2)
+    return enif_make_badarg(env); // TODO return propper error
+
+  if (!(target = (ErlNifSInt64*) enif_make_new_binary(env, (count / 2) * sizeof(ErlNifSInt64), &r)))
+    return enif_make_badarg(env); // TODO return propper error
+
+  for (unsigned i = 1 ; i < count; i = i + 2) {
+    target[j] = vs[i];
+    j++;
+  }
+  return r;
+}
+
 char get_type(ErlNifSInt64 ev) {
   int64_t v = ntohll(ev);
   return (uint8_t)((v & TYPE_MASK) >> 56);
@@ -210,7 +238,8 @@ static ErlNifFunc nif_funcs[] = {
   {"rdatasize",    0, rdatasize},
   {"realize",      1, realize},
   {"derealize",    1, derealize},
-  {"replicate",    2, replicate}
+  {"replicate",    2, replicate},
+  {"clean",        1, clean}
 };
 
 // Initialize this NIF library.

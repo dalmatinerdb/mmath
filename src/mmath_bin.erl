@@ -15,6 +15,7 @@
 -include("mmath.hrl").
 
 -export([from_list/1, to_list/1, empty/1, length/1, length_r/1,
+         clean/1,
          realize/1, derealize/1, rdatasize/0, merge/2, replicate/2]).
 
 -define(APPNAME, mmath).
@@ -114,6 +115,9 @@ replicate(_Data, _Count) ->
 rdatasize() ->
     erlang:nif_error(nif_library_not_loaded).
 
+clean(_Data) ->
+    erlang:nif_error(nif_library_not_loaded).
+
 %%--------------------------------------------------------------------
 %% @doc
 %% Merges two metric lists, filling holes in one with the data of the
@@ -140,6 +144,8 @@ merge(D, <<>>, Acc) ->
     <<Acc/binary, D/binary>>.
 
 -ifdef(TEST).
+clean_test() ->
+    ?assertEqual(<<1:64, 3:64>>, clean(<<0:64, 1:64, 2:64, 3:64>>)).
 
 size_test() ->
     ?assertEqual(?RDATA_SIZE, rdatasize()).
