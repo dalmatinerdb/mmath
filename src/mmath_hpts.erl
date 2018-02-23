@@ -13,7 +13,7 @@
 -endif.
 
 -include("mmath.hrl").
--export([from_list/1, to_list/1, empty/1, length/1, clean/1]).
+-export([from_list/1, to_list/1, empty/1, length/1, values/1, timestamps/1]).
 
 -define(APPNAME, mmath).
 -define(LIBNAME, hpts_nif).
@@ -61,10 +61,18 @@ to_list(<<VB:8/binary, T:64/unsigned-integer, R/binary>>, Acc) ->
 
 %%--------------------------------------------------------------------
 %% @doc
-%% Removes timestamps from the data
+%% Extracts values
 %% @end
 %%--------------------------------------------------------------------
-clean(_Data) ->
+values(_Data) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Extracts timestamps
+%% @end
+%%--------------------------------------------------------------------
+timestamps(_Data) ->
     erlang:nif_error(nif_library_not_loaded).
 
 %%--------------------------------------------------------------------
@@ -86,8 +94,10 @@ empty(C) ->
 
 
 -ifdef(TEST).
-clean_test() ->
-    ?assertEqual(<<0:64, 2:64>>, clean(<<0:64, 1:64, 2:64, 3:64>>)).
+values_test() ->
+    ?assertEqual(<<0:64, 2:64>>, values(<<0:64, 1:64, 2:64, 3:64>>)).
+timestamps_test() ->
+    ?assertEqual(<<1:64, 3:64>>, timestamps(<<0:64, 1:64, 2:64, 3:64>>)).
 one_test() ->
     ?assertEqual([{0, 1}], to_list(from_list([{0, 1}]))),
     ?assertEqual([{0, 1.0}], to_list(from_list([{0, 1.0}]))),
