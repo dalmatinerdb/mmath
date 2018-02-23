@@ -43,7 +43,8 @@ from_list(L) ->
 from_list([], Acc) ->
     Acc;
 from_list([{T, V} | R], Acc) ->
-    from_list(R, <<Acc/binary, (mmath_bin:from_list([V]))/binary, T:64/unsigned-integer>>).
+    from_list(R, <<Acc/binary, (mmath_bin:from_list([V]))/binary,
+                   T:64/unsigned-integer>>).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -101,5 +102,6 @@ timestamps_test() ->
 one_test() ->
     ?assertEqual([{0, 1}], to_list(from_list([{0, 1}]))),
     ?assertEqual([{0, 1.0}], to_list(from_list([{0, 1.0}]))),
-    ?assertEqual([{0, 1}, {0, 1.0}, {0, 1}], to_list(from_list([{0,1}, {0, 1.0}, {0, 1}]))).
+    ?assertEqual([{0, 1}, {0, 1.0}, {0, 1}],
+                 to_list(from_list([{0, 1}, {0, 1.0}, {0, 1}]))).
 -endif.
