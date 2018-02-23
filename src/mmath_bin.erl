@@ -145,7 +145,7 @@ merge(D, <<>>, Acc) ->
 
 -ifdef(TEST).
 clean_test() ->
-    ?assertEqual(<<1:64, 3:64>>, clean(<<0:64, 1:64, 2:64, 3:64>>)).
+    ?assertEqual(<<0:64, 2:64>>, clean(<<0:64, 1:64, 2:64, 3:64>>)).
 
 size_test() ->
     ?assertEqual(?RDATA_SIZE, rdatasize()).

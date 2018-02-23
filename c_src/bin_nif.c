@@ -220,7 +220,7 @@ clean(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if (!(target = (ErlNifSInt64*) enif_make_new_binary(env, (count / 2) * sizeof(ErlNifSInt64), &r)))
     return enif_make_badarg(env); // TODO return propper error
 
-  for (unsigned i = 1 ; i < count; i = i + 2) {
+  for (unsigned i = 0 ; i < count; i = i + 2) {
     target[j] = vs[i];
     j++;
   }
