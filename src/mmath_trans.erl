@@ -8,9 +8,14 @@
 %%%-------------------------------------------------------------------
 -module(mmath_trans).
 
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+-endif.
+
 -export([
          derivate/1,
          confidence/1,
+         replace_below_confidence/3,
          mul/2,
          divide/2,
          add/2,
@@ -104,6 +109,17 @@ confidence(_) ->
 
 %%--------------------------------------------------------------------
 %% @doc
+%% Transforms the series such that values with confidence lower
+%% than or equal to the threshold will be reset to the given default
+%% value.
+%% @end
+%%--------------------------------------------------------------------
+-spec replace_below_confidence(binary(), number(), number()) -> binary().
+replace_below_confidence(_, _Threshold, _Default) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+%%--------------------------------------------------------------------
+%% @doc
 %% Calculates the square root of each value in a series.
 %% Note for convinience: sqrt(-X) == - sqrt(X).
 %% @end
@@ -148,3 +164,38 @@ min(_M, _D) ->
 -spec max(binary(), number()) -> binary().
 max(_M, _D) ->
     erlang:nif_error(nif_library_not_loaded).
+
+-ifdef(TEST).
+
+%% first 8 octets is float serialized value
+%% last 8 octets is float serialized confidence
+-define(EMPTY, <<0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0>>).
+
+unconvert_h(X) ->
+    mmath_bin:to_list(mmath_bin:derealize(X)).
+
+convert_h(X) ->
+    mmath_bin:realize(mmath_bin:from_list(X)).
+
+replace_below_confidence_test() ->
+    ?assertEqual([1.0],
+                 unconvert_h(
+                   mmath_trans:replace_below_confidence(
+                     ?EMPTY, 0.9, 1.0))),
+    ?assertEqual([0.124, 2.0],
+                 unconvert_h(
+                   mmath_trans:replace_below_confidence(
+                     iolist_to_binary([?EMPTY, convert_h([2.0])]),
+                     0.9, 0.124))),
+    ?assertEqual([0.124, 0.122, 2.0, 0.124],
+                 unconvert_h(
+                   mmath_trans:replace_below_confidence(
+                     iolist_to_binary([?EMPTY, convert_h([0.122, 2.0]), ?EMPTY]),
+                     0.9, 0.124))),
+    ?assertEqual([0.124, 0.122, 2.0, 0.124, 14.09],
+                 unconvert_h(
+                   mmath_trans:replace_below_confidence(
+                     iolist_to_binary([?EMPTY, convert_h([0.122, 2.0]), ?EMPTY,
+                                      convert_h([14.09])]),
+                     0.9, 0.124))).
+-endif.

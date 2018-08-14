@@ -113,6 +113,57 @@ confidence(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   return r;
 }
 
+/* Given series, confidence level and default value reset everything
+   equal to or below with the given default value.
+ */
+static ERL_NIF_TERM
+replace_below_confidence(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  ErlNifBinary a;
+  ERL_NIF_TERM r;
+  ffloat* vs;
+  ErlNifSInt64 int_v;
+  double threshold_confidence;
+  ErlNifSInt64 int_default;
+  double default_value;
+  ffloat* target;
+  int count;
+
+  if (argc != 3)
+    return enif_make_badarg(env);
+
+  GET_BIN(0, a, count, vs);
+
+  if (enif_get_int64(env, argv[1], &int_v)) {
+    threshold_confidence = (double) int_v;
+  } else if (!enif_get_double(env, argv[1], &threshold_confidence)) {
+    return enif_make_badarg(env);
+  }
+
+  if (enif_get_int64(env, argv[2], &int_default)) {
+    default_value = (double) int_default;
+  } else if (!enif_get_double(env, argv[2], &default_value)) {
+    return enif_make_badarg(env);
+  }
+
+  if (! (target = (ffloat*) enif_make_new_binary(env, count * sizeof(ffloat), &r)))
+    return enif_make_badarg(env); // TODO return propper error
+  for (int i = 0; i < count; i++) {
+    if (vs[i].confidence > threshold_confidence) {
+      target[i] = (ffloat){
+        .value = vs[i].value,
+        .confidence = vs[i].confidence
+      };
+    } else {
+      target[i] = (ffloat){
+        .value = default_value,
+	.confidence = vs[i].confidence
+      };
+    }
+  }
+  return r;
+}
+
 static ERL_NIF_TERM
 square_root(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
@@ -221,6 +272,7 @@ static ErlNifFunc nif_funcs[] = {
   {"divide",      2, divide},
   {"derivate",    1, derivate},
   {"confidence",  1, confidence},
+  {"replace_below_confidence",  3, replace_below_confidence},
   {"sqrt_scale",  1, square_root},
   {"log10_scale", 1, c_log10},
   {"abs",         1, c_abs}
